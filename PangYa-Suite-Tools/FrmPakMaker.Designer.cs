@@ -49,6 +49,13 @@
         private System.Windows.Forms.ToolStripStatusLabel lblStatus;
         private System.Windows.Forms.ToolStripProgressBar progressBar1;
 
+        // Troca de chave XTEA
+        private System.Windows.Forms.Label lblNewKey;
+        private System.Windows.Forms.ComboBox cboNewRegion;
+        private System.Windows.Forms.Button btnChangeKey;
+        // trocar de linguagem
+        private System.Windows.Forms.ToolStripStatusLabel lblLanguage;
+        private System.Windows.Forms.ToolStripComboBox cboLanguage;
         protected override void Dispose(bool disposing)
         {
             if (disposing && (components != null))
@@ -82,6 +89,9 @@
             colCompSize = new ColumnHeader();
             btnBrowsePak = new Button();
             txtPakPath = new TextBox();
+            lblNewKey = new Label();
+            cboNewRegion = new ComboBox();
+            btnChangeKey = new Button();
             tabCreate = new TabPage();
             lblReg = new Label();
             lblLevel = new Label();
@@ -97,6 +107,8 @@
             statusStrip1 = new StatusStrip();
             lblStatus = new ToolStripStatusLabel();
             progressBar1 = new ToolStripProgressBar();
+            lblLanguage = new ToolStripStatusLabel();
+            cboLanguage = new ToolStripComboBox();
             tabControl1.SuspendLayout();
             tabExtract.SuspendLayout();
             groupHeader.SuspendLayout();
@@ -114,7 +126,7 @@
             tabControl1.Margin = new Padding(3, 2, 3, 2);
             tabControl1.Name = "tabControl1";
             tabControl1.SelectedIndex = 0;
-            tabControl1.Size = new Size(756, 397);
+            tabControl1.Size = new Size(756, 430);
             tabControl1.TabIndex = 0;
             // 
             // tabExtract
@@ -132,11 +144,14 @@
             tabExtract.Controls.Add(lstEntries);
             tabExtract.Controls.Add(btnBrowsePak);
             tabExtract.Controls.Add(txtPakPath);
+            tabExtract.Controls.Add(lblNewKey);
+            tabExtract.Controls.Add(cboNewRegion);
+            tabExtract.Controls.Add(btnChangeKey);
             tabExtract.Location = new Point(4, 24);
             tabExtract.Margin = new Padding(3, 2, 3, 2);
             tabExtract.Name = "tabExtract";
             tabExtract.Padding = new Padding(9, 8, 9, 8);
-            tabExtract.Size = new Size(748, 369);
+            tabExtract.Size = new Size(748, 402);
             tabExtract.TabIndex = 0;
             tabExtract.Text = "Leitor & Modificações";
             tabExtract.UseVisualStyleBackColor = true;
@@ -336,6 +351,37 @@
             txtPakPath.Size = new Size(622, 23);
             txtPakPath.TabIndex = 0;
             // 
+            // lblNewKey
+            // 
+            lblNewKey.Location = new Point(11, 368);
+            lblNewKey.Name = "lblNewKey";
+            lblNewKey.Size = new Size(130, 17);
+            lblNewKey.TabIndex = 13;
+            lblNewKey.Text = "🔑 Nova Chave (XTEA):";
+            // 
+            // cboNewRegion
+            // 
+            cboNewRegion.DropDownStyle = ComboBoxStyle.DropDownList;
+            cboNewRegion.Location = new Point(139, 365);
+            cboNewRegion.Margin = new Padding(3, 2, 3, 2);
+            cboNewRegion.Name = "cboNewRegion";
+            cboNewRegion.Size = new Size(280, 23);
+            cboNewRegion.TabIndex = 14;
+            // 
+            // btnChangeKey
+            // 
+            btnChangeKey.BackColor = Color.FromArgb(111, 66, 193);
+            btnChangeKey.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            btnChangeKey.ForeColor = Color.White;
+            btnChangeKey.Location = new Point(420, 364);
+            btnChangeKey.Margin = new Padding(3, 2, 3, 2);
+            btnChangeKey.Name = "btnChangeKey";
+            btnChangeKey.Size = new Size(310, 26);
+            btnChangeKey.TabIndex = 15;
+            btnChangeKey.Text = "🔐 TROCAR CHAVE DO PAK";
+            btnChangeKey.UseVisualStyleBackColor = false;
+            btnChangeKey.Click += btnChangeKey_Click;
+            // 
             // tabCreate
             // 
             tabCreate.Controls.Add(lblReg);
@@ -353,7 +399,7 @@
             tabCreate.Margin = new Padding(3, 2, 3, 2);
             tabCreate.Name = "tabCreate";
             tabCreate.Padding = new Padding(18, 15, 18, 15);
-            tabCreate.Size = new Size(748, 369);
+            tabCreate.Size = new Size(748, 402);
             tabCreate.TabIndex = 1;
             tabCreate.Text = "Criar Novo PAK";
             tabCreate.UseVisualStyleBackColor = true;
@@ -465,30 +511,43 @@
             // statusStrip1
             // 
             statusStrip1.ImageScalingSize = new Size(20, 20);
-            statusStrip1.Items.AddRange(new ToolStripItem[] { lblStatus, progressBar1 });
-            statusStrip1.Location = new Point(9, 405);
+            statusStrip1.Items.AddRange(new ToolStripItem[] { lblStatus, progressBar1, lblLanguage, cboLanguage });
+            statusStrip1.Location = new Point(9, 438);
             statusStrip1.Name = "statusStrip1";
             statusStrip1.Padding = new Padding(1, 0, 12, 0);
-            statusStrip1.Size = new Size(756, 22);
+            statusStrip1.Size = new Size(756, 23);
             statusStrip1.TabIndex = 1;
             // 
             // lblStatus
             // 
             lblStatus.Name = "lblStatus";
-            lblStatus.Size = new Size(43, 17);
+            lblStatus.Size = new Size(43, 18);
             lblStatus.Text = "Pronto";
             // 
             // progressBar1
             // 
             progressBar1.Name = "progressBar1";
-            progressBar1.Size = new Size(150, 16);
-            progressBar1.Visible = false;
+            progressBar1.Size = new Size(150, 17);
+            // 
+            // lblLanguage
+            // 
+            lblLanguage.Margin = new Padding(20, 0, 0, 0);
+            lblLanguage.Name = "lblLanguage";
+            lblLanguage.Size = new Size(47, 23);
+            lblLanguage.Text = "Idioma:";
+            // 
+            // cboLanguage
+            // 
+            cboLanguage.DropDownStyle = ComboBoxStyle.DropDownList;
+            cboLanguage.Name = "cboLanguage";
+            cboLanguage.Size = new Size(120, 23);
+            cboLanguage.SelectedIndexChanged += cboLanguage_SelectedIndexChanged;
             // 
             // FrmPakMaker
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(774, 453);
+            ClientSize = new Size(774, 487);
             Controls.Add(tabControl1);
             Controls.Add(statusStrip1);
             FormBorderStyle = FormBorderStyle.FixedSingle;

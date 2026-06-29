@@ -1,15 +1,7 @@
 ﻿using PangyaAPI.PAK.Flags;
 using PangyaAPI.PAK.Models;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
-using System.Drawing;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 
 namespace PangYa_Suite_Tools
 {
@@ -25,13 +17,100 @@ namespace PangYa_Suite_Tools
 
         // Conjunto de entries atualmente "no escopo" (pasta selecionada na árvore), antes do filtro de pesquisa
         private List<PakFileEntry> _scopedEntries = new();
-
+        private bool isInitializingLanguages = true;
         public FrmPakMaker()
         {
             InitializeComponent();
+            InitializeLanguageComboBox();
             SetupCustomComponents();
             LoadSetupOptions();
             SetupContextMenu(); // Inicializa o menu de contexto da ListView
+        }
+
+        private void InitializeLanguageComboBox()
+        {
+            cboLanguage.ComboBox.DisplayMember = "Key";
+            cboLanguage.ComboBox.ValueMember = "Value";
+
+            // Usando KeyValuePair para garantir tipagem forte e evitar bugs no ToolStrip
+            cboLanguage.Items.Add(new KeyValuePair<string, string>("Português (BR)", "br"));
+            cboLanguage.Items.Add(new KeyValuePair<string, string>("English (US)", "en"));
+            cboLanguage.SelectedIndex = 1;
+
+            isInitializingLanguages = false;
+
+            // Executa a primeira tradução com base na seleção inicial
+            ApplyLocalization("en");
+        }
+
+        private void cboLanguage_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (isInitializingLanguages) return;
+
+            if (cboLanguage.SelectedItem is KeyValuePair<string, string> selectedItem)
+            {
+                string targetLanguage = selectedItem.Value;
+                ApplyLocalization(targetLanguage);
+            }
+        }
+
+        private void ApplyLocalization(string lang)
+        {
+            ComponentResourceManager res = new ComponentResourceManager(typeof(FrmPakMaker));
+            string suffix = (lang == "en") ? "_en" : "_br";
+
+            // Janela Principal e Label do Combo
+            this.Text = res.GetString($"FrmPakMaker{suffix}") ?? this.Text;
+            lblLanguage.Text = res.GetString($"lblLanguage{suffix}") ?? lblLanguage.Text;
+
+            // --- ABA 1: LEITOR & MODIFICAÇÕES ---
+            tabExtract.Text = res.GetString($"tabExtract{suffix}") ?? tabExtract.Text;
+            btnBrowsePak.Text = res.GetString($"btnBrowsePak{suffix}") ?? btnBrowsePak.Text;
+            txtPakPath.PlaceholderText = res.GetString($"txtPakPathHint{suffix}") ?? txtPakPath.PlaceholderText;
+
+            // Grupo Cabeçalho
+            groupHeader.Text = res.GetString($"groupHeader{suffix}") ?? groupHeader.Text;
+            lblAuthor.Text = res.GetString($"lblAuthor{suffix}") ?? lblAuthor.Text;
+            lblVersion.Text = res.GetString($"lblVersion{suffix}") ?? lblVersion.Text;
+            lblEntries.Text = res.GetString($"lblEntries{suffix}") ?? lblEntries.Text;
+
+            // Pesquisa e Listagem
+            lblSearch.Text = res.GetString($"lblSearch{suffix}") ?? lblSearch.Text;
+            txtSearch.PlaceholderText = res.GetString($"txtSearchHint{suffix}") ?? txtSearch.PlaceholderText;
+            lblCurrentPath.Text = res.GetString($"lblCurrentPath{suffix}") ?? lblCurrentPath.Text;
+
+            // Botões de Ação
+            btnExtractSelected.Text = res.GetString($"btnExtractSelected{suffix}") ?? btnExtractSelected.Text;
+            btnRemoveSelected.Text = res.GetString($"btnRemoveSelected{suffix}") ?? btnRemoveSelected.Text;
+            btnBatchExtract.Text = res.GetString($"btnBatchExtract{suffix}") ?? btnBatchExtract.Text;
+            btnUpdatePak.Text = res.GetString($"btnUpdatePak{suffix}") ?? btnUpdatePak.Text;
+            btnExtractAll.Text = res.GetString($"btnExtractAll{suffix}") ?? btnExtractAll.Text;
+
+            // Colunas de Exibição
+            colName.Text = res.GetString($"colName{suffix}") ?? colName.Text;
+            colType.Text = res.GetString($"colType{suffix}") ?? colType.Text;
+            colSize.Text = res.GetString($"colSize{suffix}") ?? colSize.Text;
+            colCompSize.Text = res.GetString($"colCompSize{suffix}") ?? colCompSize.Text;
+
+            // Painel Inferior XTEA
+            lblNewKey.Text = res.GetString($"lblNewKey{suffix}") ?? lblNewKey.Text;
+            btnChangeKey.Text = res.GetString($"btnChangeKey{suffix}") ?? btnChangeKey.Text;
+
+
+            // --- ABA 2: CRIAR NOVO PAK ---
+            tabCreate.Text = res.GetString($"tabCreate{suffix}") ?? tabCreate.Text;
+            txtSourceFolder.PlaceholderText = res.GetString($"txtSourceFolderHint{suffix}") ?? txtSourceFolder.PlaceholderText;
+            btnBrowseFolder.Text = res.GetString($"btnBrowseFolder{suffix}") ?? btnBrowseFolder.Text;
+
+            lblVol.Text = res.GetString($"lblVol{suffix}") ?? lblVol.Text;
+            lblComp.Text = res.GetString($"lblComp{suffix}") ?? lblComp.Text;
+            lblLevel.Text = res.GetString($"lblLevel{suffix}") ?? lblLevel.Text;
+            lblReg.Text = res.GetString($"lblReg{suffix}") ?? lblReg.Text;
+            btnCreatePak.Text = res.GetString($"btnCreatePak{suffix}") ?? btnCreatePak.Text;
+
+
+            // --- COMPONENTES GLOBAIS ---
+            lblStatus.Text = res.GetString($"lblStatus{suffix}") ?? lblStatus.Text;
         }
 
         private void SetupCustomComponents()
@@ -46,6 +125,12 @@ namespace PangYa_Suite_Tools
             lstEntries.DoubleClick += LstEntries_DoubleClick;
             tvFolders.AfterSelect += TvFolders_AfterSelect;
             txtSearch.TextChanged += (s, e) => ApplyDisplayFilter();
+
+            // Permite arrastar arquivos para dentro da lista de entries, para injetar/atualizar no PAK já carregado
+            lstEntries.AllowDrop = true;
+            lstEntries.DragEnter += LstEntries_DragEnter;
+            lstEntries.DragDrop += LstEntries_DragDrop;
+
         }
 
         private void SetupContextMenu()
@@ -72,10 +157,17 @@ namespace PangYa_Suite_Tools
             cboCompressType.SelectedItem = PakFileEntryType.LZ772;
 
             cboRegion.DataSource = PakKeys.All
-          .Select(x => new { Label = x.Label, Keys = x.Keys })
-          .ToList();
+                .Select(x => new { Label = x.Label, Keys = x.Keys })
+                .ToList();
             cboRegion.DisplayMember = "Label";
             cboRegion.SelectedIndex = 0;
+
+            // Combo de chave/região destino, usado na troca de chave XTEA (aba de extração)
+            cboNewRegion.DataSource = PakKeys.All
+                .Select(x => new { Label = x.Label, Keys = x.Keys })
+                .ToList();
+            cboNewRegion.DisplayMember = "Label";
+            cboNewRegion.SelectedIndex = 0;
         }
 
         private void FrmPakMaker_DragEnter(object? sender, DragEventArgs e)
@@ -527,8 +619,26 @@ namespace PangYa_Suite_Tools
 
             if (openFileDialog.ShowDialog() != DialogResult.OK) return;
 
+            var items = openFileDialog.FileNames.Select(f => new PakInjectItem(f, null)).ToList();
+            await InjectFilesIntoCurrentPakAsync(items);
+
+        }
+
+        /// <summary>
+        /// Lógica comum de injeção/atualização do PAK atualmente carregado.
+        /// Usada tanto pelo botão "Atualizar PAK" quanto pelo drag-and-drop na lista de entries.
+        /// </summary>
+        private async Task InjectFilesIntoCurrentPakAsync(List<PakInjectItem> items)
+        {
+            if (_currentReader == null || string.IsNullOrEmpty(txtPakPath.Text) || !File.Exists(txtPakPath.Text))
+            {
+                MessageBox.Show("Selecione um arquivo .pak ativo primeiro.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            if (items == null || items.Count == 0) return;
+
             string pakPath = txtPakPath.Text;
-            string[] filesToInject = openFileDialog.FileNames;
             var reader = _currentReader;
 
             lblStatus.Text = "Mesclando e reconstruindo PAK...";
@@ -540,13 +650,13 @@ namespace PangYa_Suite_Tools
 
                 await Task.Run(() =>
                 {
-                    PakManager.InjectFiles(pakPath, reader, filesToInject, options,
-                        log: msg => { /* poderia ir para um log textual futuramente */ },
+                    PakManager.InjectFiles(pakPath, reader, items, options,
+                        log: msg => { },
                         onProgress: (done, total) => ReportProgress(done, total, "Reconstruindo PAK"));
                 });
 
                 lblStatus.Text = "PAK atualizado com sucesso!";
-                MessageBox.Show("O arquivo PAK foi reconstruído e atualizado, preservando a estrutura de pastas original!",
+                MessageBox.Show($"{items.Count} arquivo(s) injetado(s) e o PAK foi reconstruído!",
                     "Sucesso", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
                 LoadPak(pakPath);
@@ -561,6 +671,64 @@ namespace PangYa_Suite_Tools
                 HideProgress();
                 btnUpdatePak.Enabled = true;
             }
+        }
+
+        private void LstEntries_DragEnter(object? sender, DragEventArgs e)
+        {
+            if (_currentReader != null && e.Data != null && e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
+                e.Effect = DragDropEffects.Copy;
+            }
+            else
+            {
+                e.Effect = DragDropEffects.None;
+            }
+        }
+
+        private async void LstEntries_DragDrop(object? sender, DragEventArgs e)
+        {
+            if (_currentReader == null || e.Data == null) return;
+            if (!e.Data.GetDataPresent(DataFormats.FileDrop)) return;
+
+            string[] dropped = (string[])e.Data.GetData(DataFormats.FileDrop)!;
+
+            var items = new List<PakInjectItem>();
+            foreach (var path in dropped)
+            {
+                if (File.Exists(path))
+                {
+                    // Arquivo solto: sem pasta explícita, cai no fallback de busca por nome existente
+                    items.Add(new PakInjectItem(path, null));
+                }
+                else if (Directory.Exists(path))
+                {
+                    try
+                    {
+                        string baseFolder = path; // a própria pasta arrastada é a "raiz" da estrutura relativa
+                        foreach (var filePath in Directory.GetFiles(baseFolder, "*", SearchOption.AllDirectories))
+                        {
+                            string relativeToBase = Path.GetRelativePath(baseFolder, filePath);
+                            string relFolder = Path.GetDirectoryName(relativeToBase) ?? "";
+
+                            items.Add(new PakInjectItem(filePath, relFolder));
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Erro ao ler a pasta '{path}':\n{ex.Message}",
+                            "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+            }
+
+            if (items.Count == 0)
+            {
+                MessageBox.Show("Nenhum arquivo válido encontrado para injetar.",
+                    "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            await InjectFilesIntoCurrentPakAsync(items);
         }
 
         // ─── REMOVER ─────────────────────────────────────────────────────────────
@@ -701,6 +869,72 @@ namespace PangYa_Suite_Tools
                     btnCreatePak.Enabled = true;
                     MessageBox.Show($"Erro ao criar o pacote:\n{ex.Message}", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
+            }
+        }
+
+        private async void btnChangeKey_Click(object sender, EventArgs e)
+        {
+            if (_currentReader == null || string.IsNullOrEmpty(txtPakPath.Text) || !File.Exists(txtPakPath.Text))
+            {
+                MessageBox.Show("Selecione um arquivo .pak ativo primeiro.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            var selectedRegion = cboNewRegion.SelectedItem as dynamic;
+            if (selectedRegion == null)
+            {
+                MessageBox.Show("Selecione a região/chave de destino.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            uint[] newKeys = selectedRegion.Keys;
+
+            // Evita reconstrução desnecessária se a chave de destino já for a mesma do PAK carregado
+            if (_currentReader.LocationKeys != null && newKeys.SequenceEqual(_currentReader.LocationKeys))
+            {
+                MessageBox.Show("O PAK já está usando essa chave.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            var confirm = MessageBox.Show(
+                $"Trocar a chave do PAK para \"{selectedRegion.Label}\"?\nO PAK será reconstruído e um backup (.bak) será criado.",
+                "Confirmar troca de chave", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            if (confirm != DialogResult.Yes) return;
+
+            string pakPath = txtPakPath.Text;
+            var reader = _currentReader;
+
+            // Mantém versão/compressão/autor atuais do PAK, só troca a LocationKeys
+            var currentOptions = BuildRebuildOptionsForCurrentPak();
+            var newOptions = currentOptions with { LocationKeys = newKeys };
+
+            lblStatus.Text = "Trocando chave e reconstruindo PAK...";
+            btnChangeKey.Enabled = false;
+
+            try
+            {
+                await Task.Run(() =>
+                {
+                    PakManager.ChangeEncryptionKey(pakPath, reader, newOptions,
+                        log: msg => { },
+                        onProgress: (done, total) => ReportProgress(done, total, "Reconstruindo PAK"));
+                });
+
+                lblStatus.Text = "Chave trocada com sucesso!";
+                MessageBox.Show($"O PAK foi reconstruído com a chave de \"{selectedRegion.Label}\"!",
+                    "Sucesso", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                LoadPak(pakPath);
+            }
+            catch (Exception ex)
+            {
+                lblStatus.Text = "Erro ao trocar chave";
+                MessageBox.Show($"Falha na reconstrução: {ex.Message}", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                HideProgress();
+                btnChangeKey.Enabled = true;
             }
         }
     }

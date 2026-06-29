@@ -1,64 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
-  <!--
-    Microsoft ResX Schema
-
-    Version 2.0
-
-    The primary goals of this format is to allow a simple XML format
-    that is mostly human readable. The generation and parsing of the
-    various data types are done through the TypeConverter classes
-    associated with the data types.
-
-    Example:
-
-    ... ado.net/XML headers & schema ...
-    <resheader name="resmimetype">text/microsoft-resx</resheader>
-    <resheader name="version">2.0</resheader>
-    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
-    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
-    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
-    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
-    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
-        <value>[base64 mime encoded serialized .NET Framework object]</value>
-    </data>
-    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
-        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
-        <comment>This is a comment</comment>
-    </data>
-
-    There are any number of "resheader" rows that contain simple
-    name/value pairs.
-
-    Each data row contains a name, and value. The row also contains a
-    type or mimetype. Type corresponds to a .NET class that support
-    text/value conversion through the TypeConverter architecture.
-    Classes that don't support this are serialized and stored with the
-    mimetype set.
-
-    The mimetype is used for serialized objects, and tells the
-    ResXResourceReader how to depersist the object. This is currently not
-    extensible. For a given mimetype the value must be set accordingly:
-
-    Note - application/x-microsoft.net.object.binary.base64 is the format
-    that the ResXResourceWriter will generate, however the reader can
-    read any of the formats listed below.
-
-    mimetype: application/x-microsoft.net.object.binary.base64
-    value   : The object must be serialized with
-            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
-            : and then encoded with base64 encoding.
-
-    mimetype: application/x-microsoft.net.object.soap.base64
-    value   : The object must be serialized with
-            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
-            : and then encoded with base64 encoding.
-
-    mimetype: application/x-microsoft.net.object.bytearray.base64
-    value   : The object must be serialized into a byte array
-            : using a System.ComponentModel.TypeConverter
-            : and then encoded with base64 encoding.
-    -->
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
     <xsd:element name="root" msdata:IsDataSet="true">
@@ -105,19 +46,86 @@
       </xsd:complexType>
     </xsd:element>
   </xsd:schema>
-  <resheader name="resmimetype">
-    <value>text/microsoft-resx</value>
-  </resheader>
-  <resheader name="version">
-    <value>2.0</value>
-  </resheader>
-  <resheader name="reader">
-    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </resheader>
-  <resheader name="writer">
-    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </resheader>
-  <metadata name="statusStrip1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <assembly alias="System.Drawing" name="System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+  
+  <data name="statusStrip1.TrayLocation" type="System.Drawing.Point, System.Drawing">
     <value>17, 17</value>
-  </metadata>
+  </data>
+
+  <data name="FrmPakMaker_br" xml:space="preserve"><value>PakManager - Interface</value></data>
+  <data name="FrmPakMaker_en" xml:space="preserve"><value>PakManager - Interface</value></data>
+
+  <data name="tabExtract_br" xml:space="preserve"><value>Leitor &amp; Modificações</value></data>
+  <data name="tabExtract_en" xml:space="preserve"><value>Reader &amp; Modifications</value></data>
+  <data name="btnBrowsePak_br" xml:space="preserve"><value>Buscar...</value></data>
+  <data name="btnBrowsePak_en" xml:space="preserve"><value>Browse...</value></data>
+  <data name="txtPakPathHint_br" xml:space="preserve"><value>Arraste um arquivo .pak aqui ou clique em Buscar...</value></data>
+  <data name="txtPakPathHint_en" xml:space="preserve"><value>Drag a .pak file here or click Browse...</value></data>
+
+  <data name="groupHeader_br" xml:space="preserve"><value>Informações do Cabeçalho</value></data>
+  <data name="groupHeader_en" xml:space="preserve"><value>Header Information</value></data>
+  <data name="lblAuthor_br" xml:space="preserve"><value>Autor: ---</value></data>
+  <data name="lblAuthor_en" xml:space="preserve"><value>Author: ---</value></data>
+  <data name="lblVersion_br" xml:space="preserve"><value>Versão: ---</value></data>
+  <data name="lblVersion_en" xml:space="preserve"><value>Version: ---</value></data>
+  <data name="lblEntries_br" xml:space="preserve"><value>Entradas: ---</value></data>
+  <data name="lblEntries_en" xml:space="preserve"><value>Entries: ---</value></data>
+
+  <data name="lblSearch_br" xml:space="preserve"><value>🔎 Pesquisar:</value></data>
+  <data name="lblSearch_en" xml:space="preserve"><value>🔎 Search:</value></data>
+  <data name="txtSearchHint_br" xml:space="preserve"><value>Filtrar por nome do objeto/arquivo...</value></data>
+  <data name="txtSearchHint_en" xml:space="preserve"><value>Filter by object/file name...</value></data>
+  <data name="lblCurrentPath_br" xml:space="preserve"><value>📂 Caminho: (todos os arquivos)</value></data>
+  <data name="lblCurrentPath_en" xml:space="preserve"><value>📂 Path: (all files)</value></data>
+
+  <data name="btnExtractSelected_br" xml:space="preserve"><value>📤 EXTRAIR SELECIONADO(S)</value></data>
+  <data name="btnExtractSelected_en" xml:space="preserve"><value>📤 EXTRACT SELECTED</value></data>
+  <data name="btnRemoveSelected_br" xml:space="preserve"><value>🗑️ REMOVER SELECIONADO(S)</value></data>
+  <data name="btnRemoveSelected_en" xml:space="preserve"><value>🗑️ REMOVE SELECTED</value></data>
+  <data name="btnBatchExtract_br" xml:space="preserve"><value>📂 EXTRAIR PASTA (LOTE)</value></data>
+  <data name="btnBatchExtract_en" xml:space="preserve"><value>📂 BATCH EXTRACT</value></data>
+  <data name="btnUpdatePak_br" xml:space="preserve"><value>🔄 INJETAR / ATUALIZAR</value></data>
+  <data name="btnUpdatePak_en" xml:space="preserve"><value>🔄 INJECT / UPDATE</value></data>
+  <data name="btnExtractAll_br" xml:space="preserve"><value>💥 EXTRAIR TUDO</value></data>
+  <data name="btnExtractAll_en" xml:space="preserve"><value>💥 EXTRACT ALL</value></data>
+
+  <data name="colName_br" xml:space="preserve"><value>Nome do Arquivo</value></data>
+  <data name="colName_en" xml:space="preserve"><value>File Name</value></data>
+  <data name="colType_br" xml:space="preserve"><value>Tipo</value></data>
+  <data name="colType_en" xml:space="preserve"><value>Type</value></data>
+  <data name="colSize_br" xml:space="preserve"><value>Tamanho Real</value></data>
+  <data name="colSize_en" xml:space="preserve"><value>Real Size</value></data>
+  <data name="colCompSize_br" xml:space="preserve"><value>Tam. Compactado</value></data>
+  <data name="colCompSize_en" xml:space="preserve"><value>Compressed Size</value></data>
+
+  <data name="lblNewKey_br" xml:space="preserve"><value>🔑 Nova Chave (XTEA):</value></data>
+  <data name="lblNewKey_en" xml:space="preserve"><value>🔑 New Key (XTEA):</value></data>
+  <data name="btnChangeKey_br" xml:space="preserve"><value>🔐 TROCAR CHAVE DO PAK</value></data>
+  <data name="btnChangeKey_en" xml:space="preserve"><value>🔐 CHANGE PAK KEY</value></data>
+
+  <data name="tabCreate_br" xml:space="preserve"><value>Criar Novo PAK</value></data>
+  <data name="tabCreate_en" xml:space="preserve"><value>Create New PAK</value></data>
+  <data name="txtSourceFolderHint_br" xml:space="preserve"><value>Arraste uma pasta aqui...</value></data>
+  <data name="txtSourceFolderHint_en" xml:space="preserve"><value>Drag a folder here...</value></data>
+  <data name="btnBrowseFolder_br" xml:space="preserve"><value>Selecionar...</value></data>
+  <data name="btnBrowseFolder_en" xml:space="preserve"><value>Select Folder...</value></data>
+  <data name="lblVol_br" xml:space="preserve"><value>Versão da Entrada:</value></data>
+  <data name="lblVol_en" xml:space="preserve"><value>Entry Version:</value></data>
+  <data name="lblComp_br" xml:space="preserve"><value>Tipo de Compressão:</value></data>
+  <data name="lblComp_en" xml:space="preserve"><value>Compression Type:</value></data>
+  <data name="lblLevel_br" xml:space="preserve"><value>Nível de Compressão (0-9):</value></data>
+  <data name="lblLevel_en" xml:space="preserve"><value>Compression Level (0-9):</value></data>
+  <data name="lblReg_br" xml:space="preserve"><value>Região / Chaves (XTEA):</value></data>
+  <data name="lblReg_en" xml:space="preserve"><value>Region / Keys (XTEA):</value></data>
+  <data name="btnCreatePak_br" xml:space="preserve"><value>📦 GERAR ARQUIVO .PAK</value></data>
+  <data name="btnCreatePak_en" xml:space="preserve"><value>📦 GENERATE .PAK FILE</value></data>
+
+  <data name="lblStatus_br" xml:space="preserve"><value>Pronto</value></data>
+  <data name="lblStatus_en" xml:space="preserve"><value>Ready</value></data>
+<data name="lblLanguage_br" xml:space="preserve"><value>Idioma:</value></data>
+  <data name="lblLanguage_en" xml:space="preserve"><value>Language:</value></data>
 </root>

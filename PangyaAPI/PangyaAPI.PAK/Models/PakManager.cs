@@ -13,6 +13,13 @@ namespace PangyaAPI.PAK.Models
         byte CompressLevel,
         uint[] LocationKeys,
         string Author);
+    
+        /// <summary>
+        /// Par de arquivo de origem + pasta relativa explícita dentro do PAK (pode ser null,
+        /// caso em que o destino é resolvido automaticamente via FindExistingRelativeFolder).
+        /// </summary>
+        public readonly record struct PakInjectItem(string SourcePath, string? RelativeFolder);
+
 
     /// <summary>
     /// Operações de alto nível sobre um PAK existente: injetar/atualizar arquivos
@@ -69,12 +76,12 @@ namespace PangyaAPI.PAK.Models
         }
 
         /// <summary>
-        /// Injeta/substitui um conjunto de arquivos dentro do PAK. Para cada arquivo de
-        /// origem, localiza a pasta interna onde já existe um arquivo de mesmo nome
-        /// (substituição no lugar correto da árvore); se não existir, usa
-        /// <paramref name="defaultRelativeFolder"/> (raiz, por padrão) como novo arquivo.
+        /// Sobrecarga que permite informar explicitamente em qual pasta interna cada arquivo
+        /// deve cair (útil ao arrastar uma pasta inteira, preservando sua estrutura). Quando
+        /// RelativeFolder é null, cai no comportamento antigo: procura pasta existente pelo
+        /// nome do arquivo, ou usa defaultRelativeFolder.
         /// </summary>
-        public static void InjectFiles(string pakPath, PakReader reader, IEnumerable<string> sourceFiles,
+        public static void InjectFiles(string pakPath, PakReader reader, IEnumerable<PakInjectItem> items,
                                         PakRebuildOptions options, string defaultRelativeFolder = "",
                                         Action<string>? log = null, Action<int, int>? onProgress = null)
         {
@@ -86,30 +93,74 @@ namespace PangyaAPI.PAK.Models
                 log?.Invoke("Extraindo conteúdo atual do PAK...");
                 ExtractAllPreservingStructure(reader, tempDir, onProgress: onProgress);
 
-                foreach (var sourceFile in sourceFiles)
+                foreach (var item in items)
                 {
-                    string fileName = Path.GetFileName(sourceFile);
-                    string relFolder = FindExistingRelativeFolder(reader, fileName);
-                    if (string.IsNullOrEmpty(relFolder))
-                        relFolder = defaultRelativeFolder;
+                    string fileName = Path.GetFileName(item.SourcePath);
+
+                    string relFolder;
+                    if (item.RelativeFolder != null)
+                    {
+                        // Pasta explícita (ex: vinda de uma pasta arrastada) — respeita sempre,
+                        // mesmo que já exista um arquivo de mesmo nome em outro lugar do PAK.
+                        relFolder = item.RelativeFolder;
+                    }
+                    else
+                    {
+                        relFolder = FindExistingRelativeFolder(reader, fileName);
+                        if (string.IsNullOrEmpty(relFolder))
+                            relFolder = defaultRelativeFolder;
+                    }
 
                     string destDir = string.IsNullOrEmpty(relFolder) ? tempDir : Path.Combine(tempDir, relFolder);
                     Directory.CreateDirectory(destDir);
 
                     string destPath = Path.Combine(destDir, fileName);
-                    File.Copy(sourceFile, destPath, true);
+                    File.Copy(item.SourcePath, destPath, true);
 
                     log?.Invoke(string.IsNullOrEmpty(relFolder)
                         ? $"Novo arquivo adicionado na raiz: {fileName}"
-                        : $"Atualizado em \"{relFolder}\": {fileName}");
+                        : $"Atualizado/adicionado em \"{relFolder}\": {fileName}");
                 }
 
-                // IMPORTANTE: fecha o handle do arquivo .pak original ANTES de tentar
-                // mover/renomear (File.Move) — senão o Windows recusa com
-                // "The process cannot access the file because it is being used by another process."
+                reader.Dispose();
+                RebuildFromTemp(pakPath, tempDir, options, log);
+            }
+            finally
+            {
+                TryDeleteDirectory(tempDir);
+            }
+        }
+
+        public static void InjectFiles(string pakPath, PakReader reader, IEnumerable<string> sourceFiles,
+                                PakRebuildOptions options, string defaultRelativeFolder = "",
+                                Action<string>? log = null, Action<int, int>? onProgress = null)
+        {
+            var items = sourceFiles.Select(f => new PakInjectItem(f, null));
+            InjectFiles(pakPath, reader, items, options, defaultRelativeFolder, log, onProgress);
+        }
+
+        /// <summary>
+        /// Reconstrói o PAK usando uma chave/região diferente, mantendo todo o conteúdo
+        /// (arquivos e estrutura de pastas) idêntico. Útil para "migrar" um PAK entre
+        /// regiões/versões do cliente que usam chaves XTEA diferentes.
+        /// </summary>
+        public static void ChangeEncryptionKey(string pakPath, PakReader reader, PakRebuildOptions newOptions,
+                                                Action<string>? log = null, Action<int, int>? onProgress = null)
+        {
+            string tempDir = Path.Combine(Path.GetTempPath(), "PakTemp_" + Path.GetRandomFileName());
+            Directory.CreateDirectory(tempDir);
+
+            try
+            {
+                log?.Invoke("Extraindo conteúdo atual do PAK (chave original)...");
+                ExtractAllPreservingStructure(reader, tempDir, onProgress: onProgress);
+
+                log?.Invoke("Reconstruindo PAK com a nova chave...");
+
+                // Fecha o handle do .pak original antes do File.Move dentro de RebuildFromTemp.
                 reader.Dispose();
 
-                RebuildFromTemp(pakPath, tempDir, options, log);
+                RebuildFromTemp(pakPath, tempDir, newOptions, log);
             }
             finally
             {
