@@ -16,9 +16,11 @@ namespace PangyaAPI.PAK.Models
         public PakHeader Header { get; private set; } = new();
         public List<PakFileEntry> Entries { get; } = new();
         public uint[]? LocationKeys { get; private set; }
+        public Encoding FileNameEncoding { get; }
 
-        public PakReader(string path)
+        public PakReader(string path, Encoding? fileNameEncoding = null)
         {
+            FileNameEncoding = fileNameEncoding ?? PakFileNameEncoding.CreateDefault();
             _reader = new BinaryReader(File.OpenRead(path), Encoding.ASCII, leaveOpen: false);
         }
 
@@ -41,6 +43,13 @@ namespace PangyaAPI.PAK.Models
                 NumFileEntry = br.ReadUInt32(),
                 Version = br.ReadByte(),
             };
+
+            if (Header.OffsetFileEntry > fileLen - PakHeader.BinarySize)
+                throw new InvalidDataException("A tabela de entradas está fora dos limites do arquivo.");
+
+            long minimumEntryBytes = (long)Header.NumFileEntry * 14L;
+            if (minimumEntryBytes > fileLen - PakHeader.BinarySize - Header.OffsetFileEntry)
+                throw new InvalidDataException("A tabela de entradas está truncada ou possui uma contagem inválida.");
 
             Console.WriteLine($"  Versão  : 0x{Header.Version:X2}");
             Console.WriteLine($"  Entradas: {Header.NumFileEntry}");
@@ -67,6 +76,8 @@ namespace PangyaAPI.PAK.Models
 
                 bool hasNull = version < PakFileEntryVersion.V3 || version == PakFileEntryVersion.Raw;
                 int rawLen = nameLen + (hasNull ? 1 : 0);
+                if (br.BaseStream.Position + rawLen > fileLen - PakHeader.BinarySize)
+                    throw new InvalidDataException($"O nome da entrada {i} ultrapassa os limites da tabela.");
                 byte[] nameRaw = br.ReadBytes(rawLen);
 
                 // ── Descriptografia ────────────────────────────────────────── 
@@ -112,6 +123,7 @@ namespace PangyaAPI.PAK.Models
                     CompressSize = compSz,
                     Size = sz,
                     NameRaw = nameRaw,
+                    FileNameEncoding = FileNameEncoding,
                 });
             }
 
@@ -168,7 +180,12 @@ namespace PangyaAPI.PAK.Models
             if (total == 0) return;
 
             int done = 0;
-            string baseOutDir = outputDir.TrimEnd('/', '\\') + "/";
+            string baseOutDir = Path.GetFullPath(outputDir);
+            string baseOutPrefix = baseOutDir.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+                + Path.DirectorySeparatorChar;
+
+            foreach (var entry in matches)
+                _ = GetSafeOutputPath(baseOutPrefix, entry.Name);
 
             // 2. Processamento em Paralelo usando Parallel.ForEach
             // Limitamos o grau de paralelismo se necessário, mas por padrão ele usa os cores disponíveis.
@@ -226,14 +243,9 @@ namespace PangyaAPI.PAK.Models
                 {
                     try
                     {
-                        string outDir = baseOutDir;
-                        string? subDir = Path.GetDirectoryName(name);
-                        if (!string.IsNullOrEmpty(subDir))
-                            outDir = Path.Combine(outDir, subDir) + "/";
-
-                        // Thread-safe por design (cada arquivo/pasta possui caminhos distintos na maioria dos casos)
+                        string outPath = GetSafeOutputPath(baseOutPrefix, name);
+                        string outDir = Path.GetDirectoryName(outPath)!;
                         Directory.CreateDirectory(outDir);
-                        string outPath = Path.Combine(outDir, Path.GetFileName(name));
 
                         File.WriteAllBytes(outPath, decompressedData);
                         log?.Invoke($"Extraído: {name} → {outPath.Replace("\\", "/")}");
@@ -252,6 +264,18 @@ namespace PangyaAPI.PAK.Models
                 int currentDone = Interlocked.Increment(ref done);
                 onProgress?.Invoke(currentDone, total);
             });
+        }
+
+        private static string GetSafeOutputPath(string baseOutPrefix, string entryName)
+        {
+            string normalizedName = entryName.Replace('\\', Path.DirectorySeparatorChar)
+                                             .Replace('/', Path.DirectorySeparatorChar);
+            string fullPath = Path.GetFullPath(Path.Combine(baseOutPrefix, normalizedName));
+
+            if (!fullPath.StartsWith(baseOutPrefix, StringComparison.OrdinalIgnoreCase))
+                throw new InvalidDataException($"Caminho de entrada inseguro: {entryName}");
+
+            return fullPath;
         }
 
         /// <summary>
@@ -280,6 +304,20 @@ namespace PangyaAPI.PAK.Models
                 }
 
                 return null;
+            }
+        }
+
+        internal byte[] ReadCompressedEntryBytes(PakFileEntry entry)
+        {
+            if (entry.Type == PakFileEntryType.Directory) return Array.Empty<byte>();
+            int length = checked((int)(entry.Type == PakFileEntryType.Raw ? entry.Size : entry.CompressSize));
+            lock (_ioLock)
+            {
+                _reader.BaseStream.Seek(entry.Offset, SeekOrigin.Begin);
+                byte[] data = _reader.ReadBytes(length);
+                if (data.Length != length)
+                    throw new EndOfStreamException($"Entry payload is truncated: {entry.Name}");
+                return data;
             }
         }
 

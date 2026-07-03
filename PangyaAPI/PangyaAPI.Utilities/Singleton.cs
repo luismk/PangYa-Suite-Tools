@@ -3,21 +3,15 @@ namespace PangyaAPI.Utilities
 {
     public class Singleton<_ST> where _ST : class
     {
-        public static _ST myInstance = null;
+        public static _ST myInstance = null!;
 
         public static _ST getInstance()
         {
-            try
-            {
-                if (myInstance == null)
-                    myInstance = (_ST)Activator.CreateInstance(typeof(_ST));
+            if (myInstance == null)
+                myInstance = Activator.CreateInstance<_ST>()
+                    ?? throw new InvalidOperationException($"Unable to create singleton instance of {typeof(_ST).FullName}.");
 
-                return myInstance;
-            }
-            catch (Exception e)
-            { 
-                throw e;
-            }
+            return myInstance;
         }
 
         protected Singleton()

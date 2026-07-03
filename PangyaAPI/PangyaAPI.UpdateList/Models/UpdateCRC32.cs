@@ -11,7 +11,7 @@ public class CRC32
 
     private bool reverseBits;
 
-    private uint[] crc32Table;
+    private uint[] crc32Table = Array.Empty<uint>();
 
     private const int BUFFER_SIZE = 8192;
 
@@ -32,7 +32,7 @@ public class CRC32
         return GetCrc32AndCopy(input, null);
     }
 
-    public int GetCrc32AndCopy(Stream input, Stream output)
+    public int GetCrc32AndCopy(Stream input, Stream? output)
     {
         if (input == null)
         {

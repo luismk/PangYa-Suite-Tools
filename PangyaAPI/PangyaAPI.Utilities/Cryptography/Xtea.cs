@@ -137,10 +137,11 @@ namespace PangyaAPI.Utilities.Cryptography
 
         private static void EncipherStream(uint[] key, Stream r, Stream w, out byte[] _result)
         {
-            uint num = (uint)r.Length;
+            uint sourceLength = checked((uint)r.Length);
+            uint num = (sourceLength + 7u) & ~7u;
             byte[] array = new byte[num];
             byte[] dst = new byte[num];
-            r.Read(array, 0, (int)num);
+            r.ReadExactly(array.AsSpan(0, (int)sourceLength));
             EncryptUpdatelist(key, ref dst, array, num);
             w.Write(dst, 0, dst.Length);
             _result = ((MemoryStream)w).ToArray();
@@ -152,7 +153,7 @@ namespace PangyaAPI.Utilities.Cryptography
         {
             uint num = (uint)r.Length;
             byte[] array = new byte[num];
-            r.Read(array, 0, (int)num);
+            r.ReadExactly(array);
             byte[] dst = new byte[num];
             DecryptUpdatelist(key, ref dst, array, num);
             w.Write(dst, 0, (int)num);

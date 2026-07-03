@@ -17,28 +17,27 @@ namespace PangyaAPI.UpdateList.Models
             if (!Directory.Exists(targetFolder))
                 throw new DirectoryNotFoundException($"Diretório alvo não existe: {targetFolder}");
 
-            var entries = new List<UpdateEntry>();
+            string[] files = Directory.EnumerateFiles(targetFolder, "*", SearchOption.AllDirectories)
+                .Where(path => !path.EndsWith(".cln", StringComparison.OrdinalIgnoreCase) &&
+                               !path.EndsWith(".json", StringComparison.OrdinalIgnoreCase) &&
+                               !Path.GetFileName(path).Equals(Path.GetFileName(outputPath), StringComparison.OrdinalIgnoreCase))
+                .OrderBy(path => path, StringComparer.OrdinalIgnoreCase)
+                .ToArray();
+            var entries = new UpdateEntry[files.Length];
 
-            // Invoca o seu método privado/recursivo de listagem para ignorar extensões indesejadas (.cln, .json)
-            var files = ListarArquivos(targetFolder);
-
-            foreach (var file in files)
+            Parallel.For(0, files.Length, new ParallelOptions
             {
+                MaxDegreeOfParallelism = Math.Max(1, Math.Min(Environment.ProcessorCount, 4))
+            }, index =>
+            {
+                string file = files[index];
                 var fileInfo = new FileInfo(file);
-
-                // Ignora o próprio arquivo de lista final se ele estiver na mesma pasta de varredura
-                if (fileInfo.Name.Equals(Path.GetFileName(outputPath), StringComparison.OrdinalIgnoreCase))
-                    continue;
-
-                // CORREÇÃO: Calcula o caminho relativo com base na pasta raiz usando Uri (idêntico ao seu GetXmlFileInfo antigo)
-                string basePatchDir = targetFolder.EndsWith("\\") ? targetFolder : (targetFolder + "\\");
-                string relativePath = new Uri(basePatchDir).MakeRelativeUri(new Uri(file)).ToString().Replace("/", "\\");
-                string finalFdir = "\\" + Path.GetDirectoryName(relativePath);
-
-                var entry = new UpdateEntry
+                string relativePath = Path.GetRelativePath(targetFolder, file);
+                string? directory = Path.GetDirectoryName(relativePath);
+                entries[index] = new UpdateEntry
                 {
                     fname = fileInfo.Name,
-                    fdir = finalFdir, // Garante o formato "\pasta\subpasta" exigido pelo jogo
+                    fdir = string.IsNullOrEmpty(directory) ? "\\" : "\\" + directory,
                     fsize = fileInfo.Length,
                     fcrc = _crcCalculator.CalculateFileCRC(file),
                     fdate = fileInfo.LastWriteTimeUtc.ToString("yyyy-MM-dd"), // Uso do Utc como no legado
@@ -47,8 +46,7 @@ namespace PangyaAPI.UpdateList.Models
                     psize = 717469 // Tamanho fake inicial mantido para sua futura implementação de GUI/Compressão
                 };
 
-                entries.Add(entry);
-            }
+            });
 
             // Monta o Header utilizando os parâmetros recebidos
             var header = new UpdateHeader
@@ -60,33 +58,7 @@ namespace PangyaAPI.UpdateList.Models
 
             // Invoca o Writer passando as chaves da região selecionada
             var writer = new UpdateWriter(regionKeys);
-            writer.WriteUpdateList(outputPath, header, entries);
-        }
-         
-        private List<string> ListarArquivos(string pasta)
-        {
-            List<string> list = new List<string>();
-
-            if (!Directory.Exists(pasta)) return list;
-
-            string[] directories = Directory.GetDirectories(pasta);
-            foreach (string text in directories)
-            {
-                if (!text.Contains(".cln") && !text.Contains(".json"))
-                {
-                    list.AddRange(ListarArquivos(text));
-                }
-            }
-
-            string[] files = Directory.GetFiles(pasta);
-            foreach (string text2 in files)
-            {
-                if (!text2.EndsWith(".cln") && !text2.EndsWith(".json"))
-                {
-                    list.Add(text2);
-                }
-            }
-            return list;
+            writer.WriteUpdateList(outputPath, header, entries.ToList());
         }
     }
 }

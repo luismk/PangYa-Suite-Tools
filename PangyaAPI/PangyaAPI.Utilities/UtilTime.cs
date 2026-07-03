@@ -101,15 +101,15 @@ namespace PangyaAPI.Utilities
 
         public void CreateTime(DateTime? date)
         {
-            if (date != null && date != DateTime.MinValue)
+            if (date is { } value && value != DateTime.MinValue)
             {
-                Year = (ushort)date?.Year;
-                Month = (ushort)date?.Month;
-                Minute = (ushort)date?.Minute;
-                Day = (ushort)date?.Day;
-                Hour = (ushort)date?.Hour;
-                Second = (ushort)date?.Second;
-                MilliSecond = (ushort)date?.Millisecond;
+                Year = (ushort)value.Year;
+                Month = (ushort)value.Month;
+                Minute = (ushort)value.Minute;
+                Day = (ushort)value.Day;
+                Hour = (ushort)value.Hour;
+                Second = (ushort)value.Second;
+                MilliSecond = (ushort)value.Millisecond;
             }
         }
 
@@ -319,9 +319,6 @@ namespace PangyaAPI.Utilities
             if (dateSrc == null)
                 throw new ArgumentNullException(nameof(dateSrc));
 
-            if (dateDst == null)
-                throw new ArgumentNullException(nameof(dateDst));
-
             if (string.IsNullOrEmpty(dateSrc))
             {
                 dateDst = DateTime.MinValue;
@@ -338,9 +335,6 @@ namespace PangyaAPI.Utilities
         {
             if (dateSrc == null)
                 throw new ArgumentNullException(nameof(dateSrc));
-
-            if (dateDst == null)
-                throw new ArgumentNullException(nameof(dateDst));
 
             if (string.IsNullOrEmpty(dateSrc))
             {
@@ -368,9 +362,9 @@ namespace PangyaAPI.Utilities
 
         public static long UnixTimeConvert(DateTime? unixtime)
         {
-            if (unixtime.HasValue == false || unixtime?.Ticks == 0)
+            if (unixtime is not { Ticks: not 0 } value)
             { return 0; }
-            TimeSpan timeSpan = (TimeSpan)(unixtime - new DateTime(1970, 1, 1, 0, 0, 0));
+            TimeSpan timeSpan = value - new DateTime(1970, 1, 1, 0, 0, 0);
             return (long)timeSpan.TotalSeconds;
         }
 

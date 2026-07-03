@@ -23,6 +23,10 @@ namespace PangyaAPI.UpdateList.Models
             if (!File.Exists(filePath))
                 throw new FileNotFoundException($"Arquivo de update não encontrado: {filePath}");
 
+            long encryptedLength = new FileInfo(filePath).Length;
+            if (encryptedLength == 0 || encryptedLength % 8 != 0)
+                throw new InvalidDataException("A UpdateList criptografada está vazia ou truncada.");
+
             var entries = new List<UpdateEntry>();
             var header = new UpdateHeader();
             var document = XteaDecrypt(filePath);
@@ -42,11 +46,12 @@ namespace PangyaAPI.UpdateList.Models
             string text = Encoding.GetEncoding("euc-kr").GetString(document, 0, nullIndex);
 
             int startIdx = text.IndexOf("<patchVer");
-            int endIdx = text.LastIndexOf("</updatefiles>") + "</updatefiles>".Length;
-            if (startIdx != -1 && endIdx > startIdx)
-            {
-                text = text.Substring(startIdx, endIdx - startIdx);
-            }
+            int closingIdx = text.LastIndexOf("</updatefiles>", StringComparison.Ordinal);
+            if (startIdx < 0 || closingIdx < startIdx)
+                throw new InvalidDataException("A UpdateList descriptografada não contém um XML completo.");
+
+            int endIdx = closingIdx + "</updatefiles>".Length;
+            text = text.Substring(startIdx, endIdx - startIdx);
 
             var xmlDocument = new XmlDocument();
             xmlDocument.LoadXml("<root>" + text + "</root>");
