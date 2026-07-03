@@ -30,12 +30,16 @@ public sealed class LocalizationTests : IDisposable
 
         LocalizationManager.SetCulture(LocalizationManager.PortugueseBrazil);
         Assert.Equal("Idioma:", Strings.Common_Language);
+
+        LocalizationManager.SetCulture(LocalizationManager.Swedish);
+        Assert.Equal("Språk:", Strings.Common_Language);
+        Assert.Equal("Svenska", Strings.Common_Swedish);
     }
 
     [Fact]
     public void CompositeResource_FormatsInBothCultures()
     {
-        foreach (string cultureName in new[] { LocalizationManager.English, LocalizationManager.PortugueseBrazil })
+        foreach (string cultureName in new[] { LocalizationManager.English, LocalizationManager.PortugueseBrazil, LocalizationManager.Swedish })
         {
             LocalizationManager.SetCulture(cultureName);
             string result = string.Format(LocalizationManager.CurrentCulture, Strings.Pak_RemoveFilesConfirmation, 3);
@@ -139,6 +143,7 @@ public sealed class LocalizationTests : IDisposable
                 using var update = new FrmUpdateList();
                 using var iff = new FrmIFFManager();
                 using var options = new FrmOptions();
+                using var diff = new FrmPakDiff();
 
                 LocalizationManager.SetCulture(LocalizationManager.PortugueseBrazil);
                 Assert.Equal(Strings.Menu_Title, menu.Text);
@@ -146,10 +151,13 @@ public sealed class LocalizationTests : IDisposable
                 Assert.Equal(Strings.Update_Title, update.Text);
                 Assert.Equal(Strings.Iff_Title, iff.Text);
                 Assert.Equal(Strings.Options_Title, options.Text);
+                Assert.Equal(Strings.PakDiff_Title, diff.Text);
                 Assert.Equal(Strings.Common_OK, options.Controls.Find("btnOK", true).Single().Text);
                 Assert.Equal(Strings.PakMaker_Author, pak.Controls.Find("label1", true).Single().Text);
                 Assert.Equal(Strings.PakMaker_Author, pak.Controls.Find("label2", true).Single().Text);
                 Assert.Equal(Strings.Pak_SecurityPak, pak.Controls.Find("ckSecurityPak", true).Single().Text);
+                Assert.Equal(LocalizationManager.PortugueseBrazil,
+                    ((KeyValuePair<string, string>)PrivateField<ToolStripComboBox>(diff, "cboLanguage").SelectedItem!).Value);
                 Assert.Contains("*.pak", Strings.Pak_OpenFileFilter);
                 Assert.Contains("*.pak", Strings.Pak_SaveFileFilter);
                 var encodingCombo = PrivateField<ToolStripComboBox>(pak, "cboFilenameEncoding");
@@ -165,6 +173,16 @@ public sealed class LocalizationTests : IDisposable
                 Assert.Equal(Strings.Pak_Title, pak.Text);
                 Assert.Equal(Strings.Common_OK, options.Controls.Find("btnOK", true).Single().Text);
                 Assert.Equal(Strings.Pak_SecurityPak, pak.Controls.Find("ckSecurityPak", true).Single().Text);
+
+                LocalizationManager.SetCulture(LocalizationManager.Swedish);
+                Assert.Equal(Strings.Menu_Title, menu.Text);
+                Assert.Equal(Strings.Pak_Title, pak.Text);
+                Assert.Equal(Strings.Update_Title, update.Text);
+                Assert.Equal(Strings.Iff_Title, iff.Text);
+                Assert.Equal(Strings.Options_Title, options.Text);
+                Assert.Equal(Strings.PakDiff_Title, diff.Text);
+                Assert.Equal(LocalizationManager.Swedish,
+                    ((KeyValuePair<string, string>)PrivateField<ToolStripComboBox>(diff, "cboLanguage").SelectedItem!).Value);
             }
             catch (Exception ex) { failure = ex; }
         });

@@ -465,6 +465,9 @@
   <data name="Common_EnglishUS" xml:space="preserve">
     <value>English (US)</value>
   </data>
+  <data name="Common_Swedish" xml:space="preserve">
+    <value>Swedish</value>
+  </data>
   <data name="Common_Language" xml:space="preserve">
     <value>Language:</value>
   </data>
@@ -482,6 +485,9 @@
   </data>
   <data name="Menu_Options" xml:space="preserve">
     <value>Options</value>
+  </data>
+  <data name="Menu_PakDiff" xml:space="preserve">
+    <value>🔍 PAK Comparator (Diff)</value>
   </data>
   <data name="Pak_Title" xml:space="preserve">
     <value>PangYa Studio - PAK Manager</value>
@@ -663,4 +669,71 @@
   <data name="Pak_EncodingAppliesNextLoad" xml:space="preserve">
     <value>The filename encoding will be used the next time a PAK is loaded.</value>
   </data>
+  <data name="PakDiff_SelectBaseFolder" xml:space="preserve"><value>Select the BASE/BEFORE PAK folder:</value></data>
+  <data name="PakDiff_SelectAfterFolder" xml:space="preserve"><value>Select the AFTER/NEW PAK folder:</value></data>
+  <data name="PakDiff_SelectValidFolder" xml:space="preserve"><value>Select a valid folder.</value></data>
+  <data name="PakDiff_ReadingPaks" xml:space="preserve"><value>⏳ Reading PAKs...</value></data>
+  <data name="PakDiff_Files" xml:space="preserve"><value>files</value></data>
+  <data name="PakDiff_AddedUpper" xml:space="preserve"><value>ADDED</value></data>
+  <data name="PakDiff_RemovedUpper" xml:space="preserve"><value>REMOVED</value></data>
+  <data name="PakDiff_ModifiedUpper" xml:space="preserve"><value>MODIFIED</value></data>
+  <data name="PakDiff_Added" xml:space="preserve"><value>added</value></data>
+  <data name="PakDiff_Removed" xml:space="preserve"><value>removed</value></data>
+  <data name="PakDiff_Modified" xml:space="preserve"><value>modified</value></data>
+  <data name="PakDiff_ComparisonComplete" xml:space="preserve"><value>Comparison Complete</value></data>
+  <data name="PakDiff_NoLogToSave" xml:space="preserve"><value>No log to save. Run a comparison first.</value></data>
+  <data name="PakDiff_SaveChangeLog" xml:space="preserve"><value>Save Change Log</value></data>
+  <data name="PakDiff_LogSavedTo" xml:space="preserve"><value>Log saved to:&#xA;{0}</value></data>
+  <data name="PakDiff_Saved" xml:space="preserve"><value>Saved</value></data>
+  <data name="PakDiff_SelectTargetClient" xml:space="preserve"><value>Select target client folder (extract source):</value></data>
+  <data name="PakDiff_SelectBaseClient" xml:space="preserve"><value>Select your base client folder (comparison):</value></data>
+  <data name="PakDiff_SelectValidClientFolders" xml:space="preserve"><value>Select valid directories for both clients.</value></data>
+  <data name="PakDiff_New" xml:space="preserve"><value>New</value></data>
+  <data name="PakDiff_ModifiedLabel" xml:space="preserve"><value>Modified</value></data>
+  <data name="PakDiff_Identical" xml:space="preserve"><value>Identical</value></data>
+  <data name="PakDiff_ComparisonFound" xml:space="preserve"><value>Comparison finished! Found {0} files.</value></data>
+  <data name="PakDiff_Done" xml:space="preserve"><value>Done</value></data>
+  <data name="PakDiff_ComparisonError" xml:space="preserve"><value>Error during comparison:</value></data>
+  <data name="PakDiff_SelectAtLeastOne" xml:space="preserve"><value>Please check at least one file to extract.</value></data>
+  <data name="PakDiff_SelectOutputFolder" xml:space="preserve"><value>Select output folder:</value></data>
+  <data name="PakDiff_ExtractionComplete" xml:space="preserve"><value>Extraction complete! {0} files extracted to:&#xA;{1}</value></data>
+  <data name="PakDiff_ExtractionFailed" xml:space="preserve"><value>Extraction failed:</value></data>
+  <data name="PakDiff_Warning" xml:space="preserve"><value>Warning</value></data>
+  <data name="PakDiff_Error" xml:space="preserve"><value>Error</value></data>
+  <data name="PakDiff_TextLogFilter" xml:space="preserve"><value>Text Log (*.txt)|*.txt</value></data>
+  <data name="PakDiff_LoadSnapshot" xml:space="preserve"><value>Load Snapshot</value></data>
+  <data name="PakDiff_SnapshotFilter" xml:space="preserve"><value>Snapshot JSON (*.paksnap)|*.paksnap</value></data>
+  <data name="PakDiff_SnapshotNotTaken" xml:space="preserve"><value>Snapshot {0} has not been taken yet.</value></data>
+  <data name="PakDiff_SaveSnapshot" xml:space="preserve"><value>Save Snapshot {0}</value></data>
+  <data name="PakDiff_SnapshotSaved" xml:space="preserve"><value>Snapshot saved: {0}</value></data>
+  <data name="PakDiff_LoadSnapshotFailed" xml:space="preserve"><value>Failed to load snapshot:</value></data>
+  <data name="PakDiff_Title" xml:space="preserve"><value>PAK Diff — Change History &amp; Multi-Client Sync</value></data>
+  <data name="PakDiff_TabLog" xml:space="preserve"><value>📋 Change History / Log</value></data>
+  <data name="PakDiff_SnapshotABefore" xml:space="preserve"><value>📸 Snapshot A — Before / Base</value></data>
+  <data name="PakDiff_SnapshotBAfter" xml:space="preserve"><value>📸 Snapshot B — After / New</value></data>
+  <data name="PakDiff_PakFolder" xml:space="preserve"><value>PAK Folder:</value></data>
+  <data name="PakDiff_Browse" xml:space="preserve"><value>📁...</value></data>
+  <data name="PakDiff_TakeSnapshot" xml:space="preserve"><value>📸 Take Snapshot</value></data>
+  <data name="PakDiff_Save" xml:space="preserve"><value>💾 Save</value></data>
+  <data name="PakDiff_Load" xml:space="preserve"><value>📂 Load</value></data>
+  <data name="PakDiff_NotTaken" xml:space="preserve"><value>(not taken)</value></data>
+  <data name="PakDiff_CompareSnapshots" xml:space="preserve"><value>🔍 COMPARE SNAPSHOTS</value></data>
+  <data name="PakDiff_SelectAll" xml:space="preserve"><value>Select All</value></data>
+  <data name="PakDiff_ColumnPakFile" xml:space="preserve"><value>PAK File</value></data>
+  <data name="PakDiff_ColumnInternalFile" xml:space="preserve"><value>Internal File</value></data>
+  <data name="PakDiff_ColumnStatus" xml:space="preserve"><value>Status</value></data>
+  <data name="PakDiff_ColumnOldSize" xml:space="preserve"><value>Old Size</value></data>
+  <data name="PakDiff_ColumnNewSize" xml:space="preserve"><value>New Size</value></data>
+  <data name="PakDiff_SaveLog" xml:space="preserve"><value>💾 Save Log .txt</value></data>
+  <data name="PakDiff_TabClientCompare" xml:space="preserve"><value>🔍 Client Compare &amp; Extract</value></data>
+  <data name="PakDiff_ClientDirectories" xml:space="preserve"><value>Client Directories</value></data>
+  <data name="PakDiff_TargetSource" xml:space="preserve"><value>Target / Source (Extract From):</value></data>
+  <data name="PakDiff_CompareClient" xml:space="preserve"><value>Your Client (To Compare With):</value></data>
+  <data name="PakDiff_ComparisonMode" xml:space="preserve"><value>Comparison Mode</value></data>
+  <data name="PakDiff_Differences" xml:space="preserve"><value>Differences / New Files</value></data>
+  <data name="PakDiff_IdenticalFiles" xml:space="preserve"><value>Identical Files (Equals)</value></data>
+  <data name="PakDiff_Compare" xml:space="preserve"><value>🔍 Compare</value></data>
+  <data name="PakDiff_ColumnFilePath" xml:space="preserve"><value>File Path</value></data>
+  <data name="PakDiff_ColumnSourcePak" xml:space="preserve"><value>Source PAK</value></data>
+  <data name="PakDiff_ExtractSelected" xml:space="preserve"><value>📦 Extract Selected</value></data>
 </root>

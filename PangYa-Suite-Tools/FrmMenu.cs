@@ -27,7 +27,8 @@ namespace PangYa_Suite_Tools
 
             cboLanguage.Items.Add(new KeyValuePair<string, string>(Strings.Common_PortugueseBrazil, LocalizationManager.PortugueseBrazil));
             cboLanguage.Items.Add(new KeyValuePair<string, string>(Strings.Common_EnglishUS, LocalizationManager.English));
-            cboLanguage.SelectedIndex = LocalizationManager.CurrentCulture.Name == LocalizationManager.PortugueseBrazil ? 0 : 1;
+            cboLanguage.Items.Add(new KeyValuePair<string, string>(Strings.Common_Swedish, LocalizationManager.Swedish));
+            cboLanguage.SelectedIndex = LocalizationManager.CurrentCultureIndex;
 
             isInitializingLanguages = false;
             ApplyLocalization();
@@ -46,7 +47,7 @@ namespace PangYa_Suite_Tools
         private void LocalizationManager_CultureChanged(object? sender, EventArgs e)
         {
             isInitializingLanguages = true;
-            cboLanguage.SelectedIndex = LocalizationManager.CurrentCulture.Name == LocalizationManager.PortugueseBrazil ? 0 : 1;
+            cboLanguage.SelectedIndex = LocalizationManager.CurrentCultureIndex;
             isInitializingLanguages = false;
             ApplyLocalization();
         }
@@ -59,6 +60,7 @@ namespace PangYa_Suite_Tools
             btnOpenUpdateList.Text = Strings.Menu_UpdateList;
             btnOpenIffManager.Text = Strings.Menu_IffManager;
             btnOpenOptions.Text = Strings.Menu_Options;
+            btnOpenPakDiff.Text = Strings.Menu_PakDiff;
             lblLanguage.Text = Strings.Common_Language;
         }
 
@@ -117,6 +119,18 @@ namespace PangYa_Suite_Tools
             {
                 frmOptions.ShowDialog();
             }
+            this.Show();
+        }
+
+        private void btnOpenPakDiff_Click(object sender, EventArgs e)
+        {
+            string idiomaAtual = cboLanguage.SelectedItem is KeyValuePair<string, string> selectedItem
+                ? selectedItem.Value
+                : LocalizationManager.English;
+
+            this.Hide();
+            using var pakDiff = new FrmPakDiff(idiomaAtual);
+            pakDiff.ShowDialog();
             this.Show();
         }
 

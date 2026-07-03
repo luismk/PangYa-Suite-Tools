@@ -63,6 +63,9 @@
             btnExtractSelected = new Button();
             chkSelectAll = new CheckBox();
             prgBarDiff = new ProgressBar();
+            statusStrip = new StatusStrip();
+            lblLanguage = new ToolStripStatusLabel();
+            cboLanguage = new ToolStripComboBox();
             tabMain.SuspendLayout();
             tabLog.SuspendLayout();
             grpSnapshotA.SuspendLayout();
@@ -70,6 +73,7 @@
             tabDiff.SuspendLayout();
             grpDirectories.SuspendLayout();
             grpMode.SuspendLayout();
+            statusStrip.SuspendLayout();
             SuspendLayout();
             // 
             // tabMain
@@ -596,6 +600,25 @@
             prgBarDiff.Style = ProgressBarStyle.Continuous;
             prgBarDiff.TabIndex = 5;
             prgBarDiff.Visible = false;
+            //
+            // statusStrip
+            //
+            statusStrip.Items.AddRange(new ToolStripItem[] { lblLanguage, cboLanguage });
+            statusStrip.Location = new Point(0, 602);
+            statusStrip.Name = "statusStrip";
+            statusStrip.Size = new Size(940, 22);
+            statusStrip.TabIndex = 1;
+            //
+            // lblLanguage
+            //
+            lblLanguage.Name = "lblLanguage";
+            //
+            // cboLanguage
+            //
+            cboLanguage.DropDownStyle = ComboBoxStyle.DropDownList;
+            cboLanguage.Name = "cboLanguage";
+            cboLanguage.Size = new Size(150, 23);
+            cboLanguage.SelectedIndexChanged += cboLanguage_SelectedIndexChanged;
             // 
             // FrmPakDiff
             // 
@@ -603,6 +626,7 @@
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(940, 624);
             Controls.Add(tabMain);
+            Controls.Add(statusStrip);
             FormBorderStyle = FormBorderStyle.FixedSingle;
             MaximizeBox = false;
             MinimumSize = new Size(956, 660);
@@ -622,7 +646,10 @@
             grpDirectories.PerformLayout();
             grpMode.ResumeLayout(false);
             grpMode.PerformLayout();
+            statusStrip.ResumeLayout(false);
+            statusStrip.PerformLayout();
             ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion
@@ -679,5 +706,8 @@
         private System.Windows.Forms.Button btnExtractSelected;
         private System.Windows.Forms.CheckBox chkSelectAll;
         private System.Windows.Forms.ProgressBar prgBarDiff;
+        private System.Windows.Forms.StatusStrip statusStrip;
+        private System.Windows.Forms.ToolStripStatusLabel lblLanguage;
+        private System.Windows.Forms.ToolStripComboBox cboLanguage;
     }
 }

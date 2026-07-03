@@ -40,26 +40,9 @@ namespace PangYa_Suite_Tools
         }
 
 
-        public FrmPakMaker(string idiomaAtual, string initialPakPath) 
+        public FrmPakMaker(string idiomaAtual, string initialPakPath) : this()
         {
-            InitializeComponent();
-            cboLanguage.ComboBox.DisplayMember = "Key";
-            cboLanguage.ComboBox.ValueMember = "Value";
-
-            // Usando KeyValuePair para garantir tipagem forte e evitar bugs no ToolStrip
-            cboLanguage.Items.Add(new KeyValuePair<string, string>("Português (BR)", "br"));
-            cboLanguage.Items.Add(new KeyValuePair<string, string>("English (US)", "en"));
-            cboLanguage.SelectedIndex = idiomaAtual == "en" ? 1 : 0;
-
-            isInitializingLanguages = false;
-
-            // Executa a primeira tradução com base na seleção inicial
-            ApplyLocalization(idiomaAtual);
-            SetupCustomComponents();
-            LoadSetupOptions();
-            SetupContextMenu(); // Inicializa o menu de contexto da ListView
-            CleanupOldTempDragFolders(); // Remove resíduos de exportações de drag-out de execuções anteriores
-
+            LocalizationManager.SetCulture(idiomaAtual);
             this.Shown += (s, e) =>
             {
                 if (!string.IsNullOrEmpty(initialPakPath) && File.Exists(initialPakPath))
@@ -78,7 +61,8 @@ namespace PangYa_Suite_Tools
             // Usando KeyValuePair para garantir tipagem forte e evitar bugs no ToolStrip
             cboLanguage.Items.Add(new KeyValuePair<string, string>(Strings.Common_PortugueseBrazil, LocalizationManager.PortugueseBrazil));
             cboLanguage.Items.Add(new KeyValuePair<string, string>(Strings.Common_EnglishUS, LocalizationManager.English));
-            cboLanguage.SelectedIndex = LocalizationManager.CurrentCulture.Name == LocalizationManager.PortugueseBrazil ? 0 : 1;
+            cboLanguage.Items.Add(new KeyValuePair<string, string>(Strings.Common_Swedish, LocalizationManager.Swedish));
+            cboLanguage.SelectedIndex = LocalizationManager.CurrentCultureIndex;
 
             isInitializingLanguages = false;
 
@@ -99,7 +83,7 @@ namespace PangYa_Suite_Tools
         private void LocalizationManager_CultureChanged(object? sender, EventArgs e)
         {
             isInitializingLanguages = true;
-            cboLanguage.SelectedIndex = LocalizationManager.CurrentCulture.Name == LocalizationManager.PortugueseBrazil ? 0 : 1;
+            cboLanguage.SelectedIndex = LocalizationManager.CurrentCultureIndex;
             isInitializingLanguages = false;
             ApplyLocalization();
         }

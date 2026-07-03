@@ -4,8 +4,6 @@ using System.ComponentModel;
 using System.Text; 
 using PangyaAPI.UpdateList.Flags; 
 using PangyaAPI.UpdateList.Models;
-using System.ComponentModel;
-using System.Text;
 
 namespace PangYa_Suite_Tools
 {
@@ -31,30 +29,28 @@ namespace PangYa_Suite_Tools
             Disposed += (_, _) => LocalizationManager.CultureChanged -= LocalizationManager_CultureChanged;
         }
 
-        public FrmUpdateList(string idiomaAtual)
+        public FrmUpdateList(string idiomaAtual) : this()
         {
-            InitializeComponent();
+            LocalizationManager.SetCulture(idiomaAtual);
+        }
+
+        private void InitializeLanguageComboBox()
+        {
             cboLanguage.ComboBox.DisplayMember = "Key";
             cboLanguage.ComboBox.ValueMember = "Value";
-            cboLanguage.Items.Add(new KeyValuePair<string, string>("Português (BR)", "br"));
-            cboLanguage.Items.Add(new KeyValuePair<string, string>("English (US)", "en"));
-            cboLanguage.SelectedIndex = idiomaAtual == "en" ? 1: 0;
-            _isInitializingLanguages = false;
-            ApplyLocalization(idiomaAtual);
-            SetupComponents();
-        }
 
             cboLanguage.Items.Add(new KeyValuePair<string, string>(Strings.Common_PortugueseBrazil, LocalizationManager.PortugueseBrazil));
             cboLanguage.Items.Add(new KeyValuePair<string, string>(Strings.Common_EnglishUS, LocalizationManager.English));
-            cboLanguage.SelectedIndex = LocalizationManager.CurrentCulture.Name == LocalizationManager.PortugueseBrazil ? 0 : 1;
+            cboLanguage.Items.Add(new KeyValuePair<string, string>(Strings.Common_Swedish, LocalizationManager.Swedish));
+            cboLanguage.SelectedIndex = LocalizationManager.CurrentCultureIndex;
 
-            isInitializingLanguages = false;
+            _isInitializingLanguages = false;
             ApplyLocalization();
         }
 
         private void cboLanguage_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (isInitializingLanguages) return;
+            if (_isInitializingLanguages) return;
 
             if (cboLanguage.SelectedItem is KeyValuePair<string, string> selectedItem)
             {
@@ -64,9 +60,9 @@ namespace PangYa_Suite_Tools
 
         private void LocalizationManager_CultureChanged(object? sender, EventArgs e)
         {
-            isInitializingLanguages = true;
-            cboLanguage.SelectedIndex = LocalizationManager.CurrentCulture.Name == LocalizationManager.PortugueseBrazil ? 0 : 1;
-            isInitializingLanguages = false;
+            _isInitializingLanguages = true;
+            cboLanguage.SelectedIndex = LocalizationManager.CurrentCultureIndex;
+            _isInitializingLanguages = false;
             ApplyLocalization();
         }
 
@@ -104,6 +100,15 @@ namespace PangYa_Suite_Tools
                 lblDropHint.Text = Strings.UpdateList_DragAndDropAnEncryptedUpdatelist;
             }
         }
+
+        private static string GetText(string english, string portugueseBrazil) =>
+            LocalizationManager.CurrentCulture.Name switch
+            {
+                LocalizationManager.PortugueseBrazil => portugueseBrazil,
+                LocalizationManager.Swedish => SwedishInlineTranslations.Get(english),
+                _ => english
+            };
+
 private void SetupComponents()
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
@@ -111,7 +116,7 @@ private void SetupComponents()
             // Aba 1 — Drag-and-Drop
             pnlCryptoDrop.AllowDrop = true;
             pnlCryptoDrop.DragEnter += PnlCryptoDrop_DragEnter;
-            pnlCryptoDrop.DragDrop += PnlCryptoDrop_DragDrop;
+            pnlCryptoDrop.DragDrop += pnlCryptoDrop_DragDrop;
 
             // Aba 2 — ComboBox de região
             cboFileKey.Items.Clear();
@@ -334,19 +339,6 @@ private void SetupComponents()
             {
                 await RunGenerationAsync(isMonitoringTrigger: false);
 
-                uint[] regionKeys = GetKeysByName(selectedKeyName);
-
-                await Task.Run(() =>
-                {
-                    _updateMaker = new UpdateMaker();
-                    this.Invoke(() => Log(Strings.UpdateList_ScanningDirectoryTreeAndGeneratingInitial));
-
-                    string finalOutputPath = Path.Combine(destPath, "updatelist");
-
-                    // Injeção de todos os novos parâmetros capturados direto dos inputs dinâmicos do formulário
-                    _updateMaker.GenerateFromDirectory(pangyaPath, finalOutputPath, regionKeys, patchVersion, updateVersion, patchNum);
-                });
-
                 _watcher = new FileSystemWatcher(pangyaPath)
                 {
                     IncludeSubdirectories = true,
@@ -427,8 +419,7 @@ private void SetupComponents()
                 try
                 {
                     // Copia o arquivo modificado para a pasta de destino
-                    string destPath = txtUpdatePath.Text;
-                    string relative = Path.GetRelativePath(txtPangyaPath.Text, e.FullPath);
+                    string relative = Path.GetRelativePath(pangyaPath, e.FullPath);
                     string destFile = Path.Combine(destPath, relative);
                     Directory.CreateDirectory(Path.GetDirectoryName(destFile)!);
                     File.Copy(e.FullPath, destFile, true);
@@ -491,7 +482,6 @@ private void SetupComponents()
             uint[] regionKeys = GetKeysByLabel(_keyLabel);
             string outputPath = Path.Combine(_destPath, "updatelist");
             int totalFiles = 0;
-            int doneFiles = 0;
 
             // Conta arquivos para a barra de progresso
             await Task.Run(() =>

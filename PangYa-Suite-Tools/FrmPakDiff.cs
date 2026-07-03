@@ -2,22 +2,90 @@
 using PangyaAPI.PAK.Models;
 using System.Text;
 using System.Text.Json;
+using PangYa_Suite_Tools.Localization;
 
 namespace PangYa_Suite_Tools
 {
     public partial class FrmPakDiff : Form
     {
-        private string _currentLanguage;
         private List<FileDiffEntry> _comparisonResults = new();
 
         // ── Snapshot state ───────────────────────────────────────────────────
         private PakSnapshot? _snapshotA;
         private PakSnapshot? _snapshotB;
+        private bool _isInitializingLanguages = true;
 
-        public FrmPakDiff(string currentLanguage = "en")
+        public FrmPakDiff(string? currentLanguage = null)
         {
-            _currentLanguage = currentLanguage;
+            if (!string.IsNullOrWhiteSpace(currentLanguage))
+                LocalizationManager.SetCulture(currentLanguage);
             InitializeComponent();
+            InitializeLanguageComboBox();
+            LocalizationManager.CultureChanged += LocalizationManager_CultureChanged;
+            Disposed += (_, _) => LocalizationManager.CultureChanged -= LocalizationManager_CultureChanged;
+        }
+
+        private void InitializeLanguageComboBox()
+        {
+            cboLanguage.ComboBox.DisplayMember = "Key";
+            cboLanguage.ComboBox.ValueMember = "Value";
+            cboLanguage.Items.Add(new KeyValuePair<string, string>(Strings.Common_PortugueseBrazil, LocalizationManager.PortugueseBrazil));
+            cboLanguage.Items.Add(new KeyValuePair<string, string>(Strings.Common_EnglishUS, LocalizationManager.English));
+            cboLanguage.Items.Add(new KeyValuePair<string, string>(Strings.Common_Swedish, LocalizationManager.Swedish));
+            cboLanguage.SelectedIndex = LocalizationManager.CurrentCultureIndex;
+            _isInitializingLanguages = false;
+            ApplyLocalization();
+        }
+
+        private void cboLanguage_SelectedIndexChanged(object? sender, EventArgs e)
+        {
+            if (_isInitializingLanguages) return;
+            if (cboLanguage.SelectedItem is KeyValuePair<string, string> selected)
+                LocalizationManager.SetCulture(selected.Value);
+        }
+
+        private void LocalizationManager_CultureChanged(object? sender, EventArgs e)
+        {
+            _isInitializingLanguages = true;
+            cboLanguage.SelectedIndex = LocalizationManager.CurrentCultureIndex;
+            _isInitializingLanguages = false;
+            ApplyLocalization();
+        }
+
+        private void ApplyLocalization()
+        {
+            Text = Strings.PakDiff_Title;
+            tabLog.Text = Strings.PakDiff_TabLog;
+            grpSnapshotA.Text = Strings.PakDiff_SnapshotABefore;
+            grpSnapshotB.Text = Strings.PakDiff_SnapshotBAfter;
+            lblSnapshotAPath.Text = lblSnapshotBPath.Text = Strings.PakDiff_PakFolder;
+            btnBrowseSnapshotA.Text = btnBrowseSnapshotB.Text = Strings.PakDiff_Browse;
+            btnTakeSnapshotA.Text = btnTakeSnapshotB.Text = Strings.PakDiff_TakeSnapshot;
+            btnSaveSnapshotA.Text = btnSaveSnapshotB.Text = Strings.PakDiff_Save;
+            btnLoadSnapshotA.Text = btnLoadSnapshotB.Text = Strings.PakDiff_Load;
+            if (_snapshotA == null) lblSnapshotAStatus.Text = Strings.PakDiff_NotTaken;
+            if (_snapshotB == null) lblSnapshotBStatus.Text = Strings.PakDiff_NotTaken;
+            btnCompareSnapshots.Text = Strings.PakDiff_CompareSnapshots;
+            chkLogSelectAll.Text = chkSelectAll.Text = Strings.PakDiff_SelectAll;
+            colLogPak.Text = Strings.PakDiff_ColumnPakFile;
+            colLogFile.Text = Strings.PakDiff_ColumnInternalFile;
+            colLogStatus.Text = colStatus.Text = Strings.PakDiff_ColumnStatus;
+            colLogOldSize.Text = Strings.PakDiff_ColumnOldSize;
+            colLogNewSize.Text = Strings.PakDiff_ColumnNewSize;
+            btnSaveLog.Text = Strings.PakDiff_SaveLog;
+            tabDiff.Text = Strings.PakDiff_TabClientCompare;
+            grpDirectories.Text = Strings.PakDiff_ClientDirectories;
+            lblSource.Text = Strings.PakDiff_TargetSource;
+            lblCompare.Text = Strings.PakDiff_CompareClient;
+            btnBrowseSource.Text = btnBrowseCompare.Text = Strings.PakDiff_Browse;
+            grpMode.Text = Strings.PakDiff_ComparisonMode;
+            rbDifferences.Text = Strings.PakDiff_Differences;
+            rbIdentical.Text = Strings.PakDiff_IdenticalFiles;
+            btnCompare.Text = Strings.PakDiff_Compare;
+            colFile.Text = Strings.PakDiff_ColumnFilePath;
+            colPak.Text = Strings.PakDiff_ColumnSourcePak;
+            btnExtractSelected.Text = Strings.PakDiff_ExtractSelected;
+            lblLanguage.Text = Strings.Common_Language;
         }
 
         // ════════════════════════════════════════════════════════════════════
@@ -29,7 +97,7 @@ namespace PangYa_Suite_Tools
         {
             using var fbd = new FolderBrowserDialog
             {
-                Description = GetText("Select the BASE/BEFORE PAK folder:", "Selecione a pasta PAK BASE/ANTERIOR:")
+                Description = Strings.PakDiff_SelectBaseFolder
             };
             if (fbd.ShowDialog() == DialogResult.OK)
                 txtSnapshotAPath.Text = fbd.SelectedPath;
@@ -39,16 +107,16 @@ namespace PangYa_Suite_Tools
         {
             if (!Directory.Exists(txtSnapshotAPath.Text))
             {
-                MessageBox.Show(GetText("Select a valid folder.", "Selecione uma pasta válida."), "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(Strings.PakDiff_SelectValidFolder, Strings.PakDiff_Warning, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
             btnTakeSnapshotA.Enabled = false;
-            lblSnapshotAStatus.Text = GetText("⏳ Reading PAKs...", "⏳ Lendo PAKs...");
+            lblSnapshotAStatus.Text = Strings.PakDiff_ReadingPaks;
             lblSnapshotAStatus.ForeColor = Color.DarkOrange;
 
             _snapshotA = await TakeSnapshotAsync(txtSnapshotAPath.Text, prgBarLog);
 
-            lblSnapshotAStatus.Text = $"✅ {_snapshotA.PakFiles.Count} PAKs | {_snapshotA.TotalEntries} {GetText("files", "arquivos")} @ {_snapshotA.TakenAt:HH:mm:ss}";
+            lblSnapshotAStatus.Text = $"✅ {_snapshotA.PakFiles.Count} PAKs | {_snapshotA.TotalEntries} {Strings.PakDiff_Files} @ {_snapshotA.TakenAt:HH:mm:ss}";
             lblSnapshotAStatus.ForeColor = Color.Green;
             btnTakeSnapshotA.Enabled = true;
             UpdateCompareSnapshotButton();
@@ -60,7 +128,7 @@ namespace PangYa_Suite_Tools
             _snapshotA = LoadSnapshot();
             if (_snapshotA != null)
             {
-                lblSnapshotAStatus.Text = $"📂 {_snapshotA.PakFiles.Count} PAKs | {_snapshotA.TotalEntries} {GetText("files", "arquivos")} @ {_snapshotA.TakenAt:yyyy-MM-dd HH:mm}";
+                lblSnapshotAStatus.Text = $"📂 {_snapshotA.PakFiles.Count} PAKs | {_snapshotA.TotalEntries} {Strings.PakDiff_Files} @ {_snapshotA.TakenAt:yyyy-MM-dd HH:mm}";
                 lblSnapshotAStatus.ForeColor = Color.SteelBlue;
                 UpdateCompareSnapshotButton();
             }
@@ -71,7 +139,7 @@ namespace PangYa_Suite_Tools
         {
             using var fbd = new FolderBrowserDialog
             {
-                Description = GetText("Select the AFTER/NEW PAK folder:", "Selecione a pasta PAK DEPOIS/NOVA:")
+                Description = Strings.PakDiff_SelectAfterFolder
             };
             if (fbd.ShowDialog() == DialogResult.OK)
                 txtSnapshotBPath.Text = fbd.SelectedPath;
@@ -81,16 +149,16 @@ namespace PangYa_Suite_Tools
         {
             if (!Directory.Exists(txtSnapshotBPath.Text))
             {
-                MessageBox.Show(GetText("Select a valid folder.", "Selecione uma pasta válida."), "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(Strings.PakDiff_SelectValidFolder, Strings.PakDiff_Warning, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
             btnTakeSnapshotB.Enabled = false;
-            lblSnapshotBStatus.Text = GetText("⏳ Reading PAKs...", "⏳ Lendo PAKs...");
+            lblSnapshotBStatus.Text = Strings.PakDiff_ReadingPaks;
             lblSnapshotBStatus.ForeColor = Color.DarkOrange;
 
             _snapshotB = await TakeSnapshotAsync(txtSnapshotBPath.Text, prgBarLog);
 
-            lblSnapshotBStatus.Text = $"✅ {_snapshotB.PakFiles.Count} PAKs | {_snapshotB.TotalEntries} {GetText("files", "arquivos")} @ {_snapshotB.TakenAt:HH:mm:ss}";
+            lblSnapshotBStatus.Text = $"✅ {_snapshotB.PakFiles.Count} PAKs | {_snapshotB.TotalEntries} {Strings.PakDiff_Files} @ {_snapshotB.TakenAt:HH:mm:ss}";
             lblSnapshotBStatus.ForeColor = Color.Green;
             btnTakeSnapshotB.Enabled = true;
             UpdateCompareSnapshotButton();
@@ -102,7 +170,7 @@ namespace PangYa_Suite_Tools
             _snapshotB = LoadSnapshot();
             if (_snapshotB != null)
             {
-                lblSnapshotBStatus.Text = $"📂 {_snapshotB.PakFiles.Count} PAKs | {_snapshotB.TotalEntries} {GetText("files", "arquivos")} @ {_snapshotB.TakenAt:yyyy-MM-dd HH:mm}";
+                lblSnapshotBStatus.Text = $"📂 {_snapshotB.PakFiles.Count} PAKs | {_snapshotB.TotalEntries} {Strings.PakDiff_Files} @ {_snapshotB.TakenAt:yyyy-MM-dd HH:mm}";
                 lblSnapshotBStatus.ForeColor = Color.SteelBlue;
                 UpdateCompareSnapshotButton();
             }
@@ -189,18 +257,18 @@ namespace PangYa_Suite_Tools
                     {
                         case "ADDED":
                         case "NEW_PAK_FILE":
-                            symbol = "+"; label = GetText("ADDED", "ADICIONADO");
+                            symbol = "+"; label = Strings.PakDiff_AddedUpper;
                             color = Color.LimeGreen; totalAdded++;
                             log.AppendLine($"  + [{label}] {file}  ({newSz:N0} bytes)");
                             break;
                         case "REMOVED":
                         case "REMOVED_PAK_FILE":
-                            symbol = "-"; label = GetText("REMOVED", "REMOVIDO");
+                            symbol = "-"; label = Strings.PakDiff_RemovedUpper;
                             color = Color.Tomato; totalRemoved++;
                             log.AppendLine($"  - [{label}] {file}  ({oldSz:N0} bytes)");
                             break;
                         default:
-                            symbol = "~"; label = GetText("MODIFIED", "MODIFICADO");
+                            symbol = "~"; label = Strings.PakDiff_ModifiedUpper;
                             color = Color.Gold; totalModified++;
                             log.AppendLine($"  ~ [{label}] {file}  ({oldSz:N0} → {newSz:N0} bytes)");
                             break;
@@ -222,38 +290,38 @@ namespace PangYa_Suite_Tools
             lstLogChanges.EndUpdate();
 
             log.AppendLine("───────────────────────────────────────────────────────────────");
-            log.AppendLine($"  TOTAL: ➕ {totalAdded} {GetText("added", "adicionados")} | "
-                         + $"🔄 {totalModified} {GetText("modified", "modificados")} | "
-                         + $"❌ {totalRemoved} {GetText("removed", "removidos")}");
+            log.AppendLine($"  TOTAL: ➕ {totalAdded} {Strings.PakDiff_Added} | "
+                         + $"🔄 {totalModified} {Strings.PakDiff_Modified} | "
+                         + $"❌ {totalRemoved} {Strings.PakDiff_Removed}");
             log.AppendLine("═══════════════════════════════════════════════════════════════");
 
             txtChangeLog.Text = log.ToString();
 
             MessageBox.Show(
-                $"➕ {totalAdded} {GetText("added", "adicionados")} | 🔄 {totalModified} {GetText("modified", "modificados")} | ❌ {totalRemoved} {GetText("removed", "removidos")}",
-                GetText("Comparison Complete", "Comparação Concluída"), MessageBoxButtons.OK, MessageBoxIcon.Information);
+                $"➕ {totalAdded} {Strings.PakDiff_Added} | 🔄 {totalModified} {Strings.PakDiff_Modified} | ❌ {totalRemoved} {Strings.PakDiff_Removed}",
+                Strings.PakDiff_ComparisonComplete, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void btnSaveLog_Click(object sender, EventArgs e)
         {
             if (string.IsNullOrWhiteSpace(txtChangeLog.Text))
             {
-                MessageBox.Show(GetText("No log to save. Run a comparison first.", "Nenhum log para salvar. Execute uma comparação primeiro."),
-                    "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(Strings.PakDiff_NoLogToSave,
+                    Strings.PakDiff_Warning, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
             using var sfd = new SaveFileDialog
             {
-                Title = GetText("Save Change Log", "Salvar Log de Mudanças"),
-                Filter = "Text Log (*.txt)|*.txt",
+                Title = Strings.PakDiff_SaveChangeLog,
+                Filter = Strings.PakDiff_TextLogFilter,
                 FileName = $"pak_changelog_{DateTime.Now:yyyyMMdd_HHmmss}.txt"
             };
             if (sfd.ShowDialog() == DialogResult.OK)
             {
                 File.WriteAllText(sfd.FileName, txtChangeLog.Text, Encoding.UTF8);
-                MessageBox.Show(GetText($"Log saved to:\n{sfd.FileName}", $"Log salvo em:\n{sfd.FileName}"),
-                    GetText("Saved", "Salvo"), MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(string.Format(LocalizationManager.CurrentCulture, Strings.PakDiff_LogSavedTo, sfd.FileName),
+                    Strings.PakDiff_Saved, MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
         }
 
@@ -336,20 +404,22 @@ namespace PangYa_Suite_Tools
         {
             if (snapshot == null)
             {
-                MessageBox.Show($"Snapshot {label} not taken yet.", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(string.Format(LocalizationManager.CurrentCulture, Strings.PakDiff_SnapshotNotTaken, label),
+                    Strings.PakDiff_Warning, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
             using var sfd = new SaveFileDialog
             {
-                Title = $"Save Snapshot {label}",
-                Filter = "Snapshot JSON (*.paksnap)|*.paksnap",
+                Title = string.Format(LocalizationManager.CurrentCulture, Strings.PakDiff_SaveSnapshot, label),
+                Filter = Strings.PakDiff_SnapshotFilter,
                 FileName = $"snapshot_{label}_{snapshot.TakenAt:yyyyMMdd_HHmmss}.paksnap"
             };
             if (sfd.ShowDialog() == DialogResult.OK)
             {
                 string json = JsonSerializer.Serialize(snapshot, new JsonSerializerOptions { WriteIndented = true });
                 File.WriteAllText(sfd.FileName, json, Encoding.UTF8);
-                MessageBox.Show($"Snapshot saved: {sfd.FileName}", "Saved", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(string.Format(LocalizationManager.CurrentCulture, Strings.PakDiff_SnapshotSaved, sfd.FileName),
+                    Strings.PakDiff_Saved, MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
         }
 
@@ -357,8 +427,8 @@ namespace PangYa_Suite_Tools
         {
             using var ofd = new OpenFileDialog
             {
-                Title = "Load Snapshot",
-                Filter = "Snapshot JSON (*.paksnap)|*.paksnap"
+                Title = Strings.PakDiff_LoadSnapshot,
+                Filter = Strings.PakDiff_SnapshotFilter
             };
             if (ofd.ShowDialog() != DialogResult.OK) return null;
 
@@ -369,7 +439,8 @@ namespace PangYa_Suite_Tools
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Failed to load snapshot: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"{Strings.PakDiff_LoadSnapshotFailed} {ex.Message}",
+                    Strings.PakDiff_Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return null;
             }
         }
@@ -382,7 +453,7 @@ namespace PangYa_Suite_Tools
         {
             using var fbd = new FolderBrowserDialog
             {
-                Description = GetText("Select target client folder (extract source):", "Selecione a pasta do cliente alvo (origem da extração):")
+                Description = Strings.PakDiff_SelectTargetClient
             };
             if (fbd.ShowDialog() == DialogResult.OK) txtSourceClient.Text = fbd.SelectedPath;
         }
@@ -391,7 +462,7 @@ namespace PangYa_Suite_Tools
         {
             using var fbd = new FolderBrowserDialog
             {
-                Description = GetText("Select your base client folder (comparison):", "Selecione a pasta do seu cliente base (comparação):")
+                Description = Strings.PakDiff_SelectBaseClient
             };
             if (fbd.ShowDialog() == DialogResult.OK) txtCompareClient.Text = fbd.SelectedPath;
         }
@@ -410,8 +481,8 @@ namespace PangYa_Suite_Tools
             if (!Directory.Exists(sourceDir) || !Directory.Exists(compareDir))
             {
                 MessageBox.Show(
-                    GetText("Select valid directories for both clients.", "Selecione diretórios válidos para ambos os clientes."),
-                    "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    Strings.PakDiff_SelectValidClientFolders,
+                    Strings.PakDiff_Warning, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -506,9 +577,9 @@ namespace PangYa_Suite_Tools
                 {
                     string statusLabel = item.Reason switch
                     {
-                        "New File" => GetText("New", "Novo"),
-                        "Modified" => GetText("Modified", "Modificado"),
-                        _ => GetText("Identical", "Idêntico")
+                        "New File" => Strings.PakDiff_New,
+                        "Modified" => Strings.PakDiff_ModifiedLabel,
+                        _ => Strings.PakDiff_Identical
                     };
                     Color color = item.Reason switch
                     {
@@ -526,13 +597,13 @@ namespace PangYa_Suite_Tools
                 lstDiffFiles.EndUpdate();
 
                 MessageBox.Show(
-                    $"{GetText("Comparison finished! Found", "Comparação concluída! Encontrados")} {_comparisonResults.Count} {GetText("files.", "arquivos.")}",
-                    GetText("Done", "Pronto"), MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    string.Format(LocalizationManager.CurrentCulture, Strings.PakDiff_ComparisonFound, _comparisonResults.Count),
+                    Strings.PakDiff_Done, MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"{GetText("Error during comparison:", "Erro durante a comparação:")} {ex.Message}",
-                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"{Strings.PakDiff_ComparisonError} {ex.Message}",
+                    Strings.PakDiff_Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {
@@ -554,14 +625,14 @@ namespace PangYa_Suite_Tools
             if (lstDiffFiles.CheckedItems.Count == 0)
             {
                 MessageBox.Show(
-                    GetText("Please check at least one file to extract.", "Por favor, marque pelo menos um arquivo para extrair."),
-                    "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    Strings.PakDiff_SelectAtLeastOne,
+                    Strings.PakDiff_Warning, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
             using var fbd = new FolderBrowserDialog
             {
-                Description = GetText("Select output folder:", "Selecione a pasta de saída para a extração:")
+                Description = Strings.PakDiff_SelectOutputFolder
             };
             if (fbd.ShowDialog() != DialogResult.OK) return;
 
@@ -572,7 +643,8 @@ namespace PangYa_Suite_Tools
             // Agrupa por PAK físico para abrir cada arquivo apenas uma vez
             var groups = lstDiffFiles.CheckedItems
                 .Cast<ListViewItem>()
-                .Select(lvi => (FileDiffEntry)lvi.Tag)
+                .Select(lvi => lvi.Tag)
+                .OfType<FileDiffEntry>()
                 .GroupBy(entry => entry.SourcePakPath)
                 .ToList();
 
@@ -601,14 +673,13 @@ namespace PangYa_Suite_Tools
                 });
 
                 MessageBox.Show(
-                    GetText($"Extraction complete! {totalDone} files extracted to:\n{outputDir}",
-                            $"Extração completa! {totalDone} arquivos extraídos para:\n{outputDir}"),
-                    GetText("Done", "Pronto"), MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    string.Format(LocalizationManager.CurrentCulture, Strings.PakDiff_ExtractionComplete, totalDone, outputDir),
+                    Strings.PakDiff_Done, MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"{GetText("Extraction failed:", "Falha na extração:")} {ex.Message}",
-                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"{Strings.PakDiff_ExtractionFailed} {ex.Message}",
+                    Strings.PakDiff_Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {
@@ -616,11 +687,6 @@ namespace PangYa_Suite_Tools
                 prgBarDiff.Visible = false;
             }
         }
-
-        // ════════════════════════════════════════════════════════════════════
-        // AUXILIARES COMUNS
-        // ════════════════════════════════════════════════════════════════════
-        private string GetText(string en, string br) => _currentLanguage == "br" ? br : en;
 
         // ── Modelos ──────────────────────────────────────────────────────────
         public class FileDiffEntry

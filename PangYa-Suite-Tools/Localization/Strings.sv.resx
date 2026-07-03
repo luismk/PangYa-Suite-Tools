@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="Common_PortugueseBrazil" xml:space="preserve"><value>Portugisiska (Brasilien)</value></data>
+  <data name="Common_EnglishUS" xml:space="preserve"><value>Engelska (USA)</value></data>
+  <data name="Common_Swedish" xml:space="preserve"><value>Svenska</value></data>
+  <data name="Common_Language" xml:space="preserve"><value>Språk:</value></data>
+  <data name="Common_Error" xml:space="preserve"><value>Fel</value></data>
+  <data name="Common_OK" xml:space="preserve"><value>OK</value></data>
+  <data name="Menu_Title" xml:space="preserve"><value>PangYa Studio Suite – utvecklarverktyg</value></data>
+  <data name="Menu_PakManager" xml:space="preserve"><value>📦 PAK-filhanterare</value></data>
+  <data name="Menu_UpdateList" xml:space="preserve"><value>🌐 Patch-/UpdateList-hanterare</value></data>
+  <data name="Menu_IffManager" xml:space="preserve"><value>📝 IFF-redigerare/hanterare</value></data>
+  <data name="Menu_Options" xml:space="preserve"><value>Alternativ</value></data>
+  <data name="Menu_PakDiff" xml:space="preserve"><value>🔍 PAK-jämförare (Diff)</value></data>
+  <data name="Pak_Title" xml:space="preserve"><value>PangYa Studio – PAK-hanterare</value></data>
+  <data name="Pak_TabExtract" xml:space="preserve"><value>Läsare och ändringar</value></data>
+  <data name="Pak_Browse" xml:space="preserve"><value>Bläddra...</value></data>
+  <data name="Pak_PathHint" xml:space="preserve"><value>Dra en .pak-fil hit eller klicka på Bläddra...</value></data>
+  <data name="Pak_Header" xml:space="preserve"><value>Huvudinformation</value></data>
+  <data name="Pak_Author" xml:space="preserve"><value>Författare: ---</value></data>
+  <data name="Pak_Version" xml:space="preserve"><value>Version: ---</value></data>
+  <data name="Pak_Entries" xml:space="preserve"><value>Poster: ---</value></data>
+  <data name="Pak_Search" xml:space="preserve"><value>🔎 Sök:</value></data>
+  <data name="Pak_SearchHint" xml:space="preserve"><value>Filtrera efter objekt-/filnamn...</value></data>
+  <data name="Pak_CurrentPath" xml:space="preserve"><value>📂 Sökväg: (alla filer)</value></data>
+  <data name="Pak_ExtractSelected" xml:space="preserve"><value>📤 EXTRAHERA VALDA</value></data>
+  <data name="Pak_RemoveSelected" xml:space="preserve"><value>🗑️ TA BORT VALDA</value></data>
+  <data name="Pak_BatchExtract" xml:space="preserve"><value>📂 EXTRAHERA MAPP</value></data>
+  <data name="Pak_Update" xml:space="preserve"><value>🔄 INJICERA/UPPDATERA</value></data>
+  <data name="Pak_ExtractAll" xml:space="preserve"><value>💥 EXTRAHERA ALLT</value></data>
+  <data name="Pak_ColumnName" xml:space="preserve"><value>Filnamn</value></data>
+  <data name="Pak_ColumnType" xml:space="preserve"><value>Typ</value></data>
+  <data name="Pak_ColumnSize" xml:space="preserve"><value>Verklig storlek</value></data>
+  <data name="Pak_ColumnCompressed" xml:space="preserve"><value>Komprimerad storlek</value></data>
+  <data name="Pak_NewKey" xml:space="preserve"><value>🔑 Ny nyckel (XTEA):</value></data>
+  <data name="Pak_ChangeKey" xml:space="preserve"><value>🔐 BYT PAK-NYCKEL</value></data>
+  <data name="Pak_TabCreate" xml:space="preserve"><value>Skapa ny PAK</value></data>
+  <data name="Pak_SourceHint" xml:space="preserve"><value>Dra en mapp hit...</value></data>
+  <data name="Pak_SelectFolder" xml:space="preserve"><value>Välj...</value></data>
+  <data name="Pak_EntryVersion" xml:space="preserve"><value>Postversion:</value></data>
+  <data name="Pak_Compression" xml:space="preserve"><value>Komprimeringstyp:</value></data>
+  <data name="Pak_CompressionLevel" xml:space="preserve"><value>Komprimeringsnivå (0–9):</value></data>
+  <data name="Pak_Region" xml:space="preserve"><value>Region/nycklar (XTEA):</value></data>
+  <data name="Pak_Create" xml:space="preserve"><value>📦 SKAPA .PAK-FIL</value></data>
+  <data name="Pak_Ready" xml:space="preserve"><value>Klar</value></data>
+  <data name="Pak_SecurityPak" xml:space="preserve"><value>Säkerhets-PAK</value></data>
+  <data name="Pak_FilenameEncoding" xml:space="preserve"><value>Filnamn:</value></data>
+  <data name="Pak_FilenameEncodingTooltip" xml:space="preserve"><value>Teckenkodning för filnamn i PAK-arkiv.</value></data>
+  <data name="Pak_EncodingAppliesNextLoad" xml:space="preserve"><value>Filnamnskodningen används nästa gång en PAK läses in.</value></data>
+  <data name="Update_Title" xml:space="preserve"><value>PangYa Studio – UpdateList-hanterare</value></data>
+  <data name="Update_DecryptTab" xml:space="preserve"><value> 🔍 Visare/dekrypterare </value></data>
+  <data name="Update_GeneratorTab" xml:space="preserve"><value> 🛠️ Generator och övervakning </value></data>
+  <data name="Update_Config" xml:space="preserve"><value> Inställningar för uppdateringsserver </value></data>
+  <data name="Update_Source" xml:space="preserve"><value>PangYa-mapp (källa):</value></data>
+  <data name="Update_Destination" xml:space="preserve"><value>Webbservermapp (mål):</value></data>
+  <data name="Update_Key" xml:space="preserve"><value>Region/nyckel:</value></data>
+  <data name="Update_PatchVersion" xml:space="preserve"><value>Patchversion:</value></data>
+  <data name="Update_ListVersion" xml:space="preserve"><value>UpdateList-version:</value></data>
+  <data name="Update_PatchNumber" xml:space="preserve"><value>Patchnummer:</value></data>
+  <data name="Update_Log" xml:space="preserve"><value>Historik/terminallogg:</value></data>
+  <data name="UpdateList_StartMonitoring" xml:space="preserve"><value>▶️ Starta övervakning</value></data>
+  <data name="UpdateList_INACTIVE" xml:space="preserve"><value>INAKTIV</value></data>
+  <data name="UpdateList_StopMonitoring" xml:space="preserve"><value>🛑 Stoppa övervakning</value></data>
+  <data name="UpdateList_ACTIVELYMONITORING" xml:space="preserve"><value>ÖVERVAKAR AKTIVT</value></data>
+  <data name="UpdateList_DragAndDropAnEncryptedUpdatelist" xml:space="preserve"><value>🪂 Dra en krypterad ”updatelist”-fil hit för att visa avkodad XML.</value></data>
+  <data name="UpdateList_Processing" xml:space="preserve"><value>Bearbetar:</value></data>
+  <data name="UpdateList_SUCCESS" xml:space="preserve"><value>LYCKADES</value></data>
+  <data name="UpdateList_DecryptedWithKey" xml:space="preserve"><value>Dekrypterad med nyckeln</value></data>
+  <data name="UpdateList_Warning" xml:space="preserve"><value>Varning</value></data>
+  <data name="UpdateList_Initializing" xml:space="preserve"><value>Initierar...</value></data>
+  <data name="UpdateList_BackgroundMonitoringHasBeenStopped" xml:space="preserve"><value>Bakgrundsövervakningen har stoppats.</value></data>
+  <data name="Iff_Title" xml:space="preserve"><value>PangYa Studio – avancerad IFF-hanterare</value></data>
+  <data name="Iff_Directory" xml:space="preserve"><value>IFF-katalog (mapp):</value></data>
+  <data name="Iff_Browse" xml:space="preserve"><value>Bläddra...</value></data>
+  <data name="Iff_Files" xml:space="preserve"><value>Hittade IFF-filer</value></data>
+  <data name="Options_Title" xml:space="preserve"><value>Alternativ</value></data>
+  <data name="Options_Group" xml:space="preserve"><value>Registrera .pak-filer</value></data>
+  <data name="Options_Register" xml:space="preserve"><value>Registrera SuiteTools för att öppna .pak-filer</value></data>
+  <data name="Options_Shell" xml:space="preserve"><value>Lägg till SuiteTools i Utforskarens snabbmeny</value></data>
+  <data name="Options_Admin" xml:space="preserve"><value>SuiteTools måste startas som administratör för att ändra skalposter.</value></data>
+  <data name="PakDiff_SelectBaseFolder" xml:space="preserve"><value>Välj PAK-mappen BAS/FÖRE:</value></data>
+  <data name="PakDiff_SelectAfterFolder" xml:space="preserve"><value>Välj PAK-mappen EFTER/NY:</value></data>
+  <data name="PakDiff_SelectValidFolder" xml:space="preserve"><value>Välj en giltig mapp.</value></data>
+  <data name="PakDiff_ReadingPaks" xml:space="preserve"><value>⏳ Läser PAK-filer...</value></data>
+  <data name="PakDiff_Files" xml:space="preserve"><value>filer</value></data>
+  <data name="PakDiff_AddedUpper" xml:space="preserve"><value>TILLAGD</value></data>
+  <data name="PakDiff_RemovedUpper" xml:space="preserve"><value>BORTTAGEN</value></data>
+  <data name="PakDiff_ModifiedUpper" xml:space="preserve"><value>ÄNDRAD</value></data>
+  <data name="PakDiff_Added" xml:space="preserve"><value>tillagda</value></data>
+  <data name="PakDiff_Removed" xml:space="preserve"><value>borttagna</value></data>
+  <data name="PakDiff_Modified" xml:space="preserve"><value>ändrade</value></data>
+  <data name="PakDiff_ComparisonComplete" xml:space="preserve"><value>Jämförelsen är klar</value></data>
+  <data name="PakDiff_NoLogToSave" xml:space="preserve"><value>Det finns ingen logg att spara. Kör en jämförelse först.</value></data>
+  <data name="PakDiff_SaveChangeLog" xml:space="preserve"><value>Spara ändringslogg</value></data>
+  <data name="PakDiff_LogSavedTo" xml:space="preserve"><value>Loggen sparades i:&#xA;{0}</value></data>
+  <data name="PakDiff_Saved" xml:space="preserve"><value>Sparad</value></data>
+  <data name="PakDiff_SelectTargetClient" xml:space="preserve"><value>Välj målklientens mapp (extraheringskälla):</value></data>
+  <data name="PakDiff_SelectBaseClient" xml:space="preserve"><value>Välj basklientens mapp (jämförelse):</value></data>
+  <data name="PakDiff_SelectValidClientFolders" xml:space="preserve"><value>Välj giltiga kataloger för båda klienterna.</value></data>
+  <data name="PakDiff_New" xml:space="preserve"><value>Ny</value></data>
+  <data name="PakDiff_ModifiedLabel" xml:space="preserve"><value>Ändrad</value></data>
+  <data name="PakDiff_Identical" xml:space="preserve"><value>Identisk</value></data>
+  <data name="PakDiff_ComparisonFound" xml:space="preserve"><value>Jämförelsen är klar! Hittade {0} filer.</value></data>
+  <data name="PakDiff_Done" xml:space="preserve"><value>Klart</value></data>
+  <data name="PakDiff_ComparisonError" xml:space="preserve"><value>Fel under jämförelsen:</value></data>
+  <data name="PakDiff_SelectAtLeastOne" xml:space="preserve"><value>Markera minst en fil att extrahera.</value></data>
+  <data name="PakDiff_SelectOutputFolder" xml:space="preserve"><value>Välj utdatamapp:</value></data>
+  <data name="PakDiff_ExtractionComplete" xml:space="preserve"><value>Extraheringen är klar! {0} filer extraherades till:&#xA;{1}</value></data>
+  <data name="PakDiff_ExtractionFailed" xml:space="preserve"><value>Extraheringen misslyckades:</value></data>
+  <data name="PakDiff_Warning" xml:space="preserve"><value>Varning</value></data>
+  <data name="PakDiff_Error" xml:space="preserve"><value>Fel</value></data>
+  <data name="PakDiff_TextLogFilter" xml:space="preserve"><value>Textlogg (*.txt)|*.txt</value></data>
+  <data name="PakDiff_LoadSnapshot" xml:space="preserve"><value>Läs in ögonblicksbild</value></data>
+  <data name="PakDiff_SnapshotFilter" xml:space="preserve"><value>Ögonblicksbild JSON (*.paksnap)|*.paksnap</value></data>
+  <data name="PakDiff_SnapshotNotTaken" xml:space="preserve"><value>Ögonblicksbild {0} har inte skapats ännu.</value></data>
+  <data name="PakDiff_SaveSnapshot" xml:space="preserve"><value>Spara ögonblicksbild {0}</value></data>
+  <data name="PakDiff_SnapshotSaved" xml:space="preserve"><value>Ögonblicksbild sparad: {0}</value></data>
+  <data name="PakDiff_LoadSnapshotFailed" xml:space="preserve"><value>Det gick inte att läsa in ögonblicksbilden:</value></data>
+  <data name="PakDiff_Title" xml:space="preserve"><value>PAK Diff – ändringshistorik och synkronisering av flera klienter</value></data>
+  <data name="PakDiff_TabLog" xml:space="preserve"><value>📋 Ändringshistorik/logg</value></data>
+  <data name="PakDiff_SnapshotABefore" xml:space="preserve"><value>📸 Ögonblicksbild A – före/bas</value></data>
+  <data name="PakDiff_SnapshotBAfter" xml:space="preserve"><value>📸 Ögonblicksbild B – efter/ny</value></data>
+  <data name="PakDiff_PakFolder" xml:space="preserve"><value>PAK-mapp:</value></data>
+  <data name="PakDiff_Browse" xml:space="preserve"><value>📁...</value></data>
+  <data name="PakDiff_TakeSnapshot" xml:space="preserve"><value>📸 Skapa ögonblicksbild</value></data>
+  <data name="PakDiff_Save" xml:space="preserve"><value>💾 Spara</value></data>
+  <data name="PakDiff_Load" xml:space="preserve"><value>📂 Läs in</value></data>
+  <data name="PakDiff_NotTaken" xml:space="preserve"><value>(inte skapad)</value></data>
+  <data name="PakDiff_CompareSnapshots" xml:space="preserve"><value>🔍 JÄMFÖR ÖGONBLICKSBILDER</value></data>
+  <data name="PakDiff_SelectAll" xml:space="preserve"><value>Markera alla</value></data>
+  <data name="PakDiff_ColumnPakFile" xml:space="preserve"><value>PAK-fil</value></data>
+  <data name="PakDiff_ColumnInternalFile" xml:space="preserve"><value>Intern fil</value></data>
+  <data name="PakDiff_ColumnStatus" xml:space="preserve"><value>Status</value></data>
+  <data name="PakDiff_ColumnOldSize" xml:space="preserve"><value>Tidigare storlek</value></data>
+  <data name="PakDiff_ColumnNewSize" xml:space="preserve"><value>Ny storlek</value></data>
+  <data name="PakDiff_SaveLog" xml:space="preserve"><value>💾 Spara logg .txt</value></data>
+  <data name="PakDiff_TabClientCompare" xml:space="preserve"><value>🔍 Jämför klienter och extrahera</value></data>
+  <data name="PakDiff_ClientDirectories" xml:space="preserve"><value>Klientkataloger</value></data>
+  <data name="PakDiff_TargetSource" xml:space="preserve"><value>Mål/källa (extrahera från):</value></data>
+  <data name="PakDiff_CompareClient" xml:space="preserve"><value>Din klient (att jämföra med):</value></data>
+  <data name="PakDiff_ComparisonMode" xml:space="preserve"><value>Jämförelseläge</value></data>
+  <data name="PakDiff_Differences" xml:space="preserve"><value>Skillnader/nya filer</value></data>
+  <data name="PakDiff_IdenticalFiles" xml:space="preserve"><value>Identiska filer (lika)</value></data>
+  <data name="PakDiff_Compare" xml:space="preserve"><value>🔍 Jämför</value></data>
+  <data name="PakDiff_ColumnFilePath" xml:space="preserve"><value>Filsökväg</value></data>
+  <data name="PakDiff_ColumnSourcePak" xml:space="preserve"><value>Käll-PAK</value></data>
+  <data name="PakDiff_ExtractSelected" xml:space="preserve"><value>📦 Extrahera valda</value></data>
+</root>

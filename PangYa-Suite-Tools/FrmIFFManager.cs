@@ -16,19 +16,8 @@ namespace PangYa_Suite_Tools
             Disposed += (_, _) => LocalizationManager.CultureChanged -= LocalizationManager_CultureChanged;
         }
 
-        public FrmIFFManager(string idiomaAtual)
-        {
-            InitializeComponent();
-            cboLanguage.ComboBox.DisplayMember = "Key";
-            cboLanguage.ComboBox.ValueMember = "Value";
-
-            cboLanguage.Items.Add(new KeyValuePair<string, string>("Português (BR)", "br"));
-            cboLanguage.Items.Add(new KeyValuePair<string, string>("English (US)", "en"));
-            cboLanguage.SelectedIndex = idiomaAtual == "en" ? 1 : 0;
-
-            isInitializingLanguages = false;
-            ApplyLocalization(idiomaAtual);
-        }
+        public FrmIFFManager(string idiomaAtual) : this() =>
+            LocalizationManager.SetCulture(idiomaAtual);
 
         private void InitializeLanguageComboBox()
         {
@@ -37,7 +26,8 @@ namespace PangYa_Suite_Tools
 
             cboLanguage.Items.Add(new KeyValuePair<string, string>(Strings.Common_PortugueseBrazil, LocalizationManager.PortugueseBrazil));
             cboLanguage.Items.Add(new KeyValuePair<string, string>(Strings.Common_EnglishUS, LocalizationManager.English));
-            cboLanguage.SelectedIndex = LocalizationManager.CurrentCulture.Name == LocalizationManager.PortugueseBrazil ? 0 : 1;
+            cboLanguage.Items.Add(new KeyValuePair<string, string>(Strings.Common_Swedish, LocalizationManager.Swedish));
+            cboLanguage.SelectedIndex = LocalizationManager.CurrentCultureIndex;
 
             isInitializingLanguages = false;
             ApplyLocalization();
@@ -56,7 +46,7 @@ namespace PangYa_Suite_Tools
         private void LocalizationManager_CultureChanged(object? sender, EventArgs e)
         {
             isInitializingLanguages = true;
-            cboLanguage.SelectedIndex = LocalizationManager.CurrentCulture.Name == LocalizationManager.PortugueseBrazil ? 0 : 1;
+            cboLanguage.SelectedIndex = LocalizationManager.CurrentCultureIndex;
             isInitializingLanguages = false;
             ApplyLocalization();
         }
