@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+using PangYa_Suite_Tools.Localization;
+using System.ComponentModel;
 
 namespace PangYa_Suite_Tools
 {
@@ -11,6 +12,8 @@ namespace PangYa_Suite_Tools
         {
             InitializeComponent();
             InitializeLanguageComboBox();
+            LocalizationManager.CultureChanged += LocalizationManager_CultureChanged;
+            Disposed += (_, _) => LocalizationManager.CultureChanged -= LocalizationManager_CultureChanged;
         }
 
         public FrmIFFManager(string idiomaAtual)
@@ -32,12 +35,12 @@ namespace PangYa_Suite_Tools
             cboLanguage.ComboBox.DisplayMember = "Key";
             cboLanguage.ComboBox.ValueMember = "Value";
 
-            cboLanguage.Items.Add(new KeyValuePair<string, string>("Português (BR)", "br"));
-            cboLanguage.Items.Add(new KeyValuePair<string, string>("English (US)", "en"));
-            cboLanguage.SelectedIndex = 1;
+            cboLanguage.Items.Add(new KeyValuePair<string, string>(Strings.Common_PortugueseBrazil, LocalizationManager.PortugueseBrazil));
+            cboLanguage.Items.Add(new KeyValuePair<string, string>(Strings.Common_EnglishUS, LocalizationManager.English));
+            cboLanguage.SelectedIndex = LocalizationManager.CurrentCulture.Name == LocalizationManager.PortugueseBrazil ? 0 : 1;
 
             isInitializingLanguages = false;
-            ApplyLocalization("en");
+            ApplyLocalization();
         }
 
         private void cboLanguage_SelectedIndexChanged(object sender, EventArgs e)
@@ -46,42 +49,39 @@ namespace PangYa_Suite_Tools
 
             if (cboLanguage.SelectedItem is KeyValuePair<string, string> selectedItem)
             {
-                ApplyLocalization(selectedItem.Value);
+                LocalizationManager.SetCulture(selectedItem.Value);
             }
         }
 
-        private void ApplyLocalization(string lang)
+        private void LocalizationManager_CultureChanged(object? sender, EventArgs e)
         {
-            ComponentResourceManager res = new ComponentResourceManager(typeof(FrmIFFManager));
-            string suffix = (lang == "en") ? "_en" : "_br";
+            isInitializingLanguages = true;
+            cboLanguage.SelectedIndex = LocalizationManager.CurrentCulture.Name == LocalizationManager.PortugueseBrazil ? 0 : 1;
+            isInitializingLanguages = false;
+            ApplyLocalization();
+        }
 
-            this.Text = res.GetString($"FrmIFFManager{suffix}") ?? this.Text;
-            lblIffDir.Text = res.GetString($"lblIffDir{suffix}") ?? lblIffDir.Text;
-            btnBrowseIffDir.Text = res.GetString($"btnBrowseIffDir{suffix}") ?? btnBrowseIffDir.Text;
-            grpIffFiles.Text = res.GetString($"grpIffFiles{suffix}") ?? grpIffFiles.Text;
-            lblLanguage.Text = res.GetString($"lblLanguage{suffix}") ?? lblLanguage.Text;
+        private void ApplyLocalization()
+        {
+            Text = Strings.Iff_Title;
+            lblIffDir.Text = Strings.Iff_Directory;
+            btnBrowseIffDir.Text = Strings.Iff_Browse;
+            grpIffFiles.Text = Strings.Iff_Files;
+            lblLanguage.Text = Strings.Common_Language;
 
             // Apenas atualiza o texto de status/aviso padrão se nenhum diretório foi carregado ainda,
             // para não sobrescrever um estado dinâmico (ex: editor aberto) ao trocar o idioma.
             if (string.IsNullOrEmpty(txtIffDirectory.Text))
             {
-                lblStatus.Text = GetText("Ready. Select the IFF files directory.", "Pronto. Selecione o diretório dos arquivos IFF.");
-                lblNoFileSelected.Text = GetText("Select an .iff file from the list to load the editing table.", "Selecione um arquivo .iff na lista ao lado para carregar a tabela de edição.");
+                lblStatus.Text = Strings.IFFManager_ReadySelectTheIFFFilesDirectory;
+                lblNoFileSelected.Text = Strings.IFFManager_SelectAnIffFileFromThe;
             }
         }
-
-        private string GetText(string en, string br)
-        {
-            if (cboLanguage.SelectedItem is KeyValuePair<string, string> selectedItem)
-                return (selectedItem.Value == "br") ? br : en;
-            return en;
-        }
-
-        private void btnBrowseIffDir_Click(object sender, EventArgs e)
+private void btnBrowseIffDir_Click(object sender, EventArgs e)
         {
             using var fbd = new FolderBrowserDialog
             {
-                Description = GetText("Select the extracted folder containing the .iff files (e.g.: Character.iff, Item.iff)", "Selecione a pasta extraída contendo os arquivos .iff (ex: Character.iff, Item.iff)")
+                Description = Strings.IFFManager_SelectTheExtractedFolderContainingThe
             };
 
             if (fbd.ShowDialog() == DialogResult.OK)
@@ -106,16 +106,16 @@ namespace PangYa_Suite_Tools
                     lstIffFiles.Items.Add(Path.GetFileName(file));
                 }
 
-                lblStatus.Text = $"{GetText("Scan complete.", "Varredura concluída.")} {lstIffFiles.Items.Count} {GetText("'.iff' file(s) found.", "arquivo(s) .iff encontrados.")}";
+                lblStatus.Text = $"{Strings.IFFManager_ScanComplete} {lstIffFiles.Items.Count} {Strings.IFFManager_IffFileSFound}";
 
                 if (lstIffFiles.Items.Count == 0)
                 {
-                    MessageBox.Show(GetText("No file with the '.iff' extension was found in this folder.", "Nenhum arquivo com a extensão '.iff' foi localizado nesta pasta."), GetText("Warning", "Aviso"), MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show(Strings.IFFManager_NoFileWithTheIffExtension, Strings.IFFManager_Warning, MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"{GetText("Error listing directory:", "Erro ao listar diretório:")} {ex.Message}", GetText("Error", "Erro"), MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"{Strings.IFFManager_ErrorListingDirectory} {ex.Message}", Strings.IFFManager_Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -165,13 +165,13 @@ namespace PangYa_Suite_Tools
                 pnlEditorContainer.Tag = targetForm;
                 targetForm.Show();
 
-                lblStatus.Text = $"{GetText("Editing structure of:", "Editando estrutura de:")} {filename}";
+                lblStatus.Text = $"{Strings.IFFManager_EditingStructureOf} {filename}";
             }
             else
             {
-                lblNoFileSelected.Text = $"{GetText("⚠️ The editor layout/structure for the file", "⚠️ A estrutura/layout de editor para o arquivo")} '{filename}'\n{GetText("has not yet been implemented or mapped.", "ainda não foi implementada ou mapeada.")}";
+                lblNoFileSelected.Text = $"{Strings.IFFManager_TheEditorLayoutStructureForThe} '{filename}'\n{Strings.IFFManager_HasNotYetBeenImplementedOr}";
                 lblNoFileSelected.Visible = true;
-                lblStatus.Text = $"{GetText("Editor not available for:", "Editor não disponível para:")} {filename}";
+                lblStatus.Text = $"{Strings.IFFManager_EditorNotAvailableFor} {filename}";
             }
         }
 
@@ -183,7 +183,7 @@ namespace PangYa_Suite_Tools
                 _activeEditorForm.Dispose();
                 _activeEditorForm = null;
             }
-            lblNoFileSelected.Text = GetText("Select an .iff file from the list to load the editing table.", "Selecione um arquivo .iff na lista ao lado para carregar a tabela de edição.");
+            lblNoFileSelected.Text = Strings.IFFManager_SelectAnIffFileFromThe;
             lblNoFileSelected.Visible = true;
         }
     }

@@ -88,7 +88,10 @@ namespace PangYa_Suite_Tools.Extension
             rootbar.BeginInvoke(action);
             foreach (string i in UpdateFileList.Keys)
             {
-                string[] fileEntries = Directory.GetFiles(UpdateFileList[i].FullPath);
+                string? fullPath = UpdateFileList[i].FullPath;
+                if (string.IsNullOrWhiteSpace(fullPath) || !Directory.Exists(fullPath))
+                    continue; // TODO: Should add logging or error handling here to indicate that the directory does not exist.
+                string[] fileEntries = Directory.GetFiles(fullPath);
                 foreach (var fileName in fileEntries)
                 {
                     { labeldesc.Text = UpdateFileList[fileName].pname; }

@@ -1,4 +1,6 @@
-﻿namespace PangYa_Suite_Tools
+#nullable disable
+
+namespace PangYa_Suite_Tools
 {
     partial class FrmPakMaker
     {
@@ -48,6 +50,8 @@
         private System.Windows.Forms.StatusStrip statusStrip1;
         private System.Windows.Forms.ToolStripStatusLabel lblStatus;
         private System.Windows.Forms.ToolStripProgressBar progressBar1;
+        private System.Windows.Forms.ToolStripStatusLabel lblFilenameEncoding;
+        private System.Windows.Forms.ToolStripComboBox cboFilenameEncoding;
 
         // Troca de chave XTEA
         private System.Windows.Forms.Label lblNewKey;
@@ -56,10 +60,10 @@
         // trocar de linguagem
         private System.Windows.Forms.ToolStripStatusLabel lblLanguage;
         private System.Windows.Forms.ToolStripComboBox cboLanguage;
-        private ToolStripMenuItem? _menuExtractSingle;
-        private ToolStripMenuItem? _menuRemoveSingle;
-        private ToolStripMenuItem? _menuExtractFolder;
-        private ToolStripMenuItem? _menuRemoveFolder;
+        private ToolStripMenuItem _menuExtractSingle;
+        private ToolStripMenuItem _menuRemoveSingle;
+        private ToolStripMenuItem _menuExtractFolder;
+        private ToolStripMenuItem _menuRemoveFolder;
         protected override void Dispose(bool disposing)
         {
             if (disposing && (components != null))
@@ -114,6 +118,8 @@
             statusStrip1 = new StatusStrip();
             lblStatus = new ToolStripStatusLabel();
             progressBar1 = new ToolStripProgressBar();
+            lblFilenameEncoding = new ToolStripStatusLabel();
+            cboFilenameEncoding = new ToolStripComboBox();
             lblLanguage = new ToolStripStatusLabel();
             cboLanguage = new ToolStripComboBox();
             ckSecurityPak = new CheckBox();
@@ -166,7 +172,6 @@
             tabExtract.Padding = new Padding(9, 8, 9, 8);
             tabExtract.Size = new Size(748, 402);
             tabExtract.TabIndex = 0;
-            tabExtract.Text = "Leitor & Modificações";
             tabExtract.UseVisualStyleBackColor = true;
             // 
             // groupHeader
@@ -181,7 +186,6 @@
             groupHeader.Size = new Size(724, 43);
             groupHeader.TabIndex = 2;
             groupHeader.TabStop = false;
-            groupHeader.Text = "Informações do Cabeçalho";
             // 
             // lblAuthor
             // 
@@ -189,7 +193,6 @@
             lblAuthor.Name = "lblAuthor";
             lblAuthor.Size = new Size(219, 15);
             lblAuthor.TabIndex = 0;
-            lblAuthor.Text = "Autor: ---";
             // 
             // lblVersion
             // 
@@ -197,7 +200,6 @@
             lblVersion.Name = "lblVersion";
             lblVersion.Size = new Size(175, 15);
             lblVersion.TabIndex = 1;
-            lblVersion.Text = "Versão: ---";
             // 
             // lblEntries
             // 
@@ -205,7 +207,6 @@
             lblEntries.Name = "lblEntries";
             lblEntries.Size = new Size(175, 15);
             lblEntries.TabIndex = 2;
-            lblEntries.Text = "Entradas: ---";
             // 
             // lblSearch
             // 
@@ -213,7 +214,6 @@
             lblSearch.Name = "lblSearch";
             lblSearch.Size = new Size(95, 17);
             lblSearch.TabIndex = 3;
-            lblSearch.Text = "🔎 Pesquisar:";
             // 
             // txtSearch
             // 
@@ -230,7 +230,6 @@
             lblCurrentPath.Name = "lblCurrentPath";
             lblCurrentPath.Size = new Size(390, 17);
             lblCurrentPath.TabIndex = 5;
-            lblCurrentPath.Text = "📂 Caminho: (todos os arquivos)";
             // 
             // tvFolders
             // 
@@ -250,7 +249,6 @@
             btnExtractSelected.Name = "btnExtractSelected";
             btnExtractSelected.Size = new Size(175, 26);
             btnExtractSelected.TabIndex = 7;
-            btnExtractSelected.Text = "📤 EXTRAIR SELECIONADO(S)";
             btnExtractSelected.UseVisualStyleBackColor = false;
             btnExtractSelected.Click += btnExtractSelected_Click;
             // 
@@ -264,7 +262,6 @@
             btnRemoveSelected.Name = "btnRemoveSelected";
             btnRemoveSelected.Size = new Size(175, 26);
             btnRemoveSelected.TabIndex = 8;
-            btnRemoveSelected.Text = "🗑️ REMOVER SELECIONADO(S)";
             btnRemoveSelected.UseVisualStyleBackColor = false;
             btnRemoveSelected.Click += btnRemoveSelected_Click;
             // 
@@ -278,7 +275,6 @@
             btnBatchExtract.Name = "btnBatchExtract";
             btnBatchExtract.Size = new Size(175, 28);
             btnBatchExtract.TabIndex = 9;
-            btnBatchExtract.Text = "📂 EXTRAIR PASTA";
             btnBatchExtract.UseVisualStyleBackColor = false;
             btnBatchExtract.Click += btnBatchExtract_Click;
             // 
@@ -292,7 +288,6 @@
             btnUpdatePak.Name = "btnUpdatePak";
             btnUpdatePak.Size = new Size(160, 28);
             btnUpdatePak.TabIndex = 10;
-            btnUpdatePak.Text = "🔄 INJETAR / ATUALIZAR";
             btnUpdatePak.UseVisualStyleBackColor = false;
             btnUpdatePak.Click += btnUpdatePak_Click;
             // 
@@ -306,7 +301,6 @@
             btnExtractAll.Name = "btnExtractAll";
             btnExtractAll.Size = new Size(149, 28);
             btnExtractAll.TabIndex = 11;
-            btnExtractAll.Text = "💥 EXTRAIR TUDO";
             btnExtractAll.UseVisualStyleBackColor = false;
             btnExtractAll.Click += btnExtractAll_Click;
             // 
@@ -325,22 +319,18 @@
             // 
             // colName
             // 
-            colName.Text = "Nome do Arquivo";
             colName.Width = 220;
             // 
             // colType
             // 
-            colType.Text = "Tipo";
             colType.Width = 70;
             // 
             // colSize
             // 
-            colSize.Text = "Tamanho Real";
             colSize.Width = 110;
             // 
             // colCompSize
             // 
-            colCompSize.Text = "Tam. Compactado";
             colCompSize.Width = 100;
             // 
             // btnBrowsePak
@@ -350,7 +340,6 @@
             btnBrowsePak.Name = "btnBrowsePak";
             btnBrowsePak.Size = new Size(92, 22);
             btnBrowsePak.TabIndex = 1;
-            btnBrowsePak.Text = "Buscar...";
             btnBrowsePak.UseVisualStyleBackColor = true;
             btnBrowsePak.Click += btnBrowsePak_Click;
             // 
@@ -370,7 +359,6 @@
             lblNewKey.Name = "lblNewKey";
             lblNewKey.Size = new Size(130, 17);
             lblNewKey.TabIndex = 13;
-            lblNewKey.Text = "🔑 Nova Chave (XTEA):";
             // 
             // cboNewRegion
             // 
@@ -391,7 +379,6 @@
             btnChangeKey.Name = "btnChangeKey";
             btnChangeKey.Size = new Size(310, 26);
             btnChangeKey.TabIndex = 15;
-            btnChangeKey.Text = "🔐 TROCAR CHAVE DO PAK";
             btnChangeKey.UseVisualStyleBackColor = false;
             btnChangeKey.Click += btnChangeKey_Click;
             // 
@@ -416,7 +403,6 @@
             tabCreate.Padding = new Padding(18, 15, 18, 15);
             tabCreate.Size = new Size(748, 402);
             tabCreate.TabIndex = 1;
-            tabCreate.Text = "Criar Novo PAK";
             tabCreate.UseVisualStyleBackColor = true;
             // 
             // txtNewAuthorPak
@@ -433,7 +419,6 @@
             label1.Name = "label1";
             label1.Size = new Size(47, 15);
             label1.TabIndex = 15;
-            label1.Text = "Author:";
             label1.TextAlign = ContentAlignment.TopRight;
             // 
             // lblReg
@@ -442,7 +427,6 @@
             lblReg.Name = "lblReg";
             lblReg.Size = new Size(150, 17);
             lblReg.TabIndex = 0;
-            lblReg.Text = "Região / Chaves (XTEA):";
             // 
             // lblLevel
             // 
@@ -450,7 +434,6 @@
             lblLevel.Name = "lblLevel";
             lblLevel.Size = new Size(160, 17);
             lblLevel.TabIndex = 1;
-            lblLevel.Text = "Nível de Compressão (0-9):";
             // 
             // lblComp
             // 
@@ -458,7 +441,6 @@
             lblComp.Name = "lblComp";
             lblComp.Size = new Size(130, 17);
             lblComp.TabIndex = 2;
-            lblComp.Text = "Tipo de Compressão:";
             // 
             // lblVol
             // 
@@ -466,7 +448,6 @@
             lblVol.Name = "lblVol";
             lblVol.Size = new Size(120, 17);
             lblVol.TabIndex = 3;
-            lblVol.Text = "Versão da Entrada:";
             // 
             // btnCreatePak
             // 
@@ -478,7 +459,6 @@
             btnCreatePak.Name = "btnCreatePak";
             btnCreatePak.Size = new Size(706, 38);
             btnCreatePak.TabIndex = 10;
-            btnCreatePak.Text = "📦 GERAR ARQUIVO .PAK";
             btnCreatePak.UseVisualStyleBackColor = false;
             btnCreatePak.Click += btnCreatePak_Click;
             // 
@@ -526,7 +506,6 @@
             btnBrowseFolder.Name = "btnBrowseFolder";
             btnBrowseFolder.Size = new Size(101, 22);
             btnBrowseFolder.TabIndex = 1;
-            btnBrowseFolder.Text = "Selecionar...";
             btnBrowseFolder.UseVisualStyleBackColor = true;
             btnBrowseFolder.Click += btnBrowseFolder_Click;
             // 
@@ -543,7 +522,7 @@
             // statusStrip1
             // 
             statusStrip1.ImageScalingSize = new Size(20, 20);
-            statusStrip1.Items.AddRange(new ToolStripItem[] { lblStatus, progressBar1, lblLanguage, cboLanguage });
+            statusStrip1.Items.AddRange(new ToolStripItem[] { lblStatus, progressBar1, lblFilenameEncoding, cboFilenameEncoding, lblLanguage, cboLanguage });
             statusStrip1.Location = new Point(9, 438);
             statusStrip1.Name = "statusStrip1";
             statusStrip1.Padding = new Padding(1, 0, 12, 0);
@@ -554,19 +533,32 @@
             // 
             lblStatus.Name = "lblStatus";
             lblStatus.Size = new Size(43, 18);
-            lblStatus.Text = "Pronto";
+            lblStatus.Spring = true;
+            lblStatus.TextAlign = ContentAlignment.MiddleLeft;
             // 
             // progressBar1
             // 
             progressBar1.Name = "progressBar1";
             progressBar1.Size = new Size(150, 17);
+            //
+            // lblFilenameEncoding
+            //
+            lblFilenameEncoding.Margin = new Padding(10, 0, 0, 0);
+            lblFilenameEncoding.Name = "lblFilenameEncoding";
+            //
+            // cboFilenameEncoding
+            //
+            cboFilenameEncoding.DropDownStyle = ComboBoxStyle.DropDownList;
+            cboFilenameEncoding.DropDownWidth = 360;
+            cboFilenameEncoding.Name = "cboFilenameEncoding";
+            cboFilenameEncoding.Size = new Size(175, 23);
+            cboFilenameEncoding.SelectedIndexChanged += cboFilenameEncoding_SelectedIndexChanged;
             // 
             // lblLanguage
             // 
             lblLanguage.Margin = new Padding(20, 0, 0, 0);
             lblLanguage.Name = "lblLanguage";
             lblLanguage.Size = new Size(47, 23);
-            lblLanguage.Text = "Idioma:";
             // 
             // cboLanguage
             // 
@@ -584,7 +576,6 @@
             ckSecurityPak.Name = "ckSecurityPak";
             ckSecurityPak.Size = new Size(90, 19);
             ckSecurityPak.TabIndex = 2;
-            ckSecurityPak.Text = "Security Pak";
             ckSecurityPak.UseVisualStyleBackColor = true;
             // 
             // txtUpdateAuthor
@@ -602,7 +593,6 @@
             label2.Name = "label2";
             label2.Size = new Size(47, 15);
             label2.TabIndex = 17;
-            label2.Text = "Author:";
             label2.TextAlign = ContentAlignment.TopRight;
             // 
             // FrmPakMaker

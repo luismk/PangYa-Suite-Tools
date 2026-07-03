@@ -3,11 +3,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Collections.Concurrent;
+using System.Reflection;
 
 namespace PangyaAPI.Utilities.Models
 {
     public class PangyaBinaryReader : BinaryReader
     {
+        private static readonly ConcurrentDictionary<Type, PropertyInfo[]> PropertyCache = new();
         public Encoding _Encoder { get; set; }
         public PangyaBinaryReader(Stream input) : base(input, Encoding.GetEncoding(874))
         {
@@ -27,6 +30,7 @@ namespace PangyaAPI.Utilities.Models
 
         public PangyaBinaryReader(Stream input, Encoding encoding, bool leaveOpen) : base(input, encoding, leaveOpen)
         {
+            _Encoder = encoding;
         }
 
         public void Skip(int count)
@@ -74,13 +78,13 @@ namespace PangyaAPI.Utilities.Models
             {
                 var data = new byte[Count];
                 //ler os dados
-                BaseStream.Read(data, 0, (int)Count);
+                BaseStream.ReadExactly(data);
 
                 value = _Encoder.GetString(data);
             }
             catch
             {
-                value = null;
+                value = string.Empty;
                 return false;
             }
             return true;
@@ -98,7 +102,7 @@ namespace PangyaAPI.Utilities.Models
             }
             catch
             {
-                value = null;
+                value = Array.Empty<string>();
                 return false;
             }
             return true;
@@ -112,7 +116,7 @@ namespace PangyaAPI.Utilities.Models
             }
             catch
             {
-                value = null;
+                value = string.Empty;
                 return false;
             }
             return true;
@@ -166,7 +170,7 @@ namespace PangyaAPI.Utilities.Models
             {
                 var data = new byte[Count];
                 //ler os dados
-                BaseStream.Read(data, 0, (int)Count);
+                BaseStream.ReadExactly(data);
 
                 return _Encoder.GetString(data).Replace("\0", "");
             }
@@ -429,14 +433,7 @@ namespace PangyaAPI.Utilities.Models
             try
             {
                 var obj = new object();
-                byte[] recordData = ReadBytes(Count);
-
-                IntPtr ptr = Marshal.AllocHGlobal(Count);
-
-                Marshal.Copy(recordData, 0, ptr, Count);
-
-                value = Marshal.PtrToStructure(ptr, obj.GetType());
-                Marshal.FreeHGlobal(ptr);
+                value = MarshalBytes(ReadExactlyBytes(Count), obj.GetType());
             }
             catch
             {
@@ -451,18 +448,12 @@ namespace PangyaAPI.Utilities.Models
         {
             try
             {
-                byte[] recordData = ReadBytes(Count);
-
-                IntPtr ptr = Marshal.AllocHGlobal(Count);
-
-                Marshal.Copy(recordData, 0, ptr, Count);
-
-                value = (T)Marshal.PtrToStructure(ptr, value.GetType());
-                Marshal.FreeHGlobal(ptr);
+                object result = MarshalBytes(ReadExactlyBytes(Count), typeof(T));
+                value = (T)result;
             }
             catch
             {
-                value = default;
+                value = default!;
                 return false;
             }
             return true;
@@ -471,71 +462,57 @@ namespace PangyaAPI.Utilities.Models
 
         public T Read<T>() where T : new()
         {
-            T local;
             int count = (typeof(T) == typeof(bool)) ? 1 : Marshal.SizeOf(typeof(T));
-            GCHandle handle = GCHandle.Alloc(this.ReadBytes(count), GCHandleType.Pinned);
-            try
-            {
-                local = (T)Marshal.PtrToStructure(handle.AddrOfPinnedObject(), typeof(T));
-            }
-            finally
-            {
-                handle.Free();
-            }
-            return local;
+            return (T)MarshalBytes(ReadExactlyBytes(count), typeof(T));
         }
 
         public object Read(object value)
         {
             var Count = Marshal.SizeOf(value);
 
-            byte[] recordData = ReadBytes(Count);
-
-            IntPtr ptr = Marshal.AllocHGlobal(Count);
-
-            Marshal.Copy(recordData, 0, ptr, Count);
-
-            value = Marshal.PtrToStructure(ptr, value.GetType());
-            Marshal.FreeHGlobal(ptr);
-            return value;
+            return MarshalBytes(ReadExactlyBytes(Count), value.GetType());
         }
 
         public object Read(object value, object value_ori)
         {
             var Count = Marshal.SizeOf(value_ori);
 
-            byte[] recordData = ReadBytes(Count);
-
-            if (recordData.Length != Count)
-            {
-                throw new Exception(
-                    $"The record length ({recordData.Length}) mismatches the length of the passed structure ({Count})");
-            }
-
-            IntPtr ptr = Marshal.AllocHGlobal(Count);
-
-            Marshal.Copy(recordData, 0, ptr, Count);
-
-            value = Marshal.PtrToStructure(ptr, value.GetType());
-            Marshal.FreeHGlobal(ptr);
-            return value;
+            return MarshalBytes(ReadExactlyBytes(Count), value.GetType());
         }
 
         public object Read(object value, int Count)
         {
-            byte[] recordData = ReadBytes(Count);
+            return MarshalBytes(ReadExactlyBytes(Count), value.GetType());
+        }
 
-            IntPtr ptr = Marshal.AllocHGlobal(Count);
+        private byte[] ReadExactlyBytes(int count)
+        {
+            if (count < 0) throw new ArgumentOutOfRangeException(nameof(count));
+            byte[] data = new byte[count];
+            BaseStream.ReadExactly(data);
+            return data;
+        }
 
-            Marshal.Copy(recordData, 0, ptr, Count);
-
-            value = Marshal.PtrToStructure(ptr, value.GetType());
-            Marshal.FreeHGlobal(ptr);
-            return value;
+        private static object MarshalBytes(byte[] data, Type type)
+        {
+            int allocationSize = Math.Max(data.Length, Marshal.SizeOf(type));
+            IntPtr ptr = Marshal.AllocHGlobal(allocationSize);
+            try
+            {
+                byte[] initialized = new byte[allocationSize];
+                Marshal.Copy(initialized, 0, ptr, allocationSize);
+                Marshal.Copy(data, 0, ptr, data.Length);
+                return Marshal.PtrToStructure(ptr, type)
+                    ?? throw new InvalidDataException($"Unable to marshal {data.Length} bytes as {type.FullName}.");
+            }
+            finally
+            {
+                Marshal.FreeHGlobal(ptr);
+            }
         }
         public Object ReadObject(object obj)
         {
-            foreach (var property in obj.GetType().GetProperties())
+            foreach (var property in PropertyCache.GetOrAdd(obj.GetType(), static type => type.GetProperties()))
             {
                 Type type = property.PropertyType;
 
@@ -648,7 +625,7 @@ namespace PangyaAPI.Utilities.Models
         public void ReadObject(out object obj)
         {
             obj = new object();
-            foreach (var property in obj.GetType().GetProperties())
+            foreach (var property in PropertyCache.GetOrAdd(obj.GetType(), static type => type.GetProperties()))
             {
                 Type type = property.PropertyType;
 
@@ -779,60 +756,14 @@ namespace PangyaAPI.Utilities.Models
         public T ReadStruct<T>()
         {
             var count = Marshal.SizeOf(typeof(T));
-
-            byte[] recordData = ReadBytes(count);
-
-            if (recordData.Length != count)
-            {
-                throw new Exception(
-                    $"The record({typeof(T).GetType().Name}) length ({recordData.Length}) mismatches the length of the passed structure ({count})");
-            }
-
-            var handle = GCHandle.Alloc(recordData, GCHandleType.Pinned);
-
-            try
-            {
-                var stt = (T)Marshal.PtrToStructure(handle.AddrOfPinnedObject(), typeof(T));
-                return stt;
-            }
-            catch { handle.Free(); return (T)Activator.CreateInstance(typeof(T)); }
-            finally
-            {
-                handle.Free();
-            }
+            return (T)MarshalBytes(ReadExactlyBytes(count), typeof(T));
         }
 
         protected T _Read<T>(long real_size)
         {
-            var count = Marshal.SizeOf(typeof(T));
-
-            byte[] recordData = new byte[real_size];
-            if (count > real_size)
-            {
-                recordData = ReadBytes((int)real_size);
-                count = (int)real_size;
-            }
-            else if (real_size > count)
-            {
-                recordData = ReadBytes((int)real_size);
-                count = (int)real_size;
-            }
-            else
-            {
-                recordData = ReadBytes(count);
-            }
-            var handle = GCHandle.Alloc(recordData, GCHandleType.Pinned);
-
-            try
-            {
-                var stt = (T)Marshal.PtrToStructure(handle.AddrOfPinnedObject(), typeof(T));
-                return stt;
-            }
-            catch { handle.Free(); return (T)Activator.CreateInstance(typeof(T)); }
-            finally
-            {
-                handle.Free();
-            }
+            if (real_size < 0 || real_size > int.MaxValue)
+                throw new ArgumentOutOfRangeException(nameof(real_size));
+            return (T)MarshalBytes(ReadExactlyBytes((int)real_size), typeof(T));
         }
 
         public T[] ReadStruct<T>(int count)
@@ -861,38 +792,9 @@ namespace PangyaAPI.Utilities.Models
 
         public object Read(object value, long real_size)
         {
-            try
-            {
-                var count = Marshal.SizeOf(value);
-
-                byte[] recordData = new byte[real_size];
-                if (count > real_size)
-                {
-                    recordData = ReadBytes((int)real_size);
-                    count = (int)real_size;
-                }
-                else if (real_size > count)
-                {
-                    recordData = ReadBytes((int)real_size);
-                    count = (int)real_size;
-                }
-                else
-                {
-                    recordData = ReadBytes(count);
-                }
-                IntPtr ptr = Marshal.AllocHGlobal(count);
-
-                Marshal.Copy(recordData, 0, ptr, count);
-
-                value = Marshal.PtrToStructure(ptr, value.GetType());
-                Marshal.FreeHGlobal(ptr);
-                return value;
-            }
-            catch (Exception ex)
-            {
-
-                throw ex;
-            }
+            if (real_size < 0 || real_size > int.MaxValue)
+                throw new ArgumentOutOfRangeException(nameof(real_size));
+            return MarshalBytes(ReadExactlyBytes((int)real_size), value.GetType());
         }
         public byte[] ReadBytes()
         {

@@ -61,14 +61,12 @@
             // 
             this.lblStatus.Name = "lblStatus";
             this.lblStatus.Size = new System.Drawing.Size(230, 17);
-            this.lblStatus.Text = "Pronto. Selecione o diretório dos arquivos IFF.";
             // 
             // lblLanguage
             // 
             this.lblLanguage.Margin = new System.Windows.Forms.Padding(20, 3, 0, 2);
             this.lblLanguage.Name = "lblLanguage";
             this.lblLanguage.Size = new System.Drawing.Size(47, 17);
-            this.lblLanguage.Text = "Idioma:";
             // 
             // cboLanguage
             // 
@@ -107,7 +105,6 @@
             this.grpIffFiles.Size = new System.Drawing.Size(250, 469);
             this.grpIffFiles.TabIndex = 0;
             this.grpIffFiles.TabStop = false;
-            this.grpIffFiles.Text = "Arquivos IFF Detectados";
             // 
             // lstIffFiles
             // 
@@ -140,7 +137,6 @@
             this.lblNoFileSelected.Name = "lblNoFileSelected";
             this.lblNoFileSelected.Size = new System.Drawing.Size(708, 467);
             this.lblNoFileSelected.TabIndex = 0;
-            this.lblNoFileSelected.Text = "Selecione um arquivo .iff na lista ao lado para carregar a tabela de edição.";
             this.lblNoFileSelected.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // pnlTopBar
@@ -163,7 +159,6 @@
             this.btnBrowseIffDir.Name = "btnBrowseIffDir";
             this.btnBrowseIffDir.Size = new System.Drawing.Size(80, 25);
             this.btnBrowseIffDir.TabIndex = 2;
-            this.btnBrowseIffDir.Text = "Buscar...";
             this.btnBrowseIffDir.UseVisualStyleBackColor = true;
             this.btnBrowseIffDir.Click += new System.EventHandler(this.btnBrowseIffDir_Click);
             // 
@@ -184,7 +179,6 @@
             this.lblIffDir.Name = "lblIffDir";
             this.lblIffDir.Size = new System.Drawing.Size(117, 15);
             this.lblIffDir.TabIndex = 0;
-            this.lblIffDir.Text = "Diretório IFF (Pasta):";
             // 
             // FrmIffManager
             // 
@@ -197,7 +191,6 @@
             this.MinimumSize = new System.Drawing.Size(800, 500);
             this.Name = "FrmIffManager";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "Pangya Studio - Gerenciador Avançado de IFFs";
             this.statusStrip.ResumeLayout(false);
             this.statusStrip.PerformLayout();
             this.splitContainerMain.Panel1.ResumeLayout(false);

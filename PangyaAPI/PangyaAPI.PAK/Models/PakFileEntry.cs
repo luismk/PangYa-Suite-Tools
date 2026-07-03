@@ -7,6 +7,7 @@ namespace PangyaAPI.PAK.Models
     public class PakFileEntry
     {
         private byte[] _nameRaw = Array.Empty<byte>();
+        private Encoding _fileNameEncoding = PakFileNameEncoding.CreateDefault();
 
         public byte NameLength { get; set; }
         public PakFileEntryType Type { get; set; }
@@ -31,7 +32,15 @@ namespace PangyaAPI.PAK.Models
         /// </summary>
         internal void SetRawNameForWrite(byte[] value) => _nameRaw = value;
 
-        public string Name => Encoding.ASCII.GetString(_nameRaw).Replace('/', '\\').Trim();
+        internal Encoding FileNameEncoding
+        {
+            get => _fileNameEncoding;
+            set => _fileNameEncoding = value ?? throw new ArgumentNullException(nameof(value));
+        }
+
+        public string Name => FileNameEncoding.GetString(_nameRaw).Replace('/', '\\').Trim();
+
+        internal static byte[] EncodeName(string name, Encoding encoding) => encoding.GetBytes(name);
 
         /// <summary>
         /// Varre o array de bytes recebido do arquivo PAK e remove os terminadores nulos (\0) 
@@ -65,5 +74,15 @@ namespace PangyaAPI.PAK.Models
             bool hasNullTerm = version < PakFileEntryVersion.V3 || version == PakFileEntryVersion.Raw;
             return 2 + 4 + 4 + 4 + nameLength + (hasNullTerm ? 1 : 0);
         }
+    }
+
+    internal static class PakFileNameEncoding
+    {
+        internal const int DefaultCodePage = 51949;
+
+        static PakFileNameEncoding() =>
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
+        internal static Encoding CreateDefault() => Encoding.GetEncoding(DefaultCodePage);
     }
 }

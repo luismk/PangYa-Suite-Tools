@@ -36,7 +36,6 @@
             groupRegister.Size = new Size(360, 135);
             groupRegister.TabIndex = 0;
             groupRegister.TabStop = false;
-            groupRegister.Text = "Register .pak files";
             // 
             // lblAdminWarning
             // 
@@ -45,7 +44,6 @@
             lblAdminWarning.Name = "lblAdminWarning";
             lblAdminWarning.Size = new Size(330, 40);
             lblAdminWarning.TabIndex = 0;
-            lblAdminWarning.Text = "PakMaker has to be started \"As Administrator\" to be able to modify the shell entries!";
             // 
             // chkRegisterFile
             // 
@@ -54,7 +52,6 @@
             chkRegisterFile.Name = "chkRegisterFile";
             chkRegisterFile.Size = new Size(206, 19);
             chkRegisterFile.TabIndex = 1;
-            chkRegisterFile.Text = "Register WinPak to open .pak Files";
             chkRegisterFile.UseVisualStyleBackColor = true;
             // 
             // chkShellContext
@@ -64,7 +61,6 @@
             chkShellContext.Name = "chkShellContext";
             chkShellContext.Size = new Size(271, 19);
             chkShellContext.TabIndex = 2;
-            chkShellContext.Text = "Add WinPak shell context to Windows Explorer";
             chkShellContext.UseVisualStyleBackColor = true;
             // 
             // btnCancel
@@ -73,7 +69,6 @@
             btnCancel.Name = "btnCancel";
             btnCancel.Size = new Size(75, 25);
             btnCancel.TabIndex = 1;
-            btnCancel.Text = "Cancel";
             btnCancel.UseVisualStyleBackColor = true;
             btnCancel.Click += btnCancel_Click;
             // 
@@ -83,7 +78,6 @@
             btnOK.Name = "btnOK";
             btnOK.Size = new Size(75, 25);
             btnOK.TabIndex = 2;
-            btnOK.Text = "OK";
             btnOK.UseVisualStyleBackColor = true;
             btnOK.Click += btnOK_Click;
             // 

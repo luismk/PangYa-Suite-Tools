@@ -39,7 +39,6 @@
             btnOpenPakMaker.Name = "btnOpenPakMaker";
             btnOpenPakMaker.Size = new Size(300, 50);
             btnOpenPakMaker.TabIndex = 1;
-            btnOpenPakMaker.Text = "📦 Gerenciador de Arquivos PAK";
             btnOpenPakMaker.UseVisualStyleBackColor = true;
             btnOpenPakMaker.Click += btnOpenPakMaker_Click;
             // 
@@ -50,7 +49,6 @@
             btnOpenUpdateList.Name = "btnOpenUpdateList";
             btnOpenUpdateList.Size = new Size(300, 50);
             btnOpenUpdateList.TabIndex = 2;
-            btnOpenUpdateList.Text = "🌐 Gerenciador de Patch / UpdateList";
             btnOpenUpdateList.UseVisualStyleBackColor = true;
             btnOpenUpdateList.Click += btnOpenUpdateList_Click;
             // 
@@ -61,7 +59,6 @@
             btnOpenIffManager.Name = "btnOpenIffManager";
             btnOpenIffManager.Size = new Size(300, 50);
             btnOpenIffManager.TabIndex = 3;
-            btnOpenIffManager.Text = "📝 Editor / Manager IFF";
             btnOpenIffManager.UseVisualStyleBackColor = true;
             btnOpenIffManager.Click += btnOpenIffManager_Click;
             // 
@@ -93,7 +90,6 @@
             lblTitle.Name = "lblTitle";
             lblTitle.Size = new Size(360, 30);
             lblTitle.TabIndex = 0;
-            lblTitle.Text = "Pangya Studio Suite - Developer Tool";
             lblTitle.TextAlign = ContentAlignment.MiddleCenter;
             // 
             // statusStrip1
@@ -108,7 +104,6 @@
             // 
             lblLanguage.Name = "lblLanguage";
             lblLanguage.Size = new Size(47, 18);
-            lblLanguage.Text = "Idioma:";
             // 
             // cboLanguage
             // 

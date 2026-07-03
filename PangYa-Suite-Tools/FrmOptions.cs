@@ -1,4 +1,5 @@
-﻿using Microsoft.Win32;
+using PangYa_Suite_Tools.Localization;
+using Microsoft.Win32;
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -10,35 +11,32 @@ namespace PangYa_Suite_Tools
 {
     public partial class FrmOptions : Form
     {
-        private readonly string _currentLanguage;
         private readonly string _exePath;
         private const string ProgramId = "PangYaSuiteTools.PAK";
-        private const string Description = "PangYa PAK Archive File";
 
-        public FrmOptions(string currentLanguage)
+        public FrmOptions()
         {
-            _currentLanguage = currentLanguage;
-            _exePath = Process.GetCurrentProcess().MainModule.FileName;
+            _exePath = Process.GetCurrentProcess().MainModule?.FileName ?? Environment.ProcessPath ?? string.Empty;
 
             InitializeComponent();
             ApplyLocalization();
             CheckCurrentRegistryState();
+            LocalizationManager.CultureChanged += LocalizationManager_CultureChanged;
+            Disposed += (_, _) => LocalizationManager.CultureChanged -= LocalizationManager_CultureChanged;
         }
+
+        private void LocalizationManager_CultureChanged(object? sender, EventArgs e) => ApplyLocalization();
 
         private void ApplyLocalization()
         {
-            ComponentResourceManager res = new ComponentResourceManager(typeof(FrmOptions));
-            string suffix = (_currentLanguage == "en") ? "_en" : "_br";
-
-            // Títulos e Textos Principais
-            this.Text = GetText("Options", "Opções");
-            groupRegister.Text = GetText("Register .pak files", "Registrar arquivos .pak");
-            btnCancel.Text = GetText("Cancel", "Cancelar");
-            btnOK.Text = "OK";
+            Text = Strings.Options_Title;
+            groupRegister.Text = Strings.Options_Group;
+            btnCancel.Text = Strings.Options_Cancel;
+            btnOK.Text = Strings.Common_OK;
 
             // Labels e Opções
-            chkRegisterFile.Text = GetText("Register SuiteTools to open .pak Files", "Registrar SuiteTools para abrir arquivos .pak");
-            chkShellContext.Text = GetText("Add SuiteTools shell context to Windows Explorer", "Adicionar contexto shell do SuiteTools ao Windows Explorer");
+            chkRegisterFile.Text = Strings.Options_Register;
+            chkShellContext.Text = Strings.Options_Shell;
 
             // Validação de privilégio de Administrador
             if (IsUserAnAdmin())
@@ -49,9 +47,7 @@ namespace PangYa_Suite_Tools
             }
             else
             {
-                lblAdminWarning.Text = GetText(
-                    "SuiteTools has to be started \"As Administrator\" to be able to modify the shell entries!",
-                    "O SuiteTools deve ser iniciado \"Como Administrador\" para modificar as entradas de shell!");
+                lblAdminWarning.Text = Strings.Options_Admin;
                 lblAdminWarning.Visible = true;
                 chkRegisterFile.Enabled = false;
                 chkShellContext.Enabled = false;
@@ -62,7 +58,7 @@ namespace PangYa_Suite_Tools
         {
             try
             {
-                using (RegistryKey key = Registry.CurrentUser.OpenSubKey(@"Software\Classes\.pak"))
+                using (RegistryKey? key = Registry.CurrentUser.OpenSubKey(@"Software\Classes\.pak"))
                 {
                     if (key != null && string.Equals(key.GetValue("")?.ToString(), ProgramId, StringComparison.OrdinalIgnoreCase))
                     {
@@ -70,7 +66,7 @@ namespace PangYa_Suite_Tools
                     }
                 }
 
-                using (RegistryKey key = Registry.CurrentUser.OpenSubKey($@"Software\Classes\{ProgramId}\shell\PangYaSuiteTools.OpenWithPakMaker"))
+                using (RegistryKey? key = Registry.CurrentUser.OpenSubKey($@"Software\Classes\{ProgramId}\shell\PangYaSuiteTools.OpenWithPakMaker"))
                 {
                     if (key != null)
                     {
@@ -98,7 +94,7 @@ namespace PangYa_Suite_Tools
                 // --- REGISTRO DA ASSOCIAÇÃO DIRETA (.pak executar o app) ---
                 if (chkRegisterFile.Checked)
                 {
-                    using (RegistryKey key = Registry.CurrentUser.OpenSubKey(@"Software\Classes", true))
+                    using (RegistryKey? key = Registry.CurrentUser.OpenSubKey(@"Software\Classes", true))
                     {
                         if (key != null)
                         {
@@ -109,7 +105,7 @@ namespace PangYa_Suite_Tools
 
                             using (RegistryKey progKey = key.CreateSubKey(ProgramId))
                             {
-                                progKey.SetValue("", Description);
+                                progKey.SetValue("", Strings.Options_ArchiveDescription);
                                 using (RegistryKey shellKey = progKey.CreateSubKey(@"shell\open\command"))
                                 {
                                     shellKey.SetValue("", $"\"{_exePath}\" \"%1\"");
@@ -127,14 +123,14 @@ namespace PangYa_Suite_Tools
                 // --- REGISTRO DO MENU DE CONTEXTO (Botão Direito no Windows Explorer) ---
                 if (chkShellContext.Checked)
                 {
-                    using (RegistryKey key = Registry.CurrentUser.OpenSubKey($@"Software\Classes\*", true))
+                    using (RegistryKey? key = Registry.CurrentUser.OpenSubKey($@"Software\Classes\*", true))
                     {
                         if (key != null)
                         {
                             // Cria a opção no menu de contexto para qualquer arquivo clicado com o botão direito
                             using (RegistryKey contextKey = key.CreateSubKey($@"shell\{ProgramId}"))
                             {
-                                contextKey.SetValue("", GetText("Open with PakMaker", "Abrir com PakMaker"));
+                                contextKey.SetValue("", Strings.Options_OpenWithPakMaker);
                                 using (RegistryKey cmdKey = contextKey.CreateSubKey("command"))
                                 {
                                     cmdKey.SetValue("", $"\"{_exePath}\" \"%1\"");
@@ -146,7 +142,7 @@ namespace PangYa_Suite_Tools
                 else
                 {
                     // Remove menu de contexto se desmarcado
-                    using (RegistryKey key = Registry.CurrentUser.OpenSubKey(@"Software\Classes\*", true))
+                    using (RegistryKey? key = Registry.CurrentUser.OpenSubKey(@"Software\Classes\*", true))
                     {
                         key?.DeleteSubKeyTree($@"shell\{ProgramId}", false);
                     }
@@ -160,7 +156,7 @@ namespace PangYa_Suite_Tools
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"{GetText("Failed to apply changes:", "Falha ao aplicar alterações:")} {ex.Message}", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"{Strings.Options_FailedToApplyChanges} {ex.Message}", Strings.Common_Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -183,13 +179,7 @@ namespace PangYa_Suite_Tools
                 return false;
             }
         }
-
-        private string GetText(string en, string br)
-        {
-            return (_currentLanguage == "br") ? br : en;
-        }
-
-        [System.Runtime.InteropServices.DllImport("shell32.dll", CharSet = System.Runtime.InteropServices.CharSet.Auto, SetLastError = true)]
+[System.Runtime.InteropServices.DllImport("shell32.dll", CharSet = System.Runtime.InteropServices.CharSet.Auto, SetLastError = true)]
         private static extern void SHChangeNotify(uint wEventId, uint uFlags, IntPtr dwItem1, IntPtr dwItem2);
     }
 }

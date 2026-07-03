@@ -606,7 +606,7 @@ namespace PangyaAPI.Utilities.Models
             {
                 if (value == null)
                 {
-                    Debug.WriteLine($"WriteBuffer is null {value.GetType().Name}");
+                    Debug.WriteLine("WriteBuffer received a null value.");
                     WriteBytes(new byte[size]);
                     return true;
                 }
@@ -619,10 +619,10 @@ namespace PangyaAPI.Utilities.Models
                 Write(arr);
                 return true;
             }
-            catch (Exception e)
+            catch
             {
                 Debug.WriteLine(Environment.StackTrace);
-                throw e;
+                throw;
             }
         }
 
@@ -681,19 +681,19 @@ namespace PangyaAPI.Utilities.Models
         {
             try
             {
-                if (date.HasValue == false || date?.Ticks == 0)
+                if (date is not { Ticks: not 0 } value)
                 {
                     Write(new byte[16]);
                     return true;
                 }
-                WriteUInt16((ushort)date?.Year);
-                WriteUInt16((ushort)date?.Month);
-                WriteUInt16(Convert.ToUInt16(date?.DayOfWeek));
-                WriteUInt16((ushort)date?.Day);
-                WriteUInt16((ushort)date?.Hour);
-                WriteUInt16((ushort)date?.Minute);
-                WriteUInt16((ushort)date?.Second);
-                WriteUInt16((ushort)date?.Millisecond);
+                WriteUInt16((ushort)value.Year);
+                WriteUInt16((ushort)value.Month);
+                WriteUInt16(Convert.ToUInt16(value.DayOfWeek));
+                WriteUInt16((ushort)value.Day);
+                WriteUInt16((ushort)value.Hour);
+                WriteUInt16((ushort)value.Minute);
+                WriteUInt16((ushort)value.Second);
+                WriteUInt16((ushort)value.Millisecond);
                 return true;
             }
             catch

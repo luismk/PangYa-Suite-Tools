@@ -178,7 +178,6 @@ public static class Lzo
 					while (--num3 != 0);
 				}
 				num3 = @in[num2++];
-				bool flag3 = true;
 			}
 		}
 	}

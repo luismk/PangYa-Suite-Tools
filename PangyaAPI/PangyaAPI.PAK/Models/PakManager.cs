@@ -1,369 +1,235 @@
-﻿//criado por LUISMK -> github.com/luismk
 using PangyaAPI.PAK.Flags;
-using System.Linq;
+using System.Text;
 
-namespace PangyaAPI.PAK.Models
+namespace PangyaAPI.PAK.Models;
+
+public readonly record struct PakRebuildOptions(
+    PakFileEntryVersion EntryVersion,
+    PakFileEntryType EntryType,
+    byte CompressLevel,
+    uint[] LocationKeys,
+    string Author)
 {
-    /// <summary>
-    /// Configuração usada para reconstruir um PAK (mesmas opções do PakWriter).
-    /// </summary>
-    public readonly record struct PakRebuildOptions(
-        PakFileEntryVersion EntryVersion,
-        PakFileEntryType EntryType,
-        byte CompressLevel,
-        uint[] LocationKeys,
-        string Author);
-    
-        /// <summary>
-        /// Par de arquivo de origem + pasta relativa explícita dentro do PAK (pode ser null,
-        /// caso em que o destino é resolvido automaticamente via FindExistingRelativeFolder).
-        /// </summary>
-        public readonly record struct PakInjectItem(string SourcePath, string? RelativeFolder);
+    public Encoding FileNameEncoding { get; init; } = PakFileNameEncoding.CreateDefault();
+}
 
+public readonly record struct PakInjectItem(string SourcePath, string? RelativeFolder);
 
-    /// <summary>
-    /// Operações de alto nível sobre um PAK existente: injetar/atualizar arquivos
-    /// e remover arquivos, sempre preservando a estrutura de pastas original.
-    /// Estratégia: extrai o conteúdo atual para uma pasta temporária, aplica a
-    /// mutação desejada e reconstrói com o PakWriter — com backup automático
-    /// do .pak original em caso de falha.
-    /// </summary>
-    public static class PakManager
+public static class PakManager
+{
+    public static string FindExistingRelativeFolder(PakReader reader, string fileName)
     {
-        /// <summary>
-        /// Extrai todas as entradas (exceto as filtradas por <paramref name="skip"/>)
-        /// preservando a estrutura de pastas original do PAK de forma paralela e otimizada.
-        /// </summary>
-        private static void ExtractAllPreservingStructure(PakReader reader, string tempDir,
-                                                           Func<PakFileEntry, bool>? skip = null,
-                                                           Action<int, int>? onProgress = null)
+        PakFileEntry? match = reader.Entries.FirstOrDefault(entry =>
+            entry.Type != PakFileEntryType.Directory &&
+            string.Equals(Path.GetFileName(entry.Name.Replace('/', '\\')), fileName,
+                          StringComparison.OrdinalIgnoreCase));
+        return match == null ? string.Empty : Path.GetDirectoryName(match.Name.Replace('/', '\\')) ?? string.Empty;
+    }
+
+    public static void InjectFiles(string pakPath, PakReader reader, IEnumerable<PakInjectItem> items,
+                                   PakRebuildOptions options, string defaultRelativeFolder = "",
+                                   Action<string>? log = null, Action<int, int>? onProgress = null,
+                                   bool SaveBck = false) =>
+        InjectFiles(pakPath, reader, items, options, defaultRelativeFolder, log, onProgress,
+                    SaveBck, CancellationToken.None);
+
+    public static void InjectFiles(string pakPath, PakReader reader, IEnumerable<PakInjectItem> items,
+                                   PakRebuildOptions options, string defaultRelativeFolder,
+                                   Action<string>? log, Action<int, int>? onProgress, bool SaveBck,
+                                   CancellationToken cancellationToken)
+    {
+        var replacements = new Dictionary<string, FileInfo>(StringComparer.OrdinalIgnoreCase);
+        foreach (PakInjectItem item in items)
         {
-            var files = reader.Entries.Where(e => e.Type != PakFileEntryType.Directory).ToList();
+            cancellationToken.ThrowIfCancellationRequested();
+            var source = new FileInfo(item.SourcePath);
+            if (!source.Exists) throw new FileNotFoundException("Injection source does not exist.", source.FullName);
+            string folder = item.RelativeFolder ?? FindExistingRelativeFolder(reader, source.Name);
+            if (string.IsNullOrEmpty(folder)) folder = defaultRelativeFolder;
+            string archivePath = CombineArchivePath(folder, source.Name);
+            replacements[archivePath] = source;
+        }
 
-            // Filtra os arquivos válidos antes de iniciar o I/O
-            var filesToProcess = files.Where(entry => skip == null || !skip(entry)).ToList();
-            int total = filesToProcess.Count;
-            if (total == 0) return;
+        var buildItems = ExistingBuildItems(reader, entry =>
+        {
+            if (!replacements.Remove(Normalize(entry.Name), out FileInfo? replacement)) return null;
+            log?.Invoke($"Atualizado: {entry.Name}");
+            return SourceItem(replacement, Normalize(entry.Name));
+        }).ToList();
 
-            int done = 0;
+        foreach ((string archivePath, FileInfo source) in replacements.OrderBy(pair => pair.Key, StringComparer.OrdinalIgnoreCase))
+        {
+            buildItems.Add(SourceItem(source, archivePath));
+            log?.Invoke($"Novo arquivo adicionado: {archivePath}");
+        }
 
-            // Cria uma estrutura para bufferizar os dados descomprimidos na RAM
-            var fileBuffer = new (string DestPath, byte[] Data)[total];
+        buildItems = AddMissingDirectoryEntries(buildItems);
+        Rebuild(pakPath, reader, buildItems, options, log, onProgress, SaveBck, cancellationToken);
+    }
 
-            // FASE 1 & 2: Leitura paralela do PAK e descompressão puramente em memória
-            Parallel.For(0, total, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, i =>
+    public static void InjectFiles(string pakPath, PakReader reader, IEnumerable<string> sourceFiles,
+                                   PakRebuildOptions options, string defaultRelativeFolder = "",
+                                   Action<string>? log = null, Action<int, int>? onProgress = null)
+    {
+        InjectFiles(pakPath, reader, sourceFiles.Select(file => new PakInjectItem(file, null)),
+                    options, defaultRelativeFolder, log, onProgress);
+    }
+
+    public static void ChangeEncryptionKey(string pakPath, PakReader reader, PakRebuildOptions newOptions,
+                                           Action<string>? log = null, Action<int, int>? onProgress = null,
+                                           bool SaveBck = false) =>
+        ChangeEncryptionKey(pakPath, reader, newOptions, log, onProgress, SaveBck, CancellationToken.None);
+
+    public static void ChangeEncryptionKey(string pakPath, PakReader reader, PakRebuildOptions newOptions,
+                                           Action<string>? log, Action<int, int>? onProgress,
+                                           bool SaveBck, CancellationToken cancellationToken)
+    {
+        log?.Invoke("Reescrevendo metadados e reutilizando os payloads comprimidos...");
+        Rebuild(pakPath, reader, ExistingBuildItems(reader).ToList(), newOptions,
+                log, onProgress, SaveBck, cancellationToken, preserveExistingPayloadTypes: true);
+    }
+
+    public static void RemoveFiles(string pakPath, PakReader reader, IEnumerable<string> namesToRemove,
+                                   PakRebuildOptions options, Action<string>? log = null,
+                                   Action<int, int>? onProgress = null, bool SaveBck = false) =>
+        RemoveFiles(pakPath, reader, namesToRemove, options, log, onProgress, SaveBck,
+                    CancellationToken.None);
+
+    public static void RemoveFiles(string pakPath, PakReader reader, IEnumerable<string> namesToRemove,
+                                   PakRebuildOptions options, Action<string>? log,
+                                   Action<int, int>? onProgress, bool SaveBck,
+                                   CancellationToken cancellationToken)
+    {
+        var remove = new HashSet<string>(namesToRemove.Select(Normalize), StringComparer.OrdinalIgnoreCase);
+        List<PakWriter.BuildItem> buildItems = ExistingBuildItems(reader)
+            .Where(item => item.IsDirectory || !remove.Contains(item.ArchivePath))
+            .ToList();
+        foreach (string name in remove) log?.Invoke($"Removido: {name}");
+        Rebuild(pakPath, reader, buildItems, options, log, onProgress, SaveBck, cancellationToken);
+    }
+
+    private static IEnumerable<PakWriter.BuildItem> ExistingBuildItems(
+        PakReader reader, Func<PakFileEntry, PakWriter.BuildItem?>? replacement = null)
+    {
+        foreach (PakFileEntry entry in reader.Entries)
+        {
+            string archivePath = Normalize(entry.Name);
+            if (entry.Type == PakFileEntryType.Directory)
             {
-                var entry = filesToProcess[i];
+                yield return new PakWriter.BuildItem(true, archivePath, 0, null);
+                continue;
+            }
 
-                // Reaproveita o método rápido thread-safe do PakReader
-                byte[]? data = reader.ExtractEntryToBytes(entry);
+            PakWriter.BuildItem? substituted = replacement?.Invoke(entry);
+            if (substituted.HasValue)
+            {
+                yield return substituted.Value;
+                continue;
+            }
 
-                if (data == null && entry.Size == 0)
-                    data = Array.Empty<byte>();
-
-                if (data != null)
+            yield return new PakWriter.BuildItem(
+                false,
+                archivePath,
+                Math.Max(entry.Size, entry.CompressSize),
+                cancellationToken =>
                 {
-                    string relativePath = entry.Name.Replace('/', '\\');
-                    string destPath = Path.Combine(tempDir, relativePath);
-                    fileBuffer[i] = (destPath, data);
-                }
-
-                // Relata progresso em lotes seguros
-                int currentDone = Interlocked.Increment(ref done);
-                if (currentDone % 50 == 0 || currentDone == total)
+                    cancellationToken.ThrowIfCancellationRequested();
+                    return reader.ExtractEntryToBytes(entry)
+                        ?? throw new InvalidDataException($"Unable to decompress {entry.Name}.");
+                },
+                entry.Type,
+                entry.Size,
+                cancellationToken =>
                 {
-                    onProgress?.Invoke(currentDone, total);
-                }
+                    cancellationToken.ThrowIfCancellationRequested();
+                    return reader.ReadCompressedEntryBytes(entry);
+                });
+        }
+    }
+
+    private static PakWriter.BuildItem SourceItem(FileInfo source, string archivePath) =>
+        new(false, Normalize(archivePath), source.Length,
+            cancellationToken =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                return File.ReadAllBytes(source.FullName);
             });
 
-            // FASE 3: Mapeamento de pastas únicas e escrita em disco contínua
-            var directoriesToCreate = fileBuffer
-                .Where(f => f.DestPath != null)
-                .Select(f => Path.GetDirectoryName(f.DestPath))
-                .Distinct();
+    private static List<PakWriter.BuildItem> AddMissingDirectoryEntries(
+        IReadOnlyList<PakWriter.BuildItem> items)
+    {
+        var knownDirectories = new HashSet<string>(
+            items.Where(item => item.IsDirectory).Select(item => item.ArchivePath),
+            StringComparer.OrdinalIgnoreCase);
+        var result = new List<PakWriter.BuildItem>(items.Count);
 
-            foreach (var dir in directoriesToCreate)
-            {
-                if (!string.IsNullOrEmpty(dir))
-                    Directory.CreateDirectory(dir);
-            }
-
-            // Escrita paralela e direta no SSD
-            Parallel.ForEach(fileBuffer, file =>
-            {
-                if (file.DestPath == null || file.Data == null) return;
-                File.WriteAllBytes(file.DestPath, file.Data);
-            });
-        }
-
-        /// <summary>
-        /// Procura, dentro das entries atuais do PAK, em qual pasta interna já existe
-        /// um arquivo com o mesmo nome (case-insensitive). Usado para saber onde colocar
-        /// um arquivo "atualizado" na pasta temporária antes de reconstruir o PAK.
-        /// Retorna string.Empty se não encontrar (o arquivo é tratado como novo, na raiz).
-        /// </summary>
-        public static string FindExistingRelativeFolder(PakReader reader, string fileName)
+        foreach (PakWriter.BuildItem item in items)
         {
-            var match = reader.Entries.FirstOrDefault(e =>
-                e.Type != PakFileEntryType.Directory &&
-                string.Equals(Path.GetFileName(e.Name.Replace('/', '\\')), fileName, StringComparison.OrdinalIgnoreCase));
-
-            if (match == null) return "";
-
-            string normalized = match.Name.Replace('/', '\\');
-            return Path.GetDirectoryName(normalized) ?? "";
-        }
-
-        /// <summary>
-        /// Sobrecarga que permite informar explicitamente em qual pasta interna cada arquivo
-        /// deve cair (útil ao arrastar uma pasta inteira, preservando sua estrutura). Quando
-        /// RelativeFolder é null, cai no comportamento antigo: procura pasta existente pelo
-        /// nome do arquivo, ou usa defaultRelativeFolder.
-        /// </summary>
-        public static void InjectFiles(string pakPath, PakReader reader, IEnumerable<PakInjectItem> items,
-                                        PakRebuildOptions options, string defaultRelativeFolder = "",
-                                        Action<string>? log = null, Action<int, int>? onProgress = null, bool SaveBck = false)
-        {
-            string tempDir = Path.Combine(Path.GetTempPath(), "PakTemp_" + Path.GetRandomFileName());
-            Directory.CreateDirectory(tempDir);
-
-            try
+            if (!item.IsDirectory)
             {
-                log?.Invoke("Extraindo conteúdo atual do PAK...");
-                ExtractAllPreservingStructure(reader, tempDir, onProgress: onProgress);
-
-                foreach (var item in items)
+                string? directory = Path.GetDirectoryName(item.ArchivePath.Replace('/', '\\'));
+                var missing = new Stack<string>();
+                while (!string.IsNullOrEmpty(directory))
                 {
-                    string fileName = Path.GetFileName(item.SourcePath);
-
-                    string relFolder;
-                    if (item.RelativeFolder != null)
-                    {
-                        // Pasta explícita (ex: vinda de uma pasta arrastada) — respeita sempre,
-                        // mesmo que já exista um arquivo de mesmo nome em outro lugar do PAK.
-                        relFolder = item.RelativeFolder;
-                    }
-                    else
-                    {
-                        relFolder = FindExistingRelativeFolder(reader, fileName);
-                        if (string.IsNullOrEmpty(relFolder))
-                            relFolder = defaultRelativeFolder;
-                    }
-
-                    string destDir = string.IsNullOrEmpty(relFolder) ? tempDir : Path.Combine(tempDir, relFolder);
-                    Directory.CreateDirectory(destDir);
-
-                    string destPath = Path.Combine(destDir, fileName);
-                    File.Copy(item.SourcePath, destPath, true);
-
-                    log?.Invoke(string.IsNullOrEmpty(relFolder)
-                        ? $"Novo arquivo adicionado na raiz: {fileName}"
-                        : $"Atualizado/adicionado em \"{relFolder}\": {fileName}");
+                    string normalized = Normalize(directory);
+                    if (knownDirectories.Add(normalized)) missing.Push(normalized);
+                    directory = Path.GetDirectoryName(directory);
                 }
-
-                reader.Dispose();
-                RebuildFromTemp(pakPath, tempDir, options, log, SaveBck);
+                while (missing.TryPop(out string? path))
+                    result.Add(new PakWriter.BuildItem(true, path, 0, null));
             }
-            finally
-            {
-                TryDeleteDirectory(tempDir);
-            }
+            result.Add(item);
         }
+        return result;
+    }
 
-        public static void InjectFiles(string pakPath, PakReader reader, IEnumerable<string> sourceFiles,
-                                PakRebuildOptions options, string defaultRelativeFolder = "",
-                                Action<string>? log = null, Action<int, int>? onProgress = null)
+    private static void Rebuild(string pakPath, PakReader reader,
+                                IReadOnlyList<PakWriter.BuildItem> items,
+                                PakRebuildOptions options, Action<string>? log,
+                                Action<int, int>? onProgress, bool saveBackup,
+                                CancellationToken cancellationToken,
+                                bool preserveExistingPayloadTypes = false)
+    {
+        string destination = Path.GetFullPath(pakPath);
+        string candidate = destination + $".{Guid.NewGuid():N}.tmp";
+        string backup = destination + ".bak";
+        var writer = new PakWriter
         {
-            var items = sourceFiles.Select(f => new PakInjectItem(f, null));
-            InjectFiles(pakPath, reader, items, options, defaultRelativeFolder, log, onProgress);
+            EntryVersion = options.EntryVersion,
+            EntryType = options.EntryType,
+            CompressLevel = options.CompressLevel,
+            LocationKeys = options.LocationKeys,
+            Author = options.Author,
+            FileNameEncoding = options.FileNameEncoding,
+            PreserveExistingPayloadTypes = preserveExistingPayloadTypes
+        };
+
+        try
+        {
+            writer.WriteCandidate(items, candidate, log, cancellationToken,
+                (_, done, total) => onProgress?.Invoke(done, total));
+            using (var validationReader = new PakReader(candidate, options.FileNameEncoding))
+                validationReader.Parse(options.EntryVersion == PakFileEntryVersion.V3 ? options.LocationKeys : null);
+
+            cancellationToken.ThrowIfCancellationRequested();
+            reader.Dispose();
+            if (saveBackup)
+            {
+                if (File.Exists(backup)) File.Delete(backup);
+                File.Copy(destination, backup);
+            }
+            PakWriter.PromoteCandidate(candidate, destination);
+            log?.Invoke("PAK reconstruído com sucesso.");
         }
-
-        /// <summary>
-        /// Reconstrói o PAK usando uma chave/região diferente, mantendo todo o conteúdo
-        /// (arquivos e estrutura de pastas) idêntico. Útil para "migrar" um PAK entre
-        /// regiões/versões do cliente que usam chaves XTEA diferentes.
-        /// </summary>
-        public static void ChangeEncryptionKey(string pakPath, PakReader reader, PakRebuildOptions newOptions,
-                                                Action<string>? log = null, Action<int, int>? onProgress = null, bool SaveBck = false)
+        finally
         {
-            string tempDir = Path.Combine(Path.GetTempPath(), "PakTemp_" + Path.GetRandomFileName());
-            Directory.CreateDirectory(tempDir);
-
-            try
-            {
-                log?.Invoke("Extraindo conteúdo atual do PAK (chave original)...");
-                ExtractAllPreservingStructure(reader, tempDir, onProgress: onProgress);
-
-                log?.Invoke("Reconstruindo PAK com a nova chave...");
-
-                // Fecha o handle do .pak original antes do File.Move dentro de RebuildFromTemp.
-                reader.Dispose();
-
-                RebuildFromTemp(pakPath, tempDir, newOptions, log, SaveBck);
-            }
-            finally
-            {
-                TryDeleteDirectory(tempDir);
-            }
-        }
-
-        /// <summary>
-        /// Remove uma ou mais entradas (pelo nome interno completo, ex.:
-        /// "data/round20_abbot/ase/ab_abbot01.pet") e reconstrói o PAK sem elas.
-        /// </summary>
-        public static void RemoveFiles(string pakPath, PakReader reader, IEnumerable<string> namesToRemove,
-                                        PakRebuildOptions options, Action<string>? log = null,
-                                        Action<int, int>? onProgress = null, bool SaveBck = false)
-        {
-            var removeSet = new HashSet<string>(
-                namesToRemove.Select(n => n.Replace('/', '\\')),
-                StringComparer.OrdinalIgnoreCase);
-
-            string tempDir = Path.Combine(Path.GetTempPath(), "PakTemp_" + Path.GetRandomFileName());
-            Directory.CreateDirectory(tempDir);
-
-            try
-            {
-                log?.Invoke("Extraindo conteúdo atual do PAK (ignorando arquivo(s) removido(s))...");
-                ExtractAllPreservingStructure(reader, tempDir,
-                    skip: e => removeSet.Contains(e.Name.Replace('/', '\\')),
-                    onProgress: onProgress);
-
-                foreach (var name in removeSet)
-                    log?.Invoke($"Removido: {name}");
-
-                // Fecha o handle do .pak original antes do File.Move dentro de RebuildFromTemp.
-                reader.Dispose();
-
-                RebuildFromTemp(pakPath, tempDir, options, log, SaveBck);
-            }
-            finally
-            {
-                TryDeleteDirectory(tempDir);
-            }
-        }
-
-        private static void RebuildFromTemp(string pakPath, string tempDir, PakRebuildOptions options, Action<string>? log, bool SaveBck)
-        {
-            if (SaveBck)
-            {
-                string backupPak = pakPath + ".bak";
-                if (File.Exists(backupPak)) File.Delete(backupPak);
-                File.Move(pakPath, backupPak);
-            }
-           
-
-            try
-            {
-                var writer = new PakWriter
-                {
-                    EntryVersion = options.EntryVersion,
-                    EntryType = options.EntryType,
-                    CompressLevel = options.CompressLevel,
-                    LocationKeys = options.LocationKeys,
-                    Author = options.Author,
-                };
-
-                writer.CreateFromDirectoryContents(tempDir, pakPath, log); 
-            }
-            catch
-            {
-                if (SaveBck)
-                {
-                    string backupPak = pakPath + ".bak";
-                    // Falhou ao reconstruir: restaura o backup para não perder o PAK original.
-                    if (File.Exists(pakPath)) File.Delete(pakPath);
-                    File.Move(backupPak, pakPath);
-                }
-                throw;
-            }
-        }/// <summary>
-         /// Extrai uma lista específica de entradas (entries) de um arquivo .pak para um diretório de saída.
-         /// </summary>
-        public static void ExtractFiles(
-            string currentPakPath,
-            PakReader reader,
-            List<PakFileEntry> entriesToExtract,
-            string outputDir,
-            Action<string> log,
-            Action<int, int> onProgress)
-        {
-            if (string.IsNullOrEmpty(currentPakPath) || reader == null || entriesToExtract == null)
-                throw new ArgumentNullException("Parâmetros de extração inválidos.");
-
-            if (!File.Exists(currentPakPath))
-                throw new FileNotFoundException($"Arquivo PAK não encontrado: {currentPakPath}");
-
-            int totalFiles = entriesToExtract.Count;
-            int currentFileIndex = 0;
-
-            // Abrimos o stream do arquivo PAK principal para leitura dos dados brutos
-            using (var pakStream = new FileStream(currentPakPath, FileMode.Open, FileAccess.Read, FileShare.Read))
-            {
-                foreach (var entry in entriesToExtract)
-                {
-                    // Ignora registros que sejam marcados como diretórios vazios na tabela do PAK
-                    if (entry.Type == PakFileEntryType.Directory || entry.Size == 0)
-                    {
-                        currentFileIndex++;
-                        onProgress?.Invoke(currentFileIndex, totalFiles);
-                        continue;
-                    }
-
-                    try
-                    {
-                        // Normaliza o caminho interno do PAK para o sistema operacional local
-                        string normalizedPath = entry.Name.Replace('/', Path.DirectorySeparatorChar).Replace('\\', Path.DirectorySeparatorChar);
-                        string fullOutputPath = Path.Combine(outputDir, normalizedPath);
-
-                        // Garante que a estrutura de pastas onde o arquivo vai ser salvo exista no seu HD
-                        string? directoryPath = Path.GetDirectoryName(fullOutputPath);
-                        if (!string.IsNullOrEmpty(directoryPath) && !Directory.Exists(directoryPath))
-                        {
-                            Directory.CreateDirectory(directoryPath);
-                        }
-
-                        // Move o ponteiro de leitura do PAK para o início exato do arquivo desejado (Offset)
-                        pakStream.Seek(entry.Offset, SeekOrigin.Begin);
-
-                        // Lê os dados brutos e grava no arquivo de destino de forma otimizada
-                        using (var outputStream = new FileStream(fullOutputPath, FileMode.Create, FileAccess.Write, FileShare.None))
-                        {
-                            byte[] buffer = new byte[8192]; // Buffer de 8KB para performance de leitura/escrita
-                            long bytesRemaining = entry.Size;
-
-                            while (bytesRemaining > 0)
-                            {
-                                int bytesToRead = (int)Math.Min(buffer.Length, bytesRemaining);
-                                int bytesRead = pakStream.Read(buffer, 0, bytesToRead);
-
-                                if (bytesRead == 0) break; // Fim inesperado do stream
-
-                                outputStream.Write(buffer, 0, bytesRead);
-                                bytesRemaining -= bytesRead;
-                            }
-                        }
-
-                        log?.Invoke($"Extraído com sucesso: {entry.Name}");
-                    }
-                    catch (Exception ex)
-                    {
-                        log?.Invoke($"Falha ao extrair o arquivo {entry.Name}: {ex.Message}");
-                        // Dependendo do seu fluxo, você pode optar por lançar o erro 'throw;' ou ignorar e continuar
-                    }
-
-                    // Atualiza o contador de progresso após concluir a extração deste arquivo
-                    currentFileIndex++;
-                    onProgress?.Invoke(currentFileIndex, totalFiles);
-                }
-            }
-        }
-
-        private static void TryDeleteDirectory(string path)
-        {
-            try { if (Directory.Exists(path)) Directory.Delete(path, true); }
-            catch { /* limpeza best-effort, não deve interromper o fluxo principal */ }
+            if (File.Exists(candidate)) File.Delete(candidate);
         }
 
     }
+
+    private static string CombineArchivePath(string folder, string fileName) =>
+        string.IsNullOrWhiteSpace(folder) ? Normalize(fileName) : Normalize(Path.Combine(folder, fileName));
+
+    private static string Normalize(string path) => path.Replace('\\', '/').TrimStart('/');
 }

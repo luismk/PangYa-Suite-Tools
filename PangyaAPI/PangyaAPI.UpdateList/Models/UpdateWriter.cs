@@ -20,31 +20,20 @@ namespace PangyaAPI.UpdateList.Models
                 return;
             }
 
-            string directory  = Path.GetDirectoryName(outputPath) ?? AppDomain.CurrentDomain.BaseDirectory;
-            string tempXmlPath = Path.Combine(directory, "updatelist_temp.xml");
-
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            var xml = new StringBuilder();
+            xml.AppendLine("<?xml version=\"1.0\" encoding=\"euc-kr\" standalone=\"yes\" ?>")
+               .Append("<patchVer value=\"").Append(XmlEscape(header.ClientPatchVersion)).AppendLine("\" />")
+               .Append("<patchNum value=\"").Append(XmlEscape(header.ClientPatchNum)).AppendLine("\" />")
+               .Append("<updatelistVer value=\"").Append(XmlEscape(header.UpdateVersion)).AppendLine("\" />")
+               .Append("<updatefiles count=\"").Append(entries.Count).AppendLine("\">");
+            foreach (UpdateEntry entry in entries)
+                xml.Append('\t').AppendLine(BuildFileInfoElement(entry));
+            xml.Append("</updatefiles>");
 
-            using (var sw = new StreamWriter(tempXmlPath, append: false, Encoding.GetEncoding("euc-kr")))
-            {
-                sw.WriteLine("<?xml version=\"1.0\" encoding=\"euc-kr\" standalone=\"yes\" ?>");
-                sw.WriteLine($"<patchVer value=\"{XmlEscape(header.ClientPatchVersion)}\" />");
-                sw.WriteLine($"<patchNum value=\"{XmlEscape(header.ClientPatchNum)}\" />");
-                sw.WriteLine($"<updatelistVer value=\"{XmlEscape(header.UpdateVersion)}\" />");
-                sw.WriteLine($"<updatefiles count=\"{entries.Count}\">");
-
-                foreach (var entry in entries)
-                    sw.WriteLine("\t" + BuildFileInfoElement(entry));
-
-                sw.Write("</updatefiles>");
-            }
-
-            byte[] rawXmlBytes    = File.ReadAllBytes(tempXmlPath);
-            byte[] encryptedData  = XteaEncrypt(rawXmlBytes);
+            byte[] rawXmlBytes = Encoding.GetEncoding("euc-kr").GetBytes(xml.ToString());
+            byte[] encryptedData = XteaEncrypt(rawXmlBytes);
             File.WriteAllBytes(outputPath, encryptedData);
-
-            if (File.Exists(tempXmlPath))
-                File.Delete(tempXmlPath);
 
             Console.WriteLine($"UpdateList gerada com sucesso em: {outputPath}");
         }

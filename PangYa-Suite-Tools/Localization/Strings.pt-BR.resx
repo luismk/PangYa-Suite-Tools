@@ -1,0 +1,666 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms</value>
+  </resheader>
+  <data name="IFFManager_ReadySelectTheIFFFilesDirectory" xml:space="preserve">
+    <value>Pronto. Selecione o diretório dos arquivos IFF.</value>
+  </data>
+  <data name="IFFManager_SelectAnIffFileFromThe" xml:space="preserve">
+    <value>Selecione um arquivo .iff na lista ao lado para carregar a tabela de edição.</value>
+  </data>
+  <data name="IFFManager_SelectTheExtractedFolderContainingThe" xml:space="preserve">
+    <value>Selecione a pasta extraída contendo os arquivos .iff (ex: Character.iff, Item.iff)</value>
+  </data>
+  <data name="IFFManager_ScanComplete" xml:space="preserve">
+    <value>Varredura concluída.</value>
+  </data>
+  <data name="IFFManager_IffFileSFound" xml:space="preserve">
+    <value>arquivo(s) .iff encontrados.</value>
+  </data>
+  <data name="IFFManager_NoFileWithTheIffExtension" xml:space="preserve">
+    <value>Nenhum arquivo com a extensão '.iff' foi localizado nesta pasta.</value>
+  </data>
+  <data name="IFFManager_Warning" xml:space="preserve">
+    <value>Aviso</value>
+  </data>
+  <data name="IFFManager_ErrorListingDirectory" xml:space="preserve">
+    <value>Erro ao listar diretório:</value>
+  </data>
+  <data name="IFFManager_Error" xml:space="preserve">
+    <value>Erro</value>
+  </data>
+  <data name="IFFManager_EditingStructureOf" xml:space="preserve">
+    <value>Editando estrutura de:</value>
+  </data>
+  <data name="IFFManager_TheEditorLayoutStructureForThe" xml:space="preserve">
+    <value>⚠️ A estrutura/layout de editor para o arquivo</value>
+  </data>
+  <data name="IFFManager_HasNotYetBeenImplementedOr" xml:space="preserve">
+    <value>ainda não foi implementada ou mapeada.</value>
+  </data>
+  <data name="IFFManager_EditorNotAvailableFor" xml:space="preserve">
+    <value>Editor não disponível para:</value>
+  </data>
+  <data name="Options_Options" xml:space="preserve">
+    <value>Opções</value>
+  </data>
+  <data name="Options_RegisterPakFiles" xml:space="preserve">
+    <value>Registrar arquivos .pak</value>
+  </data>
+  <data name="Options_Cancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="Options_RegisterSuiteToolsToOpenPakFiles" xml:space="preserve">
+    <value>Registrar SuiteTools para abrir arquivos .pak</value>
+  </data>
+  <data name="Options_AddSuiteToolsShellContextToWindows" xml:space="preserve">
+    <value>Adicionar contexto shell do SuiteTools ao Windows Explorer</value>
+  </data>
+  <data name="Options_SuiteToolsHasToBeStartedAs" xml:space="preserve">
+    <value>O SuiteTools deve ser iniciado "Como Administrador" para modificar as entradas de shell!</value>
+  </data>
+  <data name="Options_OpenWithPakMaker" xml:space="preserve">
+    <value>Abrir com PakMaker</value>
+  </data>
+  <data name="Options_FailedToApplyChanges" xml:space="preserve">
+    <value>Falha ao aplicar alterações:</value>
+  </data>
+  <data name="PakMaker_ExtractSelectedItemS" xml:space="preserve">
+    <value>📁 Extrair selecionado(s)...</value>
+  </data>
+  <data name="PakMaker_RemoveSelectedItemSFromPAK" xml:space="preserve">
+    <value>🗑️ Remover selecionado(s) do PAK...</value>
+  </data>
+  <data name="PakMaker_ExtractThisFolder" xml:space="preserve">
+    <value>📁 Extrair esta pasta...</value>
+  </data>
+  <data name="PakMaker_RemoveThisFolderFromPAK" xml:space="preserve">
+    <value>🗑️ Remover esta pasta do PAK...</value>
+  </data>
+  <data name="PakMaker_PreparingFilesForDragging" xml:space="preserve">
+    <value>Preparando arquvivos para arrastar...</value>
+  </data>
+  <data name="PakMaker_Ready" xml:space="preserve">
+    <value>Pronto</value>
+  </data>
+  <data name="PakMaker_PreparingFolderStructureForDragging" xml:space="preserve">
+    <value>Preparando estrutura de pasta para arrastar...</value>
+  </data>
+  <data name="PakMaker_PleaseDragAValidPakFile" xml:space="preserve">
+    <value>Por favor, arraste um arquivo válido de extensão .pak para abrir.</value>
+  </data>
+  <data name="PakMaker_Warning" xml:space="preserve">
+    <value>Aviso</value>
+  </data>
+  <data name="PakMaker_NoValidFilesOrFoldersWere" xml:space="preserve">
+    <value>Nenhum arquivo ou pasta válida foi encontrado para injeção.</value>
+  </data>
+  <data name="PakMaker_PleaseDragAValidFolderTo" xml:space="preserve">
+    <value>Por favor, arraste uma pasta válida para compilar um novo PAK.</value>
+  </data>
+  <data name="PakMaker_Author" xml:space="preserve">
+    <value>Autor:</value>
+  </data>
+  <data name="PakMaker_Version" xml:space="preserve">
+    <value>Versão:</value>
+  </data>
+  <data name="PakMaker_Entries" xml:space="preserve">
+    <value>Entradas:</value>
+  </data>
+  <data name="PakMaker_ErrorOpeningPAKFile" xml:space="preserve">
+    <value>Erro ao abrir o arquivo PAK:</value>
+  </data>
+  <data name="PakMaker_Error" xml:space="preserve">
+    <value>Erro</value>
+  </data>
+  <data name="PakMaker_AllFiles" xml:space="preserve">
+    <value>🗂 Todos os Arquivos</value>
+  </data>
+  <data name="PakMaker_PathAllFiles" xml:space="preserve">
+    <value>📂 Caminho: (todos os arquivos)</value>
+  </data>
+  <data name="PakMaker_Path" xml:space="preserve">
+    <value>📂 Caminho:</value>
+  </data>
+  <data name="PakMaker_SelectAnActivePakFileFirst" xml:space="preserve">
+    <value>Selecione um arquivo .pak ativo primeiro.</value>
+  </data>
+  <data name="PakMaker_YouCannotDeleteTheRootFolder" xml:space="preserve">
+    <value>Você não pode deletar a pasta raiz. Selecione uma pasta específica.</value>
+  </data>
+  <data name="PakMaker_NoFilesFoundInsideThisFolder" xml:space="preserve">
+    <value>Nenhum arquivo encontrado dentro desta pasta para apagar.</value>
+  </data>
+  <data name="PakMaker_ThePAKWillBeRebuiltAnd" xml:space="preserve">
+    <value>O PAK será reconstruído e um backup (.bak) será criado automaticamente.</value>
+  </data>
+  <data name="PakMaker_ConfirmRemoval" xml:space="preserve">
+    <value>Confirmar remoção</value>
+  </data>
+  <data name="PakMaker_RemovingAndRebuildingPAK" xml:space="preserve">
+    <value>Removendo e reconstruindo PAK...</value>
+  </data>
+  <data name="PakMaker_RebuildingPAK" xml:space="preserve">
+    <value>Reconstruindo PAK</value>
+  </data>
+  <data name="PakMaker_RemovalCompleted" xml:space="preserve">
+    <value>Remoção concluída</value>
+  </data>
+  <data name="PakMaker_TheFolderAndItsItemsWere" xml:space="preserve">
+    <value>A pasta e seus itens foram removidos com sucesso!</value>
+  </data>
+  <data name="PakMaker_Success" xml:space="preserve">
+    <value>Sucesso</value>
+  </data>
+  <data name="PakMaker_ErrorRemoving" xml:space="preserve">
+    <value>Erro ao remover</value>
+  </data>
+  <data name="PakMaker_Failure" xml:space="preserve">
+    <value>Falha na remoção:</value>
+  </data>
+  <data name="PakMaker_AllFiles_2" xml:space="preserve">
+    <value>Todos os Arquivos</value>
+  </data>
+  <data name="PakMaker_PleaseLoadAPakFileFirst" xml:space="preserve">
+    <value>Por favor, carregue um arquivo .pak primeiro.</value>
+  </data>
+  <data name="PakMaker_ExtractingFiles" xml:space="preserve">
+    <value>Extraindo arquivos...</value>
+  </data>
+  <data name="PakMaker_Extracting" xml:space="preserve">
+    <value>Extraindo</value>
+  </data>
+  <data name="PakMaker_AllFilesWereExtractedSuccessfully" xml:space="preserve">
+    <value>Todos os arquivos foram extraídos com sucesso!</value>
+  </data>
+  <data name="PakMaker_ExtractionError" xml:space="preserve">
+    <value>Erro na extração</value>
+  </data>
+  <data name="PakMaker_ErrorExtracting" xml:space="preserve">
+    <value>Erro ao extrair:</value>
+  </data>
+  <data name="PakMaker_SelectFilesFromTheListOr" xml:space="preserve">
+    <value>Selecione arquivos na lista ou uma pasta na árvore lateral para extrair.</value>
+  </data>
+  <data name="PakMaker_EntirePAK" xml:space="preserve">
+    <value>Todo o PAK</value>
+  </data>
+  <data name="PakMaker_Folder" xml:space="preserve">
+    <value>Pasta:</value>
+  </data>
+  <data name="PakMaker_NoFileFoundForPath" xml:space="preserve">
+    <value>Nenhum arquivo encontrado para o caminho:</value>
+  </data>
+  <data name="PakMaker_SelectTheDestinationToExtract" xml:space="preserve">
+    <value>Selecione o destino para extrair a</value>
+  </data>
+  <data name="PakMaker_ExtractingSelectedItemS" xml:space="preserve">
+    <value>Extraindo selecionado(s)...</value>
+  </data>
+  <data name="PakMaker_ExtractingSelectedItemS_2" xml:space="preserve">
+    <value>Extraindo selecionado(s)</value>
+  </data>
+  <data name="PakMaker_FolderExtractedRespectingTheSelectedLevel" xml:space="preserve">
+    <value>Pasta extraída respeitando o nível selecionado!</value>
+  </data>
+  <data name="PakMaker_Extract" xml:space="preserve">
+    <value>Extrair</value>
+  </data>
+  <data name="PakMaker_SelectTheDestinationFolderForThe" xml:space="preserve">
+    <value>Selecione a pasta de destino para os arquivos selecionados</value>
+  </data>
+  <data name="PakMaker_FileSExtractedSuccessfully" xml:space="preserve">
+    <value>Arquivo(s) extraído(s) com sucesso!</value>
+  </data>
+  <data name="PakMaker_SelectTheFolderThatCONTAINSThe" xml:space="preserve">
+    <value>Selecione a pasta que CONTÉM os arquivos .pak</value>
+  </data>
+  <data name="PakMaker_NoPakFilesWereFoundIn" xml:space="preserve">
+    <value>Nenhum arquivo .pak foi encontrado na pasta selecionada.</value>
+  </data>
+  <data name="PakMaker_SelectTheDESTINATIONFolderForExtraction" xml:space="preserve">
+    <value>Selecione a pasta de DESTINO para a extração</value>
+  </data>
+  <data name="PakMaker_Processing" xml:space="preserve">
+    <value>Processando</value>
+  </data>
+  <data name="PakMaker_FailedToExtract" xml:space="preserve">
+    <value>Falha ao extrair</value>
+  </data>
+  <data name="PakMaker_BatchError" xml:space="preserve">
+    <value>Erro no Lote</value>
+  </data>
+  <data name="PakMaker_BatchExtractionCompleted" xml:space="preserve">
+    <value>Extração em lote concluída!</value>
+  </data>
+  <data name="PakMaker_PAKPackagesExtractedSuccessfullyTo" xml:space="preserve">
+    <value>pacotes PAK extraídos com sucesso em:</value>
+  </data>
+  <data name="PakMaker_ProcessingComplete" xml:space="preserve">
+    <value>Processamento Concluído</value>
+  </data>
+  <data name="PakMaker_TheAuthorFieldIsEmptyDo" xml:space="preserve">
+    <value>O campo do Autor está vazio. Deseja redefinir o nome do autor para 'PakMaker'?</value>
+  </data>
+  <data name="PakMaker_ConfirmAuthorReset" xml:space="preserve">
+    <value>Confirmar redefinição de Autor</value>
+  </data>
+  <data name="PakMaker_ConfirmAuthorChange" xml:space="preserve">
+    <value>Confirmar alteração de Autor</value>
+  </data>
+  <data name="PakMaker_SelectTheFilesToUpdateInject" xml:space="preserve">
+    <value>Selecione os arquivos para atualizar/injetar</value>
+  </data>
+  <data name="PakMaker_MergingAndRebuildingPAK" xml:space="preserve">
+    <value>Mesclando e reconstruindo PAK...</value>
+  </data>
+  <data name="PakMaker_PAKUpdatedSuccessfully" xml:space="preserve">
+    <value>PAK atualizado com sucesso!</value>
+  </data>
+  <data name="PakMaker_FileSInjectedAndThePAK" xml:space="preserve">
+    <value>arquivo(s) injetado(s) e o PAK foi reconstruído!</value>
+  </data>
+  <data name="PakMaker_ErrorInjecting" xml:space="preserve">
+    <value>Erro ao injetar</value>
+  </data>
+  <data name="PakMaker_InjectionFailed" xml:space="preserve">
+    <value>Injeção falhou:</value>
+  </data>
+  <data name="PakMaker_ErrorReadingFolder" xml:space="preserve">
+    <value>Erro ao ler a pasta</value>
+  </data>
+  <data name="PakMaker_NoValidFileWasFoundTo" xml:space="preserve">
+    <value>Nenhum arquivo válido encontrado para injetar.</value>
+  </data>
+  <data name="PakMaker_SelectFilesFromTheListOr_2" xml:space="preserve">
+    <value>Selecione arquivos na lista ou marque as caixas das pastas na árvore lateral para remover.</value>
+  </data>
+  <data name="PakMaker_TheSelectedItemsWereRemovedSuccessfully" xml:space="preserve">
+    <value>Os itens selecionados foram removidos com sucesso e o arquivo PAK foi reconstruído!</value>
+  </data>
+  <data name="PakMaker_SelectAValidSourceDirectory" xml:space="preserve">
+    <value>Selecione um diretório de origem válido.</value>
+  </data>
+  <data name="PakMaker_SaveNewPAK" xml:space="preserve">
+    <value>Salvar Novo PAK</value>
+  </data>
+  <data name="PakMaker_CompilingPAK" xml:space="preserve">
+    <value>Compilando PAK...</value>
+  </data>
+  <data name="PakMaker_PakFileGeneratedSuccessfully" xml:space="preserve">
+    <value>Arquivo .pak gerado com sucesso!</value>
+  </data>
+  <data name="PakMaker_PleaseSelectAValidRegionBefore" xml:space="preserve">
+    <value>Por favor, selecione uma região válida antes de continuar.</value>
+  </data>
+  <data name="PakMaker_ErrorCreatingPAK" xml:space="preserve">
+    <value>Erro ao criar PAK</value>
+  </data>
+  <data name="PakMaker_CompilationError" xml:space="preserve">
+    <value>Erro de compilação:</value>
+  </data>
+  <data name="PakMaker_SelectTheTargetRegionKey" xml:space="preserve">
+    <value>Selecione a região/chave de destino.</value>
+  </data>
+  <data name="PakMaker_ThePAKIsAlreadyUsingThat" xml:space="preserve">
+    <value>O PAK já está usando essa chave.</value>
+  </data>
+  <data name="PakMaker_Information" xml:space="preserve">
+    <value>Informação</value>
+  </data>
+  <data name="PakMaker_ChangeThePAKKeyTo" xml:space="preserve">
+    <value>Trocar a chave do PAK para</value>
+  </data>
+  <data name="PakMaker_ThePAKWillBeRebuiltAnd_2" xml:space="preserve">
+    <value>O PAK será reconstruído e um backup (.bak) será criado.</value>
+  </data>
+  <data name="PakMaker_ConfirmKeyChange" xml:space="preserve">
+    <value>Confirmar troca de chave</value>
+  </data>
+  <data name="PakMaker_ChangingKeyAndRebuildingPAK" xml:space="preserve">
+    <value>Trocando chave e reconstruindo PAK...</value>
+  </data>
+  <data name="PakMaker_KeyChangedSuccessfully" xml:space="preserve">
+    <value>Chave trocada com sucesso!</value>
+  </data>
+  <data name="PakMaker_ThePAKWasRebuiltWithThe" xml:space="preserve">
+    <value>O PAK foi reconstruído com a chave de</value>
+  </data>
+  <data name="PakMaker_ErrorChangingKey" xml:space="preserve">
+    <value>Erro ao trocar chave</value>
+  </data>
+  <data name="PakMaker_RebuildFailed" xml:space="preserve">
+    <value>Falha na reconstrução:</value>
+  </data>
+  <data name="UpdateList_StartMonitoring" xml:space="preserve">
+    <value>▶️ Iniciar Monitoramento</value>
+  </data>
+  <data name="UpdateList_INACTIVE" xml:space="preserve">
+    <value>INATIVO</value>
+  </data>
+  <data name="UpdateList_StopMonitoring" xml:space="preserve">
+    <value>🛑 Parar Monitoramento</value>
+  </data>
+  <data name="UpdateList_ACTIVELYMONITORING" xml:space="preserve">
+    <value>MONITORANDO ATIVAMENTE</value>
+  </data>
+  <data name="UpdateList_DragAndDropAnEncryptedUpdatelist" xml:space="preserve">
+    <value>🪂 Arraste e solte um arquivo 'updatelist' criptografado aqui para visualizar o XML decodificado em tempo real.</value>
+  </data>
+  <data name="UpdateList_InterfaceInitializedInMultiTabMode" xml:space="preserve">
+    <value>Interface inicializada no formato multi-abas (Estilo PakMaker). Pronta para uso.</value>
+  </data>
+  <data name="UpdateList_Processing" xml:space="preserve">
+    <value>Processando:</value>
+  </data>
+  <data name="UpdateList_ProtectedFileDetectedTestingKey" xml:space="preserve">
+    <value>Arquivo protegido detectado. Testando chave</value>
+  </data>
+  <data name="UpdateList_SUCCESS" xml:space="preserve">
+    <value>SUCESSO</value>
+  </data>
+  <data name="UpdateList_DecryptedWithKey" xml:space="preserve">
+    <value>Descriptografado com a chave</value>
+  </data>
+  <data name="UpdateList_FailedWithKey" xml:space="preserve">
+    <value>Falha com a chave</value>
+  </data>
+  <data name="UpdateList_StartingAutomaticBruteForceScanner" xml:space="preserve">
+    <value>Iniciando scanner de força-bruta automático...</value>
+  </data>
+  <data name="UpdateList_BRUTEFORCESUCCESS" xml:space="preserve">
+    <value>BRUTE-FORCE SUCESSO</value>
+  </data>
+  <data name="UpdateList_KeyIdentifiedSuccessfully" xml:space="preserve">
+    <value>Chave identificada com sucesso!</value>
+  </data>
+  <data name="UpdateList_ErrorNoKeyDecodedTheStructure" xml:space="preserve">
+    <value>❌ Erro: Nenhuma chave decodificou a estrutura.</value>
+  </data>
+  <data name="UpdateList_TOTALFAILURE" xml:space="preserve">
+    <value>FALHA TOTAL</value>
+  </data>
+  <data name="UpdateList_NoKeyFromTheKnownDatabase" xml:space="preserve">
+    <value>Nenhuma chave do banco de dados conhecido conseguiu abrir a estrutura deste arquivo.</value>
+  </data>
+  <data name="UpdateList_TheDroppedFileIsAlreadyIn" xml:space="preserve">
+    <value>O arquivo dropado já está em modo texto/XML puro. Exibido formatado no painel.</value>
+  </data>
+  <data name="UpdateList_InvalidOrCorruptedFile" xml:space="preserve">
+    <value>⚠️ Arquivo inválido ou corrompido.</value>
+  </data>
+  <data name="UpdateList_CriticalFailureWhileParsingFile" xml:space="preserve">
+    <value>❌ Falha crítica ao analisar arquivo.</value>
+  </data>
+  <data name="UpdateList_PARSEERROR" xml:space="preserve">
+    <value>ERRO DE ANÁLISE</value>
+  </data>
+  <data name="UpdateList_SelectTheRootPangyaFolderWhere" xml:space="preserve">
+    <value>Selecione a pasta raiz do Pangya (onde ficam os arquivos executáveis e .pak)</value>
+  </data>
+  <data name="UpdateList_SelectTheDestinationWebServerFolderFor" xml:space="preserve">
+    <value>Selecione a pasta do WebServer de destino do Update</value>
+  </data>
+  <data name="UpdateList_CheckWhetherTheSourceAndWebServer" xml:space="preserve">
+    <value>Verifique se as pastas de Origem e de Destino do WebServer são caminhos de diretórios válidos.</value>
+  </data>
+  <data name="UpdateList_Warning" xml:space="preserve">
+    <value>Aviso</value>
+  </data>
+  <data name="UpdateList_Initializing" xml:space="preserve">
+    <value>Inicializando...</value>
+  </data>
+  <data name="UpdateList_ScanningDirectoryTreeAndGeneratingInitial" xml:space="preserve">
+    <value>Varrendo a árvore de diretórios e gerando mapeamento inicial do cliente...</value>
+  </data>
+  <data name="UpdateList_SERVICE" xml:space="preserve">
+    <value>SERVIÇO</value>
+  </data>
+  <data name="UpdateList_FileSystemWatcherActiveOnFolder" xml:space="preserve">
+    <value>FileSystemWatcher ativo na pasta:</value>
+  </data>
+  <data name="UpdateList_INITERROR" xml:space="preserve">
+    <value>ERRO INICIALIZAÇÃO</value>
+  </data>
+  <data name="UpdateList_BackgroundMonitoringHasBeenStopped" xml:space="preserve">
+    <value>Monitoramento em background foi encerrado.</value>
+  </data>
+  <data name="UpdateList_DETECTED" xml:space="preserve">
+    <value>DETECTADO</value>
+  </data>
+  <data name="UpdateList_FileModification" xml:space="preserve">
+    <value>Modificação no arquivo:</value>
+  </data>
+  <data name="UpdateList_COMPILED" xml:space="preserve">
+    <value>COMPILADO</value>
+  </data>
+  <data name="UpdateList_UpdatelistSignedSuccessfullyTrigger" xml:space="preserve">
+    <value>updatelist assinado com sucesso! Gatilho:</value>
+  </data>
+  <data name="UpdateList_IOERROR" xml:space="preserve">
+    <value>ERRO E/S</value>
+  </data>
+  <data name="UpdateList_CouldNotManageTheFile" xml:space="preserve">
+    <value>Não foi possível gerenciar o arquivo</value>
+  </data>
+  <data name="Program_ThisApplicationRequiresAdministrativePrivilegesTo" xml:space="preserve">
+    <value>Este aplicativo requer privilégios administrativos para funcionar corretamente. Reinicie e clique em 'Sim'.</value>
+  </data>
+  <data name="Program_AdminPrivilegesRequired" xml:space="preserve">
+    <value>Privilégios administrativos necessários</value>
+  </data>
+  <data name="Common_PortugueseBrazil" xml:space="preserve">
+    <value>Português (BR)</value>
+  </data>
+  <data name="Common_EnglishUS" xml:space="preserve">
+    <value>English (US)</value>
+  </data>
+  <data name="Common_Language" xml:space="preserve">
+    <value>Idioma:</value>
+  </data>
+  <data name="Menu_Title" xml:space="preserve">
+    <value>PangYa Studio Suite - Ferramenta de Desenvolvimento</value>
+  </data>
+  <data name="Menu_PakManager" xml:space="preserve">
+    <value>📦 Gerenciador de Arquivos PAK</value>
+  </data>
+  <data name="Menu_UpdateList" xml:space="preserve">
+    <value>🌐 Gerenciador de Patch / UpdateList</value>
+  </data>
+  <data name="Menu_IffManager" xml:space="preserve">
+    <value>📝 Editor / Gerenciador IFF</value>
+  </data>
+  <data name="Menu_Options" xml:space="preserve">
+    <value>Opções</value>
+  </data>
+  <data name="Pak_Title" xml:space="preserve">
+    <value>PangYa Studio - Gerenciador de PAK</value>
+  </data>
+  <data name="Pak_TabExtract" xml:space="preserve">
+    <value>Leitor &amp; Modificações</value>
+  </data>
+  <data name="Pak_Browse" xml:space="preserve">
+    <value>Buscar...</value>
+  </data>
+  <data name="Pak_PathHint" xml:space="preserve">
+    <value>Arraste um arquivo .pak aqui ou clique em Buscar...</value>
+  </data>
+  <data name="Pak_Header" xml:space="preserve">
+    <value>Informações do Cabeçalho</value>
+  </data>
+  <data name="Pak_Author" xml:space="preserve">
+    <value>Autor: ---</value>
+  </data>
+  <data name="Pak_Version" xml:space="preserve">
+    <value>Versão: ---</value>
+  </data>
+  <data name="Pak_Entries" xml:space="preserve">
+    <value>Entradas: ---</value>
+  </data>
+  <data name="Pak_Search" xml:space="preserve">
+    <value>🔎 Pesquisar:</value>
+  </data>
+  <data name="Pak_SearchHint" xml:space="preserve">
+    <value>Filtrar por nome do objeto/arquivo...</value>
+  </data>
+  <data name="Pak_CurrentPath" xml:space="preserve">
+    <value>📂 Caminho: (todos os arquivos)</value>
+  </data>
+  <data name="Pak_ExtractSelected" xml:space="preserve">
+    <value>📤 EXTRAIR SELECIONADO(S)</value>
+  </data>
+  <data name="Pak_RemoveSelected" xml:space="preserve">
+    <value>🗑️ REMOVER SELECIONADO(S)</value>
+  </data>
+  <data name="Pak_BatchExtract" xml:space="preserve">
+    <value>📂 EXTRAIR PASTA</value>
+  </data>
+  <data name="Pak_Update" xml:space="preserve">
+    <value>🔄 INJETAR / ATUALIZAR</value>
+  </data>
+  <data name="Pak_ExtractAll" xml:space="preserve">
+    <value>💥 EXTRAIR TUDO</value>
+  </data>
+  <data name="Pak_ColumnName" xml:space="preserve">
+    <value>Nome do Arquivo</value>
+  </data>
+  <data name="Pak_ColumnType" xml:space="preserve">
+    <value>Tipo</value>
+  </data>
+  <data name="Pak_ColumnSize" xml:space="preserve">
+    <value>Tamanho Real</value>
+  </data>
+  <data name="Pak_ColumnCompressed" xml:space="preserve">
+    <value>Tam. Compactado</value>
+  </data>
+  <data name="Pak_NewKey" xml:space="preserve">
+    <value>🔑 Nova Chave (XTEA):</value>
+  </data>
+  <data name="Pak_ChangeKey" xml:space="preserve">
+    <value>🔐 TROCAR CHAVE DO PAK</value>
+  </data>
+  <data name="Pak_TabCreate" xml:space="preserve">
+    <value>Criar Novo PAK</value>
+  </data>
+  <data name="Pak_SourceHint" xml:space="preserve">
+    <value>Arraste uma pasta aqui...</value>
+  </data>
+  <data name="Pak_SelectFolder" xml:space="preserve">
+    <value>Selecionar...</value>
+  </data>
+  <data name="Pak_EntryVersion" xml:space="preserve">
+    <value>Versão da Entrada:</value>
+  </data>
+  <data name="Pak_Compression" xml:space="preserve">
+    <value>Tipo de Compressão:</value>
+  </data>
+  <data name="Pak_CompressionLevel" xml:space="preserve">
+    <value>Nível de Compressão (0-9):</value>
+  </data>
+  <data name="Pak_Region" xml:space="preserve">
+    <value>Região / Chaves (XTEA):</value>
+  </data>
+  <data name="Pak_Create" xml:space="preserve">
+    <value>📦 GERAR ARQUIVO .PAK</value>
+  </data>
+  <data name="Pak_Ready" xml:space="preserve">
+    <value>Pronto</value>
+  </data>
+  <data name="Update_Title" xml:space="preserve">
+    <value>PangYa Studio - Gerenciador de UpdateList</value>
+  </data>
+  <data name="Update_DecryptTab" xml:space="preserve">
+    <value> 🔍 Visualizador / Decrypter </value>
+  </data>
+  <data name="Update_GeneratorTab" xml:space="preserve">
+    <value> 🛠️ Gerador &amp; Monitoramento </value>
+  </data>
+  <data name="Update_Config" xml:space="preserve">
+    <value> Configurações do Servidor de Update </value>
+  </data>
+  <data name="Update_Source" xml:space="preserve">
+    <value>Pasta do Pangya (Origem):</value>
+  </data>
+  <data name="Update_Destination" xml:space="preserve">
+    <value>Pasta do WebServer (Destino):</value>
+  </data>
+  <data name="Update_Key" xml:space="preserve">
+    <value>Região / Chave:</value>
+  </data>
+  <data name="Update_PatchVersion" xml:space="preserve">
+    <value>Versão do Patch:</value>
+  </data>
+  <data name="Update_ListVersion" xml:space="preserve">
+    <value>Versão da UpdateList:</value>
+  </data>
+  <data name="Update_PatchNumber" xml:space="preserve">
+    <value>Número do Patch:</value>
+  </data>
+  <data name="Update_Log" xml:space="preserve">
+    <value>Histórico / Terminal Log:</value>
+  </data>
+  <data name="Iff_Title" xml:space="preserve">
+    <value>PangYa Studio - Gerenciador Avançado de IFFs</value>
+  </data>
+  <data name="Iff_Directory" xml:space="preserve">
+    <value>Diretório IFF (Pasta):</value>
+  </data>
+  <data name="Iff_Browse" xml:space="preserve">
+    <value>Buscar...</value>
+  </data>
+  <data name="Iff_Files" xml:space="preserve">
+    <value>Arquivos IFF Detectados</value>
+  </data>
+  <data name="Options_Title" xml:space="preserve">
+    <value>Opções</value>
+  </data>
+  <data name="Options_Group" xml:space="preserve">
+    <value>Registrar arquivos .pak</value>
+  </data>
+  <data name="Options_Register" xml:space="preserve">
+    <value>Registrar SuiteTools para abrir arquivos .pak</value>
+  </data>
+  <data name="Options_Shell" xml:space="preserve">
+    <value>Adicionar contexto shell do SuiteTools ao Windows Explorer</value>
+  </data>
+  <data name="Options_Admin" xml:space="preserve">
+    <value>O SuiteTools deve ser iniciado "Como Administrador" para modificar as entradas de shell!</value>
+  </data>
+  <data name="Pak_RemoveFolderConfirmation" xml:space="preserve"><value>Tem certeza de que deseja remover a pasta '{0}' e todo o seu conteúdo?&#xA;Total de arquivos a serem apagados: {1}.</value></data>
+  <data name="Pak_ChangeAuthorConfirmation" xml:space="preserve"><value>Deseja alterar o nome do autor para '{0}'?</value></data>
+  <data name="Pak_RemoveFoldersConfirmation" xml:space="preserve"><value>Você está prestes a remover a(s) pasta(s) marcada(s): '{0}' e/ou os arquivos selecionados.&#xA;Total de arquivos a serem apagados: {1}.&#xA;&#xA;Deseja continuar?</value></data>
+  <data name="Pak_RemoveFilesConfirmation" xml:space="preserve"><value>Remover {0} arquivo(s) selecionado(s) do PAK?</value></data>
+  <data name="Common_Error" xml:space="preserve"><value>Erro</value></data>
+  <data name="Options_ArchiveDescription" xml:space="preserve"><value>Arquivo PAK do PangYa</value></data>
+  <data name="Common_OK" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="Pak_OpenFileFilter" xml:space="preserve">
+    <value>Arquivos PAK do Pangya (*.pak)|*.pak</value>
+  </data>
+  <data name="Pak_SaveFileFilter" xml:space="preserve">
+    <value>PAK do Pangya (*.pak)|*.pak</value>
+  </data>
+  <data name="Pak_SecurityPak" xml:space="preserve">
+    <value>PAK de segurança</value>
+  </data>
+  <data name="Pak_FilenameEncoding" xml:space="preserve">
+    <value>Nomes:</value>
+  </data>
+  <data name="Pak_FilenameEncodingTooltip" xml:space="preserve">
+    <value>Codificação usada para ler e gravar nomes de arquivos dentro dos pacotes PAK.</value>
+  </data>
+  <data name="Pak_EncodingAppliesNextLoad" xml:space="preserve">
+    <value>A codificação dos nomes será usada na próxima vez que um PAK for carregado.</value>
+  </data>
+</root>

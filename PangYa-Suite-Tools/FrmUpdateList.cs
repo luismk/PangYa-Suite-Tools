@@ -1,4 +1,8 @@
-﻿using PangyaAPI.UpdateList.Flags;
+using PangYa_Suite_Tools.Localization;
+
+using System.ComponentModel;
+using System.Text; 
+using PangyaAPI.UpdateList.Flags; 
 using PangyaAPI.UpdateList.Models;
 using System.ComponentModel;
 using System.Text;
@@ -10,7 +14,7 @@ namespace PangYa_Suite_Tools
         // ── Estado interno ───────────────────────────────────────────────────
         private readonly Dictionary<string, FileStateApp> _fileCache = new(StringComparer.OrdinalIgnoreCase);
         private UpdateMaker? _updateMaker;
-        private List<UpdateEntry> _currentEntries = new();
+        private List<UpdateEntry> _updateEntries = new();
 
         private FileSystemWatcher? _watcher;
         private readonly Lock _generatorLock = new();
@@ -23,6 +27,8 @@ namespace PangYa_Suite_Tools
             InitializeComponent();
             InitializeLanguageComboBox();
             SetupComponents();
+            LocalizationManager.CultureChanged += LocalizationManager_CultureChanged;
+            Disposed += (_, _) => LocalizationManager.CultureChanged -= LocalizationManager_CultureChanged;
         }
 
         public FrmUpdateList(string idiomaAtual)
@@ -38,85 +44,67 @@ namespace PangYa_Suite_Tools
             SetupComponents();
         }
 
-        // ── Idioma ───────────────────────────────────────────────────────────
-        private void InitializeLanguageComboBox()
-        {
-            cboLanguage.ComboBox.DisplayMember = "Key";
-            cboLanguage.ComboBox.ValueMember = "Value";
-            cboLanguage.Items.Add(new KeyValuePair<string, string>("Português (BR)", "br"));
-            cboLanguage.Items.Add(new KeyValuePair<string, string>("English (US)", "en"));
-            cboLanguage.SelectedIndex = 1;
-            _isInitializingLanguages = false;
-            ApplyLocalization("en");
+            cboLanguage.Items.Add(new KeyValuePair<string, string>(Strings.Common_PortugueseBrazil, LocalizationManager.PortugueseBrazil));
+            cboLanguage.Items.Add(new KeyValuePair<string, string>(Strings.Common_EnglishUS, LocalizationManager.English));
+            cboLanguage.SelectedIndex = LocalizationManager.CurrentCulture.Name == LocalizationManager.PortugueseBrazil ? 0 : 1;
+
+            isInitializingLanguages = false;
+            ApplyLocalization();
         }
 
         private void cboLanguage_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (_isInitializingLanguages) return;
-            if (cboLanguage.SelectedItem is KeyValuePair<string, string> sel)
-                ApplyLocalization(sel.Value);
+            if (isInitializingLanguages) return;
+
+            if (cboLanguage.SelectedItem is KeyValuePair<string, string> selectedItem)
+            {
+                LocalizationManager.SetCulture(selectedItem.Value);
+            }
         }
 
-        private void ApplyLocalization(string lang)
+        private void LocalizationManager_CultureChanged(object? sender, EventArgs e)
         {
-            var res = new ComponentResourceManager(typeof(FrmUpdateList));
-            string sfx = lang == "en" ? "_en" : "_br";
+            isInitializingLanguages = true;
+            cboLanguage.SelectedIndex = LocalizationManager.CurrentCulture.Name == LocalizationManager.PortugueseBrazil ? 0 : 1;
+            isInitializingLanguages = false;
+            ApplyLocalization();
+        }
 
-            void Apply(Control ctrl, string key)
-            {
-                string? val = res.GetString(key);
-                if (val != null) ctrl.Text = val;
-            }
+        private void ApplyLocalization()
+        {
+            Text = Strings.Update_Title;
+            tabDecrypt.Text = Strings.Update_DecryptTab;
+            tabGenerator.Text = Strings.Update_GeneratorTab;
+            grpConfig.Text = Strings.Update_Config;
+            lblPangyaPath.Text = Strings.Update_Source;
+            lblUpdatePath.Text = Strings.Update_Destination;
+            lblFileKey.Text = Strings.Update_Key;
+            lblPatchVersion.Text = Strings.Update_PatchVersion;
+            lblUpdateListVer.Text = Strings.Update_ListVersion;
+            lblClientPatchNum.Text = Strings.Update_PatchNumber;
+            btnBrowsePangya.Text = Strings.Pak_Browse;
+            btnBrowseUpdate.Text = Strings.Pak_Browse;
+            lblLog.Text = Strings.Update_Log;
+            lblLanguage.Text = Strings.Common_Language;
 
-            void ApplyToolStrip(ToolStripLabel ctrl, string key)
-            {
-                string? val = res.GetString(key);
-                if (val != null) ctrl.Text = val;
-            }
-
-            Apply(this, $"FrmUpdateList{sfx}");
-            Apply(tabDecrypt, $"tabDecrypt{sfx}");
-            Apply(tabGenerator, $"tabGenerator{sfx}");
-            Apply(grpConfig, $"grpConfig{sfx}");
-            Apply(lblPangyaPath, $"lblPangyaPath{sfx}");
-            Apply(lblUpdatePath, $"lblUpdatePath{sfx}");
-            Apply(lblExistingList, $"lblExistingList{sfx}");
-            Apply(lblFileKey, $"lblFileKey{sfx}");
-            Apply(lblPatchVersion, $"lblPatchVersion{sfx}");
-            Apply(lblUpdateListVer, $"lblUpdateListVer{sfx}");
-            Apply(lblClientPatchNum, $"lblClientPatchNum{sfx}");
-            Apply(btnBrowsePangya, $"btnBrowsePangya{sfx}");
-            Apply(btnBrowseUpdate, $"btnBrowseUpdate{sfx}");
-            Apply(btnBrowseExisting, $"btnBrowseExisting{sfx}");
-            Apply(btnGenerateNow, $"btnGenerateNow{sfx}");
-            Apply(lblLog, $"lblLog{sfx}");
-            ApplyToolStrip(lblLanguage, $"lblLanguage{sfx}");
-
-            // Estados dinâmicos — não sobrescreve durante operação ativa
+            // Estados dinâmicos: só atualiza se não houver monitoramento/drop em andamento, para não confundir o usuário no meio de uma operação
             if (!_isMonitoring)
             {
-                btnToggleWatch.Text = GetText("▶️ Start Monitoring", "▶️ Iniciar Monitoramento");
-                lblWatchStatus.Text = GetText("INACTIVE", "INATIVO");
-                lblWatchStatus.ForeColor = Color.DimGray;
+                btnToggleWatch.Text = Strings.UpdateList_StartMonitoring;
+                lblWatchStatus.Text = Strings.UpdateList_INACTIVE;
             }
             else
             {
-                btnToggleWatch.Text = GetText("🛑 Stop Monitoring", "🛑 Parar Monitoramento");
-                lblWatchStatus.Text = GetText("ACTIVELY MONITORING", "MONITORANDO ATIVAMENTE");
-                lblWatchStatus.ForeColor = Color.Green;
+                btnToggleWatch.Text = Strings.UpdateList_StopMonitoring;
+                lblWatchStatus.Text = Strings.UpdateList_ACTIVELYMONITORING;
             }
 
             if (string.IsNullOrEmpty(txtXmlViewer.Text))
-                lblDropHint.Text = GetText(
-                    "🪂 Drag and drop an encrypted 'updatelist' file here to view the decoded XML in real time.",
-                    "🪂 Arraste e solte um arquivo 'updatelist' criptografado aqui para visualizar o XML decodificado em tempo real.");
+            {
+                lblDropHint.Text = Strings.UpdateList_DragAndDropAnEncryptedUpdatelist;
+            }
         }
-
-        private string GetText(string en, string br) =>
-            cboLanguage.SelectedItem is KeyValuePair<string, string> sel && sel.Value == "br" ? br : en;
-
-        // ── Inicialização dos componentes ────────────────────────────────────
-        private void SetupComponents()
+private void SetupComponents()
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
@@ -136,20 +124,20 @@ namespace PangYa_Suite_Tools
             txtUpdateListVer.Text = DateTime.Now.ToString("yyyyMMdd01");
             txtClientPatchNum.Text = "1";
 
-            Log(GetText("Interface initialized. Ready to use.", "Interface inicializada. Pronta para uso."));
+            Log(Strings.UpdateList_InterfaceInitializedInMultiTabMode);
         }
 
         // ════════════════════════════════════════════════════════════════════
         // ABA 1 — VISUALIZADOR / DECRYPT DE UPDATELIST
         // ════════════════════════════════════════════════════════════════════
 
-        private void PnlCryptoDrop_DragEnter(object sender, DragEventArgs e)
+        private void PnlCryptoDrop_DragEnter(object? sender, DragEventArgs e)
         {
             if (e.Data != null && e.Data.GetDataPresent(DataFormats.FileDrop))
                 e.Effect = DragDropEffects.Copy;
         }
 
-        private async void PnlCryptoDrop_DragDrop(object sender, DragEventArgs e)
+        private async void pnlCryptoDrop_DragDrop(object? sender, DragEventArgs e)
         {
             if (e.Data == null) return;
             string[] files = (string[])e.Data.GetData(DataFormats.FileDrop)!;
@@ -157,7 +145,7 @@ namespace PangYa_Suite_Tools
 
             string targetFile = files[0];
             txtXmlViewer.Clear();
-            lblDropHint.Text = $"{GetText("Processing:", "Processando:")} {Path.GetFileName(targetFile)}...";
+            lblDropHint.Text = $"{Strings.UpdateList_Processing} {Path.GetFileName(targetFile)}...";
 
             string selectedKeyName = string.Empty;
             this.Invoke(() => selectedKeyName = cboFileKey.SelectedItem!.ToString()!);
@@ -170,7 +158,7 @@ namespace PangYa_Suite_Tools
 
                     if (operacao == OperacaoEnum.Decrypt)
                     {
-                        this.Invoke(() => Log($"🔒 {GetText("Protected file. Testing key", "Arquivo protegido. Testando chave")} [{selectedKeyName}]..."));
+                        this.Invoke(() => Log($"🔒 {Strings.UpdateList_ProtectedFileDetectedTestingKey} [{selectedKeyName}]..."));
 
                         uint[] selectedKey = GetKeysByLabel(selectedKeyName);
                         var reader = new UpdateReader(selectedKey);
@@ -180,27 +168,46 @@ namespace PangYa_Suite_Tools
                             var (header, entries) = reader.ReadUpdateList(targetFile);
                             if (entries != null && entries.Count > 0)
                             {
-                                ShowDecryptedXml(reader.XteaDecrypt(targetFile), selectedKeyName);
+                                byte[] rawDoc = reader.XteaDecrypt(targetFile);
+                                int num = Array.IndexOf(rawDoc, (byte)0);
+                                string xmlText = Encoding.GetEncoding("euc-kr").GetString(rawDoc, 0, num == -1 ? rawDoc.Length : num);
+
+                                // Embeleza o XML antes de mandar para a tela
+                                string formattedXml = FormatXml(xmlText);
+
+                                this.Invoke(() => {
+                                    txtXmlViewer.Text = formattedXml;
+                                    lblDropHint.Text = Strings.UpdateList_DragAndDropAnEncryptedUpdatelist;
+                                    Log($"✅ [{Strings.UpdateList_SUCCESS}] {Strings.UpdateList_DecryptedWithKey} {selectedKeyName}!");
+                                });
                                 return;
                             }
                         }
                         catch
                         {
-                            this.Invoke(() => Log($"⚠️ {GetText("Failed with key", "Falha com a chave")} [{selectedKeyName}]. {GetText("Starting brute-force scan...", "Iniciando scan de força-bruta...")}"));
+                            this.Invoke(() => Log($"⚠️ {Strings.UpdateList_FailedWithKey} [{selectedKeyName}]. {Strings.UpdateList_StartingAutomaticBruteForceScanner}"));
                         }
 
                         // Fallback: testa todas as chaves conhecidas
                         var result = UpdateKeyDetector.DetectAndSetKey(targetFile, out _, out byte[]? decryptedData, out _);
                         if (result == UpdateResult.Sucess && decryptedData != null)
                         {
-                            ShowDecryptedXml(decryptedData, GetText("Auto-detected", "Auto-detectada"));
+                            int num = Array.IndexOf(decryptedData, (byte)0);
+                            string xmlText = Encoding.GetEncoding("euc-kr").GetString(decryptedData, 0, num == -1 ? decryptedData.Length : num);
+
+                            string formattedXml = FormatXml(xmlText);
+
+                            this.Invoke(() => {
+                                txtXmlViewer.Text = formattedXml;
+                                lblDropHint.Text = Strings.UpdateList_DragAndDropAnEncryptedUpdatelist;
+                                Log($"✅ [{Strings.UpdateList_BRUTEFORCESUCCESS}] {Strings.UpdateList_KeyIdentifiedSuccessfully}");
+                            });
                         }
                         else
                         {
-                            this.Invoke(() =>
-                            {
-                                lblDropHint.Text = GetText("❌ No key decoded the file.", "❌ Nenhuma chave decodificou o arquivo.");
-                                Log($"❌ [{GetText("TOTAL FAILURE", "FALHA TOTAL")}] {GetText("No known key could open this file.", "Nenhuma chave conhecida abriu este arquivo.")}");
+                            this.Invoke(() => {
+                                lblDropHint.Text = Strings.UpdateList_ErrorNoKeyDecodedTheStructure;
+                                Log($"❌ [{Strings.UpdateList_TOTALFAILURE}] {Strings.UpdateList_NoKeyFromTheKnownDatabase}");
                             });
                         }
                     }
@@ -208,20 +215,27 @@ namespace PangYa_Suite_Tools
                     {
                         // Arquivo já está em texto puro
                         string xmlText = File.ReadAllText(targetFile, Encoding.GetEncoding("euc-kr"));
-                        this.Invoke(() =>
-                        {
-                            txtXmlViewer.Text = FormatXml(xmlText);
-                            lblDropHint.Text = GetText("🪂 Drag and drop an encrypted 'updatelist' file here.", "🪂 Arraste e solte um arquivo 'updatelist' criptografado aqui.");
-                            Log($"📋 {GetText("Plain XML file displayed.", "Arquivo XML em texto puro exibido.")}");
+                        string formattedXml = FormatXml(xmlText);
+
+                        this.Invoke(() => {
+                            txtXmlViewer.Text = formattedXml;
+                            lblDropHint.Text = Strings.UpdateList_DragAndDropAnEncryptedUpdatelist;
+                            Log($"📋 {Strings.UpdateList_TheDroppedFileIsAlreadyIn}");
+                        });
+                    }
+                    else
+                    {
+                        this.Invoke(() => {
+                            lblDropHint.Text = Strings.UpdateList_InvalidOrCorruptedFile;
+                            Log(Strings.UpdateList_InvalidOrCorruptedFile);
                         });
                     }
                 }
                 catch (Exception ex)
                 {
-                    this.Invoke(() =>
-                    {
-                        lblDropHint.Text = GetText("❌ Critical failure.", "❌ Falha crítica.");
-                        Log($"❌ {ex.Message}");
+                    this.Invoke(() => {
+                        lblDropHint.Text = Strings.UpdateList_CriticalFailureWhileParsingFile;
+                        Log($"❌ [{Strings.UpdateList_PARSEERROR}] {ex.Message}");
                     });
                 }
             });
@@ -246,19 +260,13 @@ namespace PangYa_Suite_Tools
         // ── Browse buttons ───────────────────────────────────────────────────
         private void btnBrowsePangya_Click(object sender, EventArgs e)
         {
-            using var fbd = new FolderBrowserDialog
-            {
-                Description = GetText("Select the root Pangya folder (executables and .pak files)", "Selecione a pasta raiz do Pangya (executáveis e .pak)")
-            };
+            using var fbd = new FolderBrowserDialog { Description = Strings.UpdateList_SelectTheRootPangyaFolderWhere };
             if (fbd.ShowDialog() == DialogResult.OK) txtPangyaPath.Text = fbd.SelectedPath;
         }
 
         private void btnBrowseUpdate_Click(object sender, EventArgs e)
         {
-            using var fbd = new FolderBrowserDialog
-            {
-                Description = GetText("Select the WebServer destination folder", "Selecione a pasta do WebServer de destino")
-            };
+            using var fbd = new FolderBrowserDialog { Description = Strings.UpdateList_SelectTheDestinationWebServerFolderFor };
             if (fbd.ShowDialog() == DialogResult.OK) txtUpdatePath.Text = fbd.SelectedPath;
         }
 
@@ -310,18 +318,34 @@ namespace PangYa_Suite_Tools
 
         private async Task StartMonitoringAsync()
         {
-            if (!ValidatePaths()) return;
+            string pangyaPath = txtPangyaPath.Text;
+            string destPath = txtUpdatePath.Text;
+
+            if (!Directory.Exists(pangyaPath) || !Directory.Exists(destPath))
+            {
+                MessageBox.Show(Strings.UpdateList_CheckWhetherTheSourceAndWebServer, Strings.UpdateList_Warning, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
 
             btnToggleWatch.Enabled = false;
-            lblWatchStatus.Text = GetText("Initializing...", "Inicializando...");
-            progressBar.Value = 0;
-            progressBar.Visible = true;
+            lblWatchStatus.Text = Strings.UpdateList_Initializing;
 
             try
             {
                 await RunGenerationAsync(isMonitoringTrigger: false);
 
-                string pangyaPath = txtPangyaPath.Text;
+                uint[] regionKeys = GetKeysByName(selectedKeyName);
+
+                await Task.Run(() =>
+                {
+                    _updateMaker = new UpdateMaker();
+                    this.Invoke(() => Log(Strings.UpdateList_ScanningDirectoryTreeAndGeneratingInitial));
+
+                    string finalOutputPath = Path.Combine(destPath, "updatelist");
+
+                    // Injeção de todos os novos parâmetros capturados direto dos inputs dinâmicos do formulário
+                    _updateMaker.GenerateFromDirectory(pangyaPath, finalOutputPath, regionKeys, patchVersion, updateVersion, patchNum);
+                });
 
                 _watcher = new FileSystemWatcher(pangyaPath)
                 {
@@ -333,15 +357,15 @@ namespace PangYa_Suite_Tools
                 _watcher.EnableRaisingEvents = true;
 
                 _isMonitoring = true;
-                btnToggleWatch.Text = GetText("🛑 Stop Monitoring", "🛑 Parar Monitoramento");
+                btnToggleWatch.Text = Strings.UpdateList_StopMonitoring;
                 btnToggleWatch.BackColor = Color.Tomato;
-                lblWatchStatus.Text = GetText("ACTIVELY MONITORING", "MONITORANDO ATIVAMENTE");
+                lblWatchStatus.Text = Strings.UpdateList_ACTIVELYMONITORING;
                 lblWatchStatus.ForeColor = Color.Green;
-                Log($"[{GetText("SERVICE", "SERVIÇO")}] {GetText("FileSystemWatcher active on:", "FileSystemWatcher ativo em:")} {pangyaPath}");
+                Log($"[{Strings.UpdateList_SERVICE}] {Strings.UpdateList_FileSystemWatcherActiveOnFolder} {pangyaPath}");
             }
             catch (Exception ex)
             {
-                Log($"[{GetText("INIT ERROR", "ERRO INICIALIZAÇÃO")}] {ex.Message}");
+                Log($"[{Strings.UpdateList_INITERROR}] {ex.Message}");
                 StopMonitoring();
             }
             finally
@@ -357,11 +381,11 @@ namespace PangYa_Suite_Tools
             _watcher = null;
 
             _isMonitoring = false;
-            btnToggleWatch.Text = GetText("▶️ Start Monitoring", "▶️ Iniciar Monitoramento");
+            btnToggleWatch.Text = Strings.UpdateList_StartMonitoring;
             btnToggleWatch.BackColor = Color.LightGreen;
-            lblWatchStatus.Text = GetText("INACTIVE", "INATIVO");
+            lblWatchStatus.Text = Strings.UpdateList_INACTIVE;
             lblWatchStatus.ForeColor = Color.DimGray;
-            Log(GetText("Monitoring stopped.", "Monitoramento encerrado."));
+            Log(Strings.UpdateList_BackgroundMonitoringHasBeenStopped);
         }
 
         private void OnFileChanged(object sender, FileSystemEventArgs e)
@@ -382,8 +406,23 @@ namespace PangYa_Suite_Tools
                     last.Length == currentState.Length &&
                     last.LastWriteTime == currentState.LastWriteTime) return;
 
-                _fileCache[e.FullPath] = currentState;
-                this.Invoke(() => Log($"[{GetText("DETECTED", "DETECTADO")}] {e.Name}"));
+                this.Invoke(() => Log($"[{Strings.UpdateList_DETECTED}] {Strings.UpdateList_FileModification} {e.Name}"));
+
+                string pangyaPath = string.Empty;
+                string destPath = string.Empty;
+                string selectedKeyName = string.Empty;
+                string patchVersion = string.Empty;
+                string updateVersion = string.Empty;
+                string patchNum = string.Empty;
+
+                this.Invoke(() => {
+                    pangyaPath = txtPangyaPath.Text;
+                    destPath = txtUpdatePath.Text;
+                    selectedKeyName = cboFileKey.SelectedItem!.ToString()!;
+                    patchVersion = txtPatchVersion.Text;
+                    updateVersion = txtUpdateListVer.Text;
+                    patchNum = txtClientPatchNum.Text;
+                });
 
                 try
                 {
@@ -397,11 +436,11 @@ namespace PangYa_Suite_Tools
                     // Regenera o updatelist completo refletindo a mudança
                     Task.Run(() => RunGenerationAsync(isMonitoringTrigger: true)).Wait();
 
-                    this.Invoke(() => Log($"✨ [{GetText("COMPILED", "COMPILADO")}] {GetText("updatelist updated. Trigger:", "updatelist atualizado. Gatilho:")} {e.Name}"));
+                    this.Invoke(() => Log($"✨ [{Strings.UpdateList_COMPILED}] {Strings.UpdateList_UpdatelistSignedSuccessfullyTrigger} {e.Name}"));
                 }
                 catch (Exception ex)
                 {
-                    this.Invoke(() => Log($"[{GetText("I/O ERROR", "ERRO E/S")}] {e.Name}: {ex.Message}"));
+                    this.Invoke(() => Log($"[{Strings.UpdateList_IOERROR}] {Strings.UpdateList_CouldNotManageTheFile} {e.Name}: {ex.Message}"));
                 }
             }
         }

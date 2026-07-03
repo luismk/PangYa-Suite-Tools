@@ -73,7 +73,6 @@ namespace PangYa_Suite_Tools
             tabDecrypt.Padding = new Padding(3);
             tabDecrypt.Size = new Size(776, 544);
             tabDecrypt.TabIndex = 0;
-            tabDecrypt.Text = " 🔍 Visualizador / Decrypter ";
             tabDecrypt.UseVisualStyleBackColor = true;
 
             // pnlCryptoDrop
@@ -94,7 +93,6 @@ namespace PangYa_Suite_Tools
             lblDropHint.Name = "lblDropHint";
             lblDropHint.Size = new Size(758, 98);
             lblDropHint.TabIndex = 0;
-            lblDropHint.Text = "🪂 Drag and drop an encrypted 'updatelist' file here to view the decoded XML in real time.";
             lblDropHint.TextAlign = ContentAlignment.MiddleCenter;
 
             // txtXmlViewer
@@ -122,7 +120,6 @@ namespace PangYa_Suite_Tools
             tabGenerator.Padding = new Padding(3);
             tabGenerator.Size = new Size(776, 544);
             tabGenerator.TabIndex = 1;
-            tabGenerator.Text = " 🛠️ Generator & Monitoring ";
             tabGenerator.UseVisualStyleBackColor = true;
             grpConfig.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             grpConfig.Controls.Add(lblPangyaPath);
@@ -148,156 +145,144 @@ namespace PangYa_Suite_Tools
             grpConfig.Size = new Size(760, 235);   // +50 pra nova linha
             grpConfig.TabIndex = 0;
             grpConfig.TabStop = false;
-            grpConfig.Text = " Update Server Settings ";
-            lblPangyaPath.AutoSize = true;
-            lblPangyaPath.Font = new Font("Segoe UI", 9F);
-            lblPangyaPath.Location = new Point(15, 28);
-            lblPangyaPath.Name = "lblPangyaPath";
-            lblPangyaPath.Size = new Size(148, 15);
-            lblPangyaPath.TabIndex = 0;
-            lblPangyaPath.Text = "Pangya Source Folder:";
-
-            txtPangyaPath.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            txtPangyaPath.Font = new Font("Segoe UI", 9F);
-            txtPangyaPath.Location = new Point(15, 46);
-            txtPangyaPath.Name = "txtPangyaPath";
-            txtPangyaPath.Size = new Size(638, 23);
-            txtPangyaPath.TabIndex = 1;
-
-            btnBrowsePangya.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            btnBrowsePangya.Font = new Font("Segoe UI", 9F);
-            btnBrowsePangya.Location = new Point(659, 45);
-            btnBrowsePangya.Name = "btnBrowsePangya";
-            btnBrowsePangya.Size = new Size(85, 25);
-            btnBrowsePangya.TabIndex = 2;
-            btnBrowsePangya.Text = "Browse...";
-            btnBrowsePangya.UseVisualStyleBackColor = true;
-            btnBrowsePangya.Click += btnBrowsePangya_Click;
-            lblUpdatePath.AutoSize = true;
-            lblUpdatePath.Font = new Font("Segoe UI", 9F);
-            lblUpdatePath.Location = new Point(15, 78);
-            lblUpdatePath.Name = "lblUpdatePath";
-            lblUpdatePath.Size = new Size(165, 15);
-            lblUpdatePath.TabIndex = 3;
-            lblUpdatePath.Text = "WebServer Destination Folder:";
-
-            txtUpdatePath.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            txtUpdatePath.Font = new Font("Segoe UI", 9F);
-            txtUpdatePath.Location = new Point(15, 96);
-            txtUpdatePath.Name = "txtUpdatePath";
-            txtUpdatePath.Size = new Size(638, 23);
-            txtUpdatePath.TabIndex = 4;
-
+            // 
+            // txtClientPatchNum
+            // 
+            txtClientPatchNum.Font = new Font("Segoe UI", 9F);
+            txtClientPatchNum.Location = new Point(570, 149);
+            txtClientPatchNum.Name = "txtClientPatchNum";
+            txtClientPatchNum.Size = new Size(174, 23);
+            txtClientPatchNum.TabIndex = 13;
+            // 
+            // lblClientPatchNum
+            // 
+            lblClientPatchNum.AutoSize = true;
+            lblClientPatchNum.Font = new Font("Segoe UI", 9F);
+            lblClientPatchNum.Location = new Point(570, 131);
+            lblClientPatchNum.Name = "lblClientPatchNum";
+            lblClientPatchNum.Size = new Size(87, 15);
+            lblClientPatchNum.TabIndex = 12;
+            // 
+            // txtUpdateListVer
+            // 
+            txtUpdateListVer.Font = new Font("Segoe UI", 9F);
+            txtUpdateListVer.Location = new Point(380, 149);
+            txtUpdateListVer.Name = "txtUpdateListVer";
+            txtUpdateListVer.Size = new Size(174, 23);
+            txtUpdateListVer.TabIndex = 11;
+            // 
+            // lblUpdateListVer
+            // 
+            lblUpdateListVer.AutoSize = true;
+            lblUpdateListVer.Font = new Font("Segoe UI", 9F);
+            lblUpdateListVer.Location = new Point(380, 131);
+            lblUpdateListVer.Name = "lblUpdateListVer";
+            lblUpdateListVer.Size = new Size(107, 15);
+            lblUpdateListVer.TabIndex = 10;
+            // 
+            // txtPatchVersion
+            // 
+            txtPatchVersion.Font = new Font("Segoe UI", 9F);
+            txtPatchVersion.Location = new Point(190, 149);
+            txtPatchVersion.Name = "txtPatchVersion";
+            txtPatchVersion.Size = new Size(174, 23);
+            txtPatchVersion.TabIndex = 9;
+            // 
+            // lblPatchVersion
+            // 
+            lblPatchVersion.AutoSize = true;
+            lblPatchVersion.Font = new Font("Segoe UI", 9F);
+            lblPatchVersion.Location = new Point(190, 131);
+            lblPatchVersion.Name = "lblPatchVersion";
+            lblPatchVersion.Size = new Size(94, 15);
+            lblPatchVersion.TabIndex = 8;
+            // 
+            // cboFileKey
+            // 
+            cboFileKey.DropDownStyle = ComboBoxStyle.DropDownList;
+            cboFileKey.Font = new Font("Segoe UI", 9F);
+            cboFileKey.FormattingEnabled = true;
+            cboFileKey.Location = new Point(15, 149);
+            cboFileKey.Name = "cboFileKey";
+            cboFileKey.Size = new Size(160, 23);
+            cboFileKey.TabIndex = 7;
+            // 
+            // lblFileKey
+            // 
+            lblFileKey.AutoSize = true;
+            lblFileKey.Font = new Font("Segoe UI", 9F);
+            lblFileKey.Location = new Point(15, 131);
+            lblFileKey.Name = "lblFileKey";
+            lblFileKey.Size = new Size(90, 15);
+            lblFileKey.TabIndex = 6;
+            // 
+            // btnBrowseUpdate
+            // 
             btnBrowseUpdate.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             btnBrowseUpdate.Font = new Font("Segoe UI", 9F);
             btnBrowseUpdate.Location = new Point(659, 95);
             btnBrowseUpdate.Name = "btnBrowseUpdate";
             btnBrowseUpdate.Size = new Size(85, 25);
             btnBrowseUpdate.TabIndex = 5;
-            btnBrowseUpdate.Text = "Browse...";
             btnBrowseUpdate.UseVisualStyleBackColor = true;
             btnBrowseUpdate.Click += btnBrowseUpdate_Click;
-            lblExistingList.AutoSize = true;
-            lblExistingList.Font = new Font("Segoe UI", 9F);
-            lblExistingList.Location = new Point(15, 128);
-            lblExistingList.Name = "lblExistingList";
-            lblExistingList.Size = new Size(230, 15);
-            lblExistingList.TabIndex = 6;
-            lblExistingList.Text = "Existing updatelist (optional — for delta compare):";
-
-            txtExistingList.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            txtExistingList.Font = new Font("Segoe UI", 9F);
-            txtExistingList.Location = new Point(15, 146);
-            txtExistingList.Name = "txtExistingList";
-            txtExistingList.PlaceholderText = "Leave blank to generate from scratch";
-            txtExistingList.Size = new Size(638, 23);
-            txtExistingList.TabIndex = 7;
-
-            btnBrowseExisting.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            btnBrowseExisting.Font = new Font("Segoe UI", 9F);
-            btnBrowseExisting.Location = new Point(659, 145);
-            btnBrowseExisting.Name = "btnBrowseExisting";
-            btnBrowseExisting.Size = new Size(85, 25);
-            btnBrowseExisting.TabIndex = 8;
-            btnBrowseExisting.Text = "Browse...";
-            btnBrowseExisting.UseVisualStyleBackColor = true;
-            btnBrowseExisting.Click += btnBrowseExisting_Click;
-            lblFileKey.AutoSize = true;
-            lblFileKey.Font = new Font("Segoe UI", 9F);
-            lblFileKey.Location = new Point(15, 181);
-            lblFileKey.Name = "lblFileKey";
-            lblFileKey.Size = new Size(90, 15);
-            lblFileKey.TabIndex = 9;
-            lblFileKey.Text = "Region / Key:";
-
-            cboFileKey.DropDownStyle = ComboBoxStyle.DropDownList;
-            cboFileKey.Font = new Font("Segoe UI", 9F);
-            cboFileKey.FormattingEnabled = true;
-            cboFileKey.Location = new Point(15, 199);
-            cboFileKey.Name = "cboFileKey";
-            cboFileKey.Size = new Size(160, 23);
-            cboFileKey.TabIndex = 10;
-
-            lblPatchVersion.AutoSize = true;
-            lblPatchVersion.Font = new Font("Segoe UI", 9F);
-            lblPatchVersion.Location = new Point(190, 181);
-            lblPatchVersion.Name = "lblPatchVersion";
-            lblPatchVersion.Size = new Size(94, 15);
-            lblPatchVersion.TabIndex = 11;
-            lblPatchVersion.Text = "Patch Version:";
-
-            txtPatchVersion.Font = new Font("Segoe UI", 9F);
-            txtPatchVersion.Location = new Point(190, 199);
-            txtPatchVersion.Name = "txtPatchVersion";
-            txtPatchVersion.Size = new Size(174, 23);
-            txtPatchVersion.TabIndex = 12;
-
-            lblUpdateListVer.AutoSize = true;
-            lblUpdateListVer.Font = new Font("Segoe UI", 9F);
-            lblUpdateListVer.Location = new Point(380, 181);
-            lblUpdateListVer.Name = "lblUpdateListVer";
-            lblUpdateListVer.Size = new Size(107, 15);
-            lblUpdateListVer.TabIndex = 13;
-            lblUpdateListVer.Text = "UpdateList Version:";
-
-            txtUpdateListVer.Font = new Font("Segoe UI", 9F);
-            txtUpdateListVer.Location = new Point(380, 199);
-            txtUpdateListVer.Name = "txtUpdateListVer";
-            txtUpdateListVer.Size = new Size(174, 23);
-            txtUpdateListVer.TabIndex = 14;
-
-            lblClientPatchNum.AutoSize = true;
-            lblClientPatchNum.Font = new Font("Segoe UI", 9F);
-            lblClientPatchNum.Location = new Point(570, 181);
-            lblClientPatchNum.Name = "lblClientPatchNum";
-            lblClientPatchNum.Size = new Size(87, 15);
-            lblClientPatchNum.TabIndex = 15;
-            lblClientPatchNum.Text = "Patch Number:";
-
-            txtClientPatchNum.Font = new Font("Segoe UI", 9F);
-            txtClientPatchNum.Location = new Point(570, 199);
-            txtClientPatchNum.Name = "txtClientPatchNum";
-            txtClientPatchNum.Size = new Size(174, 23);
-            txtClientPatchNum.TabIndex = 16;
-            btnGenerateNow.BackColor = Color.FromArgb(0, 122, 204);
-            btnGenerateNow.FlatStyle = FlatStyle.Flat;
-            btnGenerateNow.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
-            btnGenerateNow.ForeColor = Color.White;
-            btnGenerateNow.Location = new Point(8, 253);
-            btnGenerateNow.Name = "btnGenerateNow";
-            btnGenerateNow.Size = new Size(240, 45);
-            btnGenerateNow.TabIndex = 1;
-            btnGenerateNow.Text = "⚡ Generate Now";
-            btnGenerateNow.UseVisualStyleBackColor = false;
-            btnGenerateNow.Click += btnGenerateNow_Click;
+            // 
+            // txtUpdatePath
+            // 
+            txtUpdatePath.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            txtUpdatePath.Font = new Font("Segoe UI", 9F);
+            txtUpdatePath.Location = new Point(15, 96);
+            txtUpdatePath.Name = "txtUpdatePath";
+            txtUpdatePath.Size = new Size(638, 23);
+            txtUpdatePath.TabIndex = 4;
+            // 
+            // lblUpdatePath
+            // 
+            lblUpdatePath.AutoSize = true;
+            lblUpdatePath.Font = new Font("Segoe UI", 9F);
+            lblUpdatePath.Location = new Point(15, 78);
+            lblUpdatePath.Name = "lblUpdatePath";
+            lblUpdatePath.Size = new Size(165, 15);
+            lblUpdatePath.TabIndex = 3;
+            // 
+            // btnBrowsePangya
+            // 
+            btnBrowsePangya.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btnBrowsePangya.Font = new Font("Segoe UI", 9F);
+            btnBrowsePangya.Location = new Point(659, 45);
+            btnBrowsePangya.Name = "btnBrowsePangya";
+            btnBrowsePangya.Size = new Size(85, 25);
+            btnBrowsePangya.TabIndex = 2;
+            btnBrowsePangya.UseVisualStyleBackColor = true;
+            btnBrowsePangya.Click += btnBrowsePangya_Click;
+            // 
+            // txtPangyaPath
+            // 
+            txtPangyaPath.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            txtPangyaPath.Font = new Font("Segoe UI", 9F);
+            txtPangyaPath.Location = new Point(15, 46);
+            txtPangyaPath.Name = "txtPangyaPath";
+            txtPangyaPath.Size = new Size(638, 23);
+            txtPangyaPath.TabIndex = 1;
+            // 
+            // lblPangyaPath
+            // 
+            lblPangyaPath.AutoSize = true;
+            lblPangyaPath.Font = new Font("Segoe UI", 9F);
+            lblPangyaPath.Location = new Point(15, 28);
+            lblPangyaPath.Name = "lblPangyaPath";
+            lblPangyaPath.Size = new Size(148, 15);
+            lblPangyaPath.TabIndex = 0;
+            // 
+            // btnToggleWatch
+            // 
             btnToggleWatch.BackColor = Color.LightGreen;
             btnToggleWatch.FlatStyle = FlatStyle.Flat;
             btnToggleWatch.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
             btnToggleWatch.Location = new Point(256, 253);
             btnToggleWatch.Name = "btnToggleWatch";
             btnToggleWatch.Size = new Size(240, 45);
-            btnToggleWatch.TabIndex = 2;
-            btnToggleWatch.Text = "▶️ Start Monitoring";
+            btnToggleWatch.TabIndex = 1;
             btnToggleWatch.UseVisualStyleBackColor = false;
             btnToggleWatch.Click += btnToggleWatch_Click;
             lblWatchStatus.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
@@ -306,9 +291,8 @@ namespace PangYa_Suite_Tools
             lblWatchStatus.ForeColor = Color.DimGray;
             lblWatchStatus.Location = new Point(504, 253);
             lblWatchStatus.Name = "lblWatchStatus";
-            lblWatchStatus.Size = new Size(264, 45);
-            lblWatchStatus.TabIndex = 3;
-            lblWatchStatus.Text = "INACTIVE";
+            lblWatchStatus.Size = new Size(512, 45);
+            lblWatchStatus.TabIndex = 2;
             lblWatchStatus.TextAlign = ContentAlignment.MiddleCenter;
             progressBar.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             progressBar.Location = new Point(8, 306);
@@ -326,7 +310,6 @@ namespace PangYa_Suite_Tools
             lblStatus.Name = "lblStatus";
             lblStatus.Size = new Size(74, 18);
             lblStatus.TabIndex = 5;
-            lblStatus.Text = "";
             lblStatus.TextAlign = ContentAlignment.MiddleLeft;
 
             lblLog.AutoSize = true;
@@ -346,12 +329,20 @@ namespace PangYa_Suite_Tools
             txtLog.Name = "txtLog";
             txtLog.ReadOnly = true;
             txtLog.ScrollBars = ScrollBars.Vertical;
-            txtLog.Size = new Size(760, 186);
-            txtLog.TabIndex = 7;
-
-            // ─────────────────────────────────────────────────────────────────
-            // StatusStrip (idioma)
-            // ─────────────────────────────────────────────────────────────────
+            txtLog.Size = new Size(760, 227);
+            txtLog.TabIndex = 4;
+            // 
+            // lblLog
+            // 
+            lblLog.AutoSize = true;
+            lblLog.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            lblLog.Location = new Point(8, 257);
+            lblLog.Name = "lblLog";
+            lblLog.Size = new Size(142, 15);
+            lblLog.TabIndex = 3;
+            // 
+            // statusStrip1
+            // 
             statusStrip1.Items.AddRange(new ToolStripItem[] { lblLanguage, cboLanguage });
             statusStrip1.Location = new Point(0, 572);
             statusStrip1.Name = "statusStrip1";
@@ -360,8 +351,9 @@ namespace PangYa_Suite_Tools
 
             lblLanguage.Name = "lblLanguage";
             lblLanguage.Size = new Size(47, 18);
-            lblLanguage.Text = "Language:";
-
+            // 
+            // cboLanguage
+            // 
             cboLanguage.DropDownStyle = ComboBoxStyle.DropDownList;
             cboLanguage.Name = "cboLanguage";
             cboLanguage.Size = new Size(120, 23);

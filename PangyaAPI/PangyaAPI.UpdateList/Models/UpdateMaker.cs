@@ -43,48 +43,36 @@ namespace PangyaAPI.UpdateList.Models
             if (!Directory.Exists(targetFolder))
                 throw new DirectoryNotFoundException($"Diretório alvo não existe: {targetFolder}");
 
-            var allFiles = ListFiles(targetFolder);
-            var entries  = new List<UpdateEntry>();
-            int total    = allFiles.Count;
-            int done     = 0;
+            string[] files = Directory.EnumerateFiles(targetFolder, "*", SearchOption.AllDirectories)
+                .Where(path => !path.EndsWith(".cln", StringComparison.OrdinalIgnoreCase) &&
+                               !path.EndsWith(".json", StringComparison.OrdinalIgnoreCase) &&
+                               !Path.GetFileName(path).Equals(Path.GetFileName(outputPath), StringComparison.OrdinalIgnoreCase))
+                .OrderBy(path => path, StringComparer.OrdinalIgnoreCase)
+                .ToArray();
+            var entries = new UpdateEntry[files.Length];
 
-            foreach (var filePath in allFiles)
+            Parallel.For(0, files.Length, new ParallelOptions
             {
-                var info = new FileInfo(filePath);
-
-                // Ignora o próprio arquivo de saída se estiver dentro da pasta varrida
-                if (info.FullName.Equals(Path.GetFullPath(outputPath), StringComparison.OrdinalIgnoreCase))
-                    continue;
-
-                // fdate/ftime: LastWriteTime + 3h (padrão legado do Pangya)
-                DateTime writeTimePlus3 = info.LastWriteTime.AddHours(3);
-
-                // fdir: apenas o nome imediato da pasta pai + "\"
-                // Ex.: Pangya\data\round20\file.ext → fdir = "round20\"
-                string immediateParent = info.Directory?.Name ?? "";
-                string fdir = string.IsNullOrEmpty(immediateParent) ? "" : (immediateParent + "\\");
-
-                var entry = new UpdateEntry
+                MaxDegreeOfParallelism = Math.Max(1, Math.Min(Environment.ProcessorCount, 4))
+            }, index =>
+            {
+                string file = files[index];
+                var fileInfo = new FileInfo(file);
+                string relativePath = Path.GetRelativePath(targetFolder, file);
+                string? directory = Path.GetDirectoryName(relativePath);
+                entries[index] = new UpdateEntry
                 {
-                    fname       = info.Name,
-                    fdir        = fdir,
-                    fsize       = info.Length,
-                    fcrc        = _crcCalculator.CalculateFileCRC(filePath),
-                    fdate       = writeTimePlus3.ToString("yyyy-MM-dd"),
-                    ftime       = writeTimePlus3.ToString("HH:mm:ss"),
-                    pname       = info.Name + ".zip",
-                    psize       = 0, // preenchido após compressão; 0 até lá
-
-                    // Campos runtime-only
-                    FullPath    = filePath,
-                    CheckSum    = ComputeCheckSum(info.Name, info.Length, writeTimePlus3),
-                    Index       = done + 1
+                    fname = fileInfo.Name,
+                    fdir = string.IsNullOrEmpty(directory) ? "\\" : "\\" + directory,
+                    fsize = fileInfo.Length,
+                    fcrc = _crcCalculator.CalculateFileCRC(file),
+                    fdate = fileInfo.LastWriteTimeUtc.ToString("yyyy-MM-dd"), // Uso do Utc como no legado
+                    ftime = fileInfo.LastWriteTimeUtc.ToString("HH:mm:ss"),
+                    pname = fileInfo.Name + ".zip", // Mantém o comportamento original (.zip no pname)
+                    psize = 717469 // Tamanho fake inicial mantido para sua futura implementação de GUI/Compressão
                 };
 
-                entries.Add(entry);
-                done++;
-                onProgress?.Invoke(done, total);
-            }
+            });
 
             var header = new UpdateHeader
             {
@@ -94,49 +82,7 @@ namespace PangyaAPI.UpdateList.Models
             };
 
             var writer = new UpdateWriter(regionKeys);
-            writer.WriteUpdateList(outputPath, header, entries);
-        }
-
-        // ── Helpers ────────────────────────────────────────────────────────────
-
-        /// <summary>
-        /// Varre recursivamente <paramref name="folder"/>, ignorando extensões/nomes
-        /// indesejados (igual ao XMLParser original: .bak, .txt, .lib, .exp, .pdb,
-        /// .xml, .dmp, .cln, .json, uninstall.exe).
-        /// </summary>
-        private static List<string> ListFiles(string folder)
-        {
-            var result = new List<string>();
-
-            foreach (string subDir in Directory.GetDirectories(folder))
-            {
-                // Ignora subpastas cujo nome contenha extensões indesejadas
-                string dirName = Path.GetFileName(subDir);
-                if (IgnoredSuffixes.Any(s => dirName.Contains(s, StringComparison.OrdinalIgnoreCase)))
-                    continue;
-
-                result.AddRange(ListFiles(subDir));
-            }
-
-            foreach (string file in Directory.GetFiles(folder))
-            {
-                if (!IgnoredSuffixes.Any(s => file.EndsWith(s, StringComparison.OrdinalIgnoreCase)))
-                    result.Add(file);
-            }
-
-            return result;
-        }
-
-        /// <summary>
-        /// MD5(nome + tamanho + data+3h formatada) — mesma lógica do XMLParser original.
-        /// Útil para detecção de mudanças sem recalcular CRC de todos os arquivos.
-        /// </summary>
-        private static string ComputeCheckSum(string name, long size, DateTime writeTimePlus3)
-        {
-            string input = name + size.ToString() + writeTimePlus3.ToString("yyyy-MM-dd HH:mm:ss");
-            using var md5 = MD5.Create();
-            byte[] hash = md5.ComputeHash(Encoding.UTF8.GetBytes(input));
-            return BitConverter.ToString(hash).Replace("-", "");
+            writer.WriteUpdateList(outputPath, header, entries.ToList());
         }
     }
 }

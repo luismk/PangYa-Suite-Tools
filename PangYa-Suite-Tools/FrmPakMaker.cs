@@ -1,7 +1,10 @@
-﻿using PangyaAPI.PAK.Flags;
+using PangYa_Suite_Tools.Localization;
+using PangYa_Suite_Tools.Configuration;
+using PangyaAPI.PAK.Flags;
 using PangyaAPI.PAK.Models;
 using System.ComponentModel;
 using System.Data;
+using System.Text;
 
 namespace PangYa_Suite_Tools
 {
@@ -17,7 +20,9 @@ namespace PangYa_Suite_Tools
 
         // Conjunto de entries atualmente "no escopo" (pasta selecionada na árvore), antes do filtro de pesquisa
         private List<PakFileEntry> _scopedEntries = [];
+        private sealed record RegionOption(string Label, uint[] Keys);
         private bool isInitializingLanguages = true;
+        private bool _isInitializingEncodings = true;
         public FrmPakMaker()
         {
             InitializeComponent();
@@ -26,6 +31,12 @@ namespace PangYa_Suite_Tools
             LoadSetupOptions();
             SetupContextMenu(); // Inicializa o menu de contexto da ListView
             CleanupOldTempDragFolders(); // Remove resíduos de exportações de drag-out de execuções anteriores
+            LocalizationManager.CultureChanged += LocalizationManager_CultureChanged;
+            Disposed += (_, _) =>
+            {
+                LocalizationManager.CultureChanged -= LocalizationManager_CultureChanged;
+                _currentReader?.Dispose();
+            };
         }
 
 
@@ -65,94 +76,103 @@ namespace PangYa_Suite_Tools
             cboLanguage.ComboBox.ValueMember = "Value";
 
             // Usando KeyValuePair para garantir tipagem forte e evitar bugs no ToolStrip
-            cboLanguage.Items.Add(new KeyValuePair<string, string>("Português (BR)", "br"));
-            cboLanguage.Items.Add(new KeyValuePair<string, string>("English (US)", "en"));
-            cboLanguage.SelectedIndex = 1;
+            cboLanguage.Items.Add(new KeyValuePair<string, string>(Strings.Common_PortugueseBrazil, LocalizationManager.PortugueseBrazil));
+            cboLanguage.Items.Add(new KeyValuePair<string, string>(Strings.Common_EnglishUS, LocalizationManager.English));
+            cboLanguage.SelectedIndex = LocalizationManager.CurrentCulture.Name == LocalizationManager.PortugueseBrazil ? 0 : 1;
 
             isInitializingLanguages = false;
 
             // Executa a primeira tradução com base na seleção inicial
-            ApplyLocalization("en");
+            ApplyLocalization();
         }
 
-        private void cboLanguage_SelectedIndexChanged(object sender, EventArgs e)
+        private void cboLanguage_SelectedIndexChanged(object? sender, EventArgs e)
         {
             if (isInitializingLanguages) return;
 
             if (cboLanguage.SelectedItem is KeyValuePair<string, string> selectedItem)
             {
-                string targetLanguage = selectedItem.Value;
-                ApplyLocalization(targetLanguage);
+                LocalizationManager.SetCulture(selectedItem.Value);
             }
         }
 
-        private void ApplyLocalization(string lang)
+        private void LocalizationManager_CultureChanged(object? sender, EventArgs e)
         {
-            ComponentResourceManager res = new ComponentResourceManager(typeof(FrmPakMaker));
-            string suffix = (lang == "en") ? "_en" : "_br";
+            isInitializingLanguages = true;
+            cboLanguage.SelectedIndex = LocalizationManager.CurrentCulture.Name == LocalizationManager.PortugueseBrazil ? 0 : 1;
+            isInitializingLanguages = false;
+            ApplyLocalization();
+        }
 
-            // Janela Principal e Label do Combo
-            this.Text = res.GetString($"FrmPakMaker{suffix}") ?? this.Text;
-            lblLanguage.Text = res.GetString($"lblLanguage{suffix}") ?? lblLanguage.Text;
+        private void ApplyLocalization()
+        {
+            Text = Strings.Pak_Title;
+            lblLanguage.Text = Strings.Common_Language;
+            lblFilenameEncoding.Text = Strings.Pak_FilenameEncoding;
+            lblFilenameEncoding.ToolTipText = Strings.Pak_FilenameEncodingTooltip;
+            cboFilenameEncoding.ToolTipText = Strings.Pak_FilenameEncodingTooltip;
 
             // --- ABA 1: LEITOR & MODIFICAÇÕES ---
-            tabExtract.Text = res.GetString($"tabExtract{suffix}") ?? tabExtract.Text;
-            btnBrowsePak.Text = res.GetString($"btnBrowsePak{suffix}") ?? btnBrowsePak.Text;
-            txtPakPath.PlaceholderText = res.GetString($"txtPakPathHint{suffix}") ?? txtPakPath.PlaceholderText;
+            tabExtract.Text = Strings.Pak_TabExtract;
+            btnBrowsePak.Text = Strings.Pak_Browse;
+            txtPakPath.PlaceholderText = Strings.Pak_PathHint;
 
             // Grupo Cabeçalho
-            groupHeader.Text = res.GetString($"groupHeader{suffix}") ?? groupHeader.Text;
-            lblAuthor.Text = res.GetString($"lblAuthor{suffix}") ?? lblAuthor.Text;
-            lblVersion.Text = res.GetString($"lblVersion{suffix}") ?? lblVersion.Text;
-            lblEntries.Text = res.GetString($"lblEntries{suffix}") ?? lblEntries.Text;
+            groupHeader.Text = Strings.Pak_Header;
+            lblAuthor.Text = Strings.Pak_Author;
+            lblVersion.Text = Strings.Pak_Version;
+            lblEntries.Text = Strings.Pak_Entries;
 
             // Pesquisa e Listagem
-            lblSearch.Text = res.GetString($"lblSearch{suffix}") ?? lblSearch.Text;
-            txtSearch.PlaceholderText = res.GetString($"txtSearchHint{suffix}") ?? txtSearch.PlaceholderText;
-            lblCurrentPath.Text = res.GetString($"lblCurrentPath{suffix}") ?? lblCurrentPath.Text;
+            lblSearch.Text = Strings.Pak_Search;
+            txtSearch.PlaceholderText = Strings.Pak_SearchHint;
+            lblCurrentPath.Text = Strings.Pak_CurrentPath;
 
             // Botões de Ação
-            btnExtractSelected.Text = res.GetString($"btnExtractSelected{suffix}") ?? btnExtractSelected.Text;
-            btnRemoveSelected.Text = res.GetString($"btnRemoveSelected{suffix}") ?? btnRemoveSelected.Text;
-            btnBatchExtract.Text = res.GetString($"btnBatchExtract{suffix}") ?? btnBatchExtract.Text;
-            btnUpdatePak.Text = res.GetString($"btnUpdatePak{suffix}") ?? btnUpdatePak.Text;
-            btnExtractAll.Text = res.GetString($"btnExtractAll{suffix}") ?? btnExtractAll.Text;
+            btnExtractSelected.Text = Strings.Pak_ExtractSelected;
+            btnRemoveSelected.Text = Strings.Pak_RemoveSelected;
+            btnBatchExtract.Text = Strings.Pak_BatchExtract;
+            btnUpdatePak.Text = Strings.Pak_Update;
+            btnExtractAll.Text = Strings.Pak_ExtractAll;
 
             // Colunas de Exibição
-            colName.Text = res.GetString($"colName{suffix}") ?? colName.Text;
-            colType.Text = res.GetString($"colType{suffix}") ?? colType.Text;
-            colSize.Text = res.GetString($"colSize{suffix}") ?? colSize.Text;
-            colCompSize.Text = res.GetString($"colCompSize{suffix}") ?? colCompSize.Text;
+            colName.Text = Strings.Pak_ColumnName;
+            colType.Text = Strings.Pak_ColumnType;
+            colSize.Text = Strings.Pak_ColumnSize;
+            colCompSize.Text = Strings.Pak_ColumnCompressed;
 
             // Painel Inferior XTEA
-            lblNewKey.Text = res.GetString($"lblNewKey{suffix}") ?? lblNewKey.Text;
-            btnChangeKey.Text = res.GetString($"btnChangeKey{suffix}") ?? btnChangeKey.Text;
+            lblNewKey.Text = Strings.Pak_NewKey;
+            btnChangeKey.Text = Strings.Pak_ChangeKey;
 
 
             // --- ABA 2: CRIAR NOVO PAK ---
-            tabCreate.Text = res.GetString($"tabCreate{suffix}") ?? tabCreate.Text;
-            txtSourceFolder.PlaceholderText = res.GetString($"txtSourceFolderHint{suffix}") ?? txtSourceFolder.PlaceholderText;
-            btnBrowseFolder.Text = res.GetString($"btnBrowseFolder{suffix}") ?? btnBrowseFolder.Text;
+            tabCreate.Text = Strings.Pak_TabCreate;
+            txtSourceFolder.PlaceholderText = Strings.Pak_SourceHint;
+            btnBrowseFolder.Text = Strings.Pak_SelectFolder;
 
-            lblVol.Text = res.GetString($"lblVol{suffix}") ?? lblVol.Text;
-            lblComp.Text = res.GetString($"lblComp{suffix}") ?? lblComp.Text;
-            lblLevel.Text = res.GetString($"lblLevel{suffix}") ?? lblLevel.Text;
-            lblReg.Text = res.GetString($"lblReg{suffix}") ?? lblReg.Text;
-            btnCreatePak.Text = res.GetString($"btnCreatePak{suffix}") ?? btnCreatePak.Text;
+            lblVol.Text = Strings.Pak_EntryVersion;
+            lblComp.Text = Strings.Pak_Compression;
+            lblLevel.Text = Strings.Pak_CompressionLevel;
+            lblReg.Text = Strings.Pak_Region;
+            label1.Text = Strings.PakMaker_Author;
+            label2.Text = Strings.PakMaker_Author;
+            ckSecurityPak.Text = Strings.Pak_SecurityPak;
+            btnCreatePak.Text = Strings.Pak_Create;
 
 
             // --- COMPONENTES GLOBAIS ---
-            lblStatus.Text = res.GetString($"lblStatus{suffix}") ?? lblStatus.Text;
+            if (string.IsNullOrWhiteSpace(lblStatus.Text)) lblStatus.Text = Strings.Pak_Ready;
 
             // Menu de contexto (criado dinamicamente em código, não pelo Designer)
             if (_menuExtractSingle != null)
-                _menuExtractSingle.Text = GetText("📁 Extract selected item(s)...", "📁 Extrair selecionado(s)...");
+                _menuExtractSingle.Text = Strings.PakMaker_ExtractSelectedItemS;
             if (_menuRemoveSingle != null)
-                _menuRemoveSingle.Text = GetText("🗑️ Remove selected item(s) from PAK...", "🗑️ Remover selecionado(s) do PAK...");
+                _menuRemoveSingle.Text = Strings.PakMaker_RemoveSelectedItemSFromPAK;
             if (_menuExtractFolder != null)
-                _menuExtractFolder.Text = GetText("📁 Extract this folder...", "📁 Extrair esta pasta...");
+                _menuExtractFolder.Text = Strings.PakMaker_ExtractThisFolder;
             if (_menuRemoveFolder != null)
-                _menuRemoveFolder.Text = GetText("🗑️ Remove this folder from PAK...", "🗑️ Remover esta pasta do PAK...");
+                _menuRemoveFolder.Text = Strings.PakMaker_RemoveThisFolderFromPAK;
         }
 
         private void SetupCustomComponents()
@@ -189,10 +209,10 @@ namespace PangYa_Suite_Tools
         private void SetupFolderContextMenu()
         {
             ContextMenuStrip folderContextMenu = new ContextMenuStrip();
-            _menuExtractFolder = new ToolStripMenuItem(GetText("📁 Extract this folder...", "📁 Extrair esta pasta..."));
+            _menuExtractFolder = new ToolStripMenuItem(Strings.PakMaker_ExtractThisFolder);
             _menuExtractFolder.Click += async (s, e) => await ExtractSelectedFolderAsync();
 
-            _menuRemoveFolder = new ToolStripMenuItem(GetText("🗑️ Remove this folder from PAK...", "🗑️ Remover esta pasta do PAK..."));
+            _menuRemoveFolder = new ToolStripMenuItem(Strings.PakMaker_RemoveThisFolderFromPAK);
             _menuRemoveFolder.Click += async (s, e) => await RemoveFolderFromTreeAsync();
 
             folderContextMenu.Items.Add(_menuExtractFolder);
@@ -254,7 +274,8 @@ namespace PangYa_Suite_Tools
             // Filtra as entradas válidas que estão selecionadas
             var selectedEntries = lstEntries.SelectedItems
                 .Cast<ListViewItem>()
-                .Select(i => (PakFileEntry)i.Tag)
+                .Select(i => i.Tag)
+                .OfType<PakFileEntry>()
                 .Where(en => en.Type != PakFileEntryType.Directory)
                 .ToList();
 
@@ -267,7 +288,7 @@ namespace PangYa_Suite_Tools
             List<string> filesToDrop = new();
 
             // Extrai rapidamente em background
-            lblStatus.Text = GetText("Preparing files for dragging...", "Preparando arquvivos para arrastar...");
+            lblStatus.Text = Strings.PakMaker_PreparingFilesForDragging;
             await Task.Run(() =>
             {
                 foreach (var entry in selectedEntries)
@@ -280,7 +301,7 @@ namespace PangYa_Suite_Tools
                     filesToDrop.Add(outPath);
                 }
             });
-            lblStatus.Text = GetText("Ready", "Pronto");
+            lblStatus.Text = Strings.PakMaker_Ready;
 
             // Executa a operação nativa do Windows de arrastar e soltar arquivos físicos
             var dataObject = new DataObject(DataFormats.FileDrop, filesToDrop.ToArray());
@@ -328,7 +349,7 @@ namespace PangYa_Suite_Tools
             // Nome da pasta raiz a ser arrastada (só o último segmento, ex.: "map")
             string selectedFolderName = string.IsNullOrEmpty(cleanPath) ? "" : Path.GetFileName(cleanPath.TrimEnd('/'));
 
-            lblStatus.Text = GetText("Preparing folder structure for dragging", "Preparando estrutura de pasta para arrastar...");
+            lblStatus.Text = Strings.PakMaker_PreparingFolderStructureForDragging;
             await Task.Run(() =>
             {
                 foreach (var entry in entriesToExtract)
@@ -371,7 +392,7 @@ namespace PangYa_Suite_Tools
                     directoriesToDrop.AddRange(Directory.GetFiles(tempSessionDir));
                 }
             });
-            lblStatus.Text = GetText("Ready", "Pronto");
+            lblStatus.Text = Strings.PakMaker_Ready;
 
             if (directoriesToDrop.Count > 0)
             {
@@ -383,10 +404,10 @@ namespace PangYa_Suite_Tools
         private void SetupContextMenu()
         {
             ContextMenuStrip contextMenu = new ContextMenuStrip();
-            _menuExtractSingle = new ToolStripMenuItem(GetText("📁 Extract selected item(s)...", "📁 Extrair selecionado(s)..."));
+            _menuExtractSingle = new ToolStripMenuItem(Strings.PakMaker_ExtractSelectedItemS);
             _menuExtractSingle.Click += async (s, e) => await ExtractSelectedAsync();
 
-            _menuRemoveSingle = new ToolStripMenuItem(GetText("🗑️ Remove selected item(s) from PAK...", "🗑️ Remover selecionado(s) do PAK..."));
+            _menuRemoveSingle = new ToolStripMenuItem(Strings.PakMaker_RemoveSelectedItemSFromPAK);
             _menuRemoveSingle.Click += async (s, e) => await RemoveSelectedAsync();
 
             contextMenu.Items.Add(_menuExtractSingle);
@@ -396,6 +417,8 @@ namespace PangYa_Suite_Tools
 
         private void LoadSetupOptions()
         {
+            InitializeFilenameEncodingComboBox();
+
             // Popula os seletores usando os Enums e Listas da sua PangyaAPI
             cboVersion.DataSource = Enum.GetValues(typeof(PakFileEntryVersion));
             cboVersion.SelectedItem = PakFileEntryVersion.V3;
@@ -404,17 +427,49 @@ namespace PangYa_Suite_Tools
             cboCompressType.SelectedItem = PakFileEntryType.LZ772;
 
             cboRegion.DataSource = PakKeys.All
-                .Select(x => new { Label = x.Label, Keys = x.Keys })
+                .Select(x => new RegionOption(x.Label, x.Keys))
                 .ToList();
             cboRegion.DisplayMember = "Label";
             cboRegion.SelectedIndex = 0;
 
             // Combo de chave/região destino, usado na troca de chave XTEA (aba de extração)
             cboNewRegion.DataSource = PakKeys.All
-                .Select(x => new { Label = x.Label, Keys = x.Keys })
+                .Select(x => new RegionOption(x.Label, x.Keys))
                 .ToList();
             cboNewRegion.DisplayMember = "Label";
             cboNewRegion.SelectedIndex = 0;
+        }
+
+        private void InitializeFilenameEncodingComboBox()
+        {
+            IReadOnlyList<PakEncodingOption> encodings =
+                PakFilenameEncodingPreferences.GetAvailableEncodings();
+            int savedCodePage = PakFilenameEncodingPreferences.LoadCodePage();
+
+            _isInitializingEncodings = true;
+            cboFilenameEncoding.ComboBox.DisplayMember = nameof(PakEncodingOption.Label);
+            cboFilenameEncoding.ComboBox.ValueMember = nameof(PakEncodingOption.CodePage);
+            cboFilenameEncoding.ComboBox.DataSource = encodings.ToList();
+            cboFilenameEncoding.ComboBox.SelectedItem =
+                encodings.First(option => option.CodePage == savedCodePage);
+            _isInitializingEncodings = false;
+        }
+
+        private Encoding SelectedFilenameEncoding =>
+            cboFilenameEncoding.SelectedItem is PakEncodingOption option
+                ? PakFilenameEncodingPreferences.GetEncoding(option.CodePage)
+                : PakFilenameEncodingPreferences.GetEncoding(
+                    PakFilenameEncodingPreferences.DefaultCodePage);
+
+        private void cboFilenameEncoding_SelectedIndexChanged(object? sender, EventArgs e)
+        {
+            if (_isInitializingEncodings ||
+                cboFilenameEncoding.SelectedItem is not PakEncodingOption option)
+                return;
+
+            PakFilenameEncodingPreferences.SaveCodePage(option.CodePage);
+            if (_currentReader != null)
+                lblStatus.Text = Strings.Pak_EncodingAppliesNextLoad;
         }
 
         private void FrmPakMaker_DragEnter(object? sender, DragEventArgs e)
@@ -457,8 +512,8 @@ namespace PangYa_Suite_Tools
                         else
                         {
                             MessageBox.Show(
-                                GetText("Please drag a valid .pak file extension to open.", "Por favor, arraste um arquivo válido de extensão .pak para abrir."),
-                                GetText("Warning", "Aviso"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                                Strings.PakMaker_PleaseDragAValidPakFile,
+                                Strings.PakMaker_Warning, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                         }
                     }
                     else
@@ -501,8 +556,8 @@ namespace PangYa_Suite_Tools
                         if (itemsToInject.Count == 0)
                         {
                             MessageBox.Show(
-                                GetText("No valid files or folders were found for injection.", "Nenhum arquivo ou pasta válida foi encontrado para injeção."),
-                                GetText("Warning", "Aviso"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                                Strings.PakMaker_NoValidFilesOrFoldersWere,
+                                Strings.PakMaker_Warning, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                             return;
                         }
 
@@ -519,17 +574,17 @@ namespace PangYa_Suite_Tools
                     else
                     {
                         MessageBox.Show(
-                            GetText("Please drag a valid folder to compile a new PAK.", "Por favor, arraste uma pasta válida para compilar um novo PAK."),
-                            GetText("Warning", "Aviso"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            Strings.PakMaker_PleaseDragAValidFolderTo,
+                            Strings.PakMaker_Warning, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     }
                 }
             }
         }
 
         // ─── ABA 1: LEITURA E EXTRAÇÃO ─────────────────────────────────────────
-        private void btnBrowsePak_Click(object sender, EventArgs e)
+        private void btnBrowsePak_Click(object? sender, EventArgs e)
         {
-            using var openFileDialog = new OpenFileDialog { Filter = "Pangya PAK Files (*.pak)|*.pak" };
+            using var openFileDialog = new OpenFileDialog { Filter = Strings.Pak_OpenFileFilter };
             if (openFileDialog.ShowDialog() == DialogResult.OK)
             {
                 txtPakPath.Text = openFileDialog.FileName;
@@ -537,7 +592,7 @@ namespace PangYa_Suite_Tools
             }
         }
 
-        private void LoadPak(string path)
+        private void LoadPak(string path, Encoding? filenameEncoding = null)
         {
             if (string.IsNullOrEmpty(path) || !File.Exists(path)) return;
 
@@ -547,20 +602,21 @@ namespace PangYa_Suite_Tools
                     txtPakPath.Text = path;
 
                 _currentReader?.Dispose();
-                _currentReader = new PakReader(path);
-                _currentReader.Parse();
+                var reader = new PakReader(path, filenameEncoding ?? SelectedFilenameEncoding);
+                _currentReader = reader;
+                reader.Parse();
                 // Atualiza as Labels de informação do Header
-                txtUpdateAuthor.Text = _currentReader?.Header.Author;
-                lblAuthor.Text = $"{GetText("Author:", "Autor:")} {_currentReader.Header.Author}";
-                lblVersion.Text = $"{GetText("Version:", "Versão:")} 0x{_currentReader.Header.Version:X2}";
-                lblEntries.Text = $"{GetText("Entries:", "Entradas:")} {_currentReader.Header.NumFileEntry}";
+                txtUpdateAuthor.Text = reader.Header.Author;
+                lblAuthor.Text = $"{Strings.PakMaker_Author} {reader.Header.Author}";
+                lblVersion.Text = $"{Strings.PakMaker_Version} 0x{reader.Header.Version:X2}";
+                lblEntries.Text = $"{Strings.PakMaker_Entries} {reader.Header.NumFileEntry}";
 
                 txtSearch.Text = "";
                 BuildFolderTree();
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"{GetText("Error opening PAK file:", "Erro ao abrir o arquivo PAK:")}\n{ex.Message}", GetText("Error", "Erro"), MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"{Strings.PakMaker_ErrorOpeningPAKFile}\n{ex.Message}", Strings.PakMaker_Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -576,7 +632,7 @@ namespace PangYa_Suite_Tools
             tvFolders.Nodes.Clear();
             _folderNodes.Clear();
 
-            var rootNode = new TreeNode(GetText("🗂 All Files", "🗂 Todos os Arquivos")) { Tag = RootFolderTag };
+            var rootNode = new TreeNode(Strings.PakMaker_AllFiles) { Tag = RootFolderTag };
             tvFolders.Nodes.Add(rootNode);
             _folderNodes[RootFolderTag] = rootNode;
 
@@ -657,8 +713,8 @@ namespace PangYa_Suite_Tools
                     .ToList();
 
             lblCurrentPath.Text = string.IsNullOrEmpty(folderTag)
-                ? GetText("📂 Path: (all files)", "📂 Caminho: (todos os arquivos)")
-                : $"{GetText("📂 Path:", "📂 Caminho:")} {folderTag.Replace('\\', '/')}";
+                ? Strings.PakMaker_PathAllFiles
+                : $"{Strings.PakMaker_Path} {folderTag.Replace('\\', '/')}";
 
             ApplyDisplayFilter();
         }
@@ -670,8 +726,8 @@ namespace PangYa_Suite_Tools
         {
             if (_currentReader == null || string.IsNullOrEmpty(txtPakPath.Text) || !File.Exists(txtPakPath.Text))
             {
-                MessageBox.Show(GetText("Select an active .pak file first.", "Selecione um arquivo .pak ativo primeiro."),
-                    GetText("Warning", "Aviso"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(Strings.PakMaker_SelectAnActivePakFileFirst,
+                    Strings.PakMaker_Warning, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -682,8 +738,8 @@ namespace PangYa_Suite_Tools
             // Evita deletar tudo caso esteja no nó raiz virtual sem querer
             if (string.IsNullOrEmpty(folderTag))
             {
-                MessageBox.Show(GetText("You cannot delete the root folder. Select a specific folder.", "Você não pode deletar a pasta raiz. Selecione uma pasta específica."),
-                    GetText("Warning", "Aviso"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(Strings.PakMaker_YouCannotDeleteTheRootFolder,
+                    Strings.PakMaker_Warning, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -698,27 +754,26 @@ namespace PangYa_Suite_Tools
 
             if (filesInFolder.Count == 0)
             {
-                MessageBox.Show(GetText("No files found inside this folder to delete.", "Nenhum arquivo encontrado dentro desta pasta para apagar."),
-                    GetText("Warning", "Aviso"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(Strings.PakMaker_NoFilesFoundInsideThisFolder,
+                    Strings.PakMaker_Warning, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
             // Mensagem de confirmação específica para a pasta selecionada
             string folderName = tvFolders.SelectedNode.Text.Replace("📁 ", "");
-            string confirmationMessage = GetText(
-                $"Are you sure you want to remove the folder '{folderName}' and all of its contents?\nTotal files to delete: {filesInFolder.Count}.",
-                $"Tem certeza de que deseja remover a pasta '{folderName}' e todo o seu conteúdo?\nTotal de arquivos a serem apagados: {filesInFolder.Count}.");
+            string confirmationMessage = string.Format(LocalizationManager.CurrentCulture,
+                Strings.Pak_RemoveFolderConfirmation, folderName, filesInFolder.Count);
 
             var confirm = MessageBox.Show(
-                $"{confirmationMessage}\n\n{GetText("The PAK will be rebuilt and a backup (.bak) will be created automatically.", "O PAK será reconstruído e um backup (.bak) será criado automaticamente.")}",
-                GetText("Confirm Removal", "Confirmar remoção"), MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                $"{confirmationMessage}\n\n{Strings.PakMaker_ThePAKWillBeRebuiltAnd}",
+                Strings.PakMaker_ConfirmRemoval, MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
 
             if (confirm != DialogResult.Yes) return;
 
             string pakPath = txtPakPath.Text;
             var reader = _currentReader;
 
-            lblStatus.Text = GetText("Removing and rebuilding PAK...", "Removendo e reconstruindo PAK...");
+            lblStatus.Text = Strings.PakMaker_RemovingAndRebuildingPAK;
             tvFolders.Enabled = false; // Bloqueia a árvore durante o processo
 
             try
@@ -729,20 +784,20 @@ namespace PangYa_Suite_Tools
                 {
                     PakManager.RemoveFiles(pakPath, reader, filesInFolder, options,
                         log: msg => { },
-                        onProgress: (done, total) => ReportProgress(done, total, GetText("Rebuilding PAK", "Reconstruindo PAK")));
+                        onProgress: (done, total) => ReportProgress(done, total, Strings.PakMaker_RebuildingPAK));
                 });
 
-                lblStatus.Text = GetText("Removal completed", "Remoção concluída");
+                lblStatus.Text = Strings.PakMaker_RemovalCompleted;
                 MessageBox.Show(
-                    GetText("The folder and its items were removed successfully!", "A pasta e seus itens foram removidos com sucesso!"),
-                    GetText("Success", "Sucesso"), MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    Strings.PakMaker_TheFolderAndItsItemsWere,
+                    Strings.PakMaker_Success, MessageBoxButtons.OK, MessageBoxIcon.Information);
 
-                LoadPak(pakPath);
+                LoadPak(pakPath, options.FileNameEncoding);
             }
             catch (Exception ex)
             {
-                lblStatus.Text = GetText("Error removing", "Erro ao remover");
-                MessageBox.Show($"{GetText("Failure:", "Falha na remoção:")} {ex.Message}", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                lblStatus.Text = Strings.PakMaker_ErrorRemoving;
+                MessageBox.Show($"{Strings.PakMaker_Failure} {ex.Message}", Strings.Common_Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {
@@ -771,7 +826,7 @@ namespace PangYa_Suite_Tools
             string cleanPath = folderPath.Replace('\\', '/').Trim('/');
 
             // Se estiver na raiz ("Todos os Arquivos" ou string vazia), retorna TUDO do PAK
-            if (string.IsNullOrWhiteSpace(cleanPath) || cleanPath.Equals(GetText("All Files", "Todos os Arquivos"), StringComparison.OrdinalIgnoreCase))
+            if (string.IsNullOrWhiteSpace(cleanPath) || cleanPath.Equals(Strings.PakMaker_AllFiles_2, StringComparison.OrdinalIgnoreCase))
             {
                 return _currentReader.Entries
                     .Where(en => en.Type != PakFileEntryType.Directory)
@@ -864,11 +919,11 @@ namespace PangYa_Suite_Tools
 
         // ─── EXTRAIR TUDO / SELECIONADO(S) / LOTE ──────────────────────────────
 
-        private async void btnExtractAll_Click(object sender, EventArgs e)
+        private async void btnExtractAll_Click(object? sender, EventArgs e)
         {
             if (_currentReader == null)
             {
-                MessageBox.Show(GetText("Please load a .pak file first.", "Por favor, carregue um arquivo .pak primeiro."), GetText("Warning", "Aviso"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(Strings.PakMaker_PleaseLoadAPakFileFirst, Strings.PakMaker_Warning, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -877,23 +932,23 @@ namespace PangYa_Suite_Tools
             {
                 string destination = folderDialog.SelectedPath;
                 btnExtractAll.Enabled = false;
-                lblStatus.Text = GetText("Extracting files...", "Extraindo arquivos...");
+                lblStatus.Text = Strings.PakMaker_ExtractingFiles;
 
                 try
                 {
                     await Task.Run(() =>
                     {
                         _currentReader.Extract("*", destination, msg => { },
-                            (done, total) => ReportProgress(done, total, GetText("Extracting", "Extraindo")));
+                            (done, total) => ReportProgress(done, total, Strings.PakMaker_Extracting));
                     });
 
-                    lblStatus.Text = GetText("Ready", "Pronto");
-                    MessageBox.Show(GetText("All files were extracted successfully!", "Todos os arquivos foram extraídos com sucesso!"), GetText("Success", "Sucesso"), MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    lblStatus.Text = Strings.PakMaker_Ready;
+                    MessageBox.Show(Strings.PakMaker_AllFilesWereExtractedSuccessfully, Strings.PakMaker_Success, MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
                 catch (Exception ex)
                 {
-                    lblStatus.Text = GetText("Extraction error", "Erro na extração");
-                    MessageBox.Show($"{GetText("Error extracting:", "Erro ao extrair:")} {ex.Message}", GetText("Error", "Erro"), MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    lblStatus.Text = Strings.PakMaker_ExtractionError;
+                    MessageBox.Show($"{Strings.PakMaker_ErrorExtracting} {ex.Message}", Strings.PakMaker_Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
                 finally
                 {
@@ -903,7 +958,7 @@ namespace PangYa_Suite_Tools
             }
         }
 
-        private async void btnExtractSelected_Click(object sender, EventArgs e) => await ExtractSelectedAsync();
+        private async void btnExtractSelected_Click(object? sender, EventArgs e) => await ExtractSelectedAsync();
 
         /// <summary>
         /// Extrai apenas os itens selecionados na ListView, usando o caminho rápido
@@ -926,8 +981,8 @@ namespace PangYa_Suite_Tools
             }
             else
             {
-                MessageBox.Show(GetText("Select files from the list or a folder from the treeview to extract.", "Selecione arquivos na lista ou uma pasta na árvore lateral para extrair."),
-                    GetText("Warning", "Aviso"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(Strings.PakMaker_SelectFilesFromTheListOr,
+                    Strings.PakMaker_Warning, MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
@@ -950,7 +1005,7 @@ namespace PangYa_Suite_Tools
             {
                 cleanPath = cleanPath.Substring("Todos os Arquivos/".Length);
             }
-            else if (cleanPath.Equals(GetText("All Files", "Todos os Arquivos"), StringComparison.OrdinalIgnoreCase))
+            else if (cleanPath.Equals(Strings.PakMaker_AllFiles_2, StringComparison.OrdinalIgnoreCase))
             {
                 cleanPath = "";
             }
@@ -964,7 +1019,7 @@ namespace PangYa_Suite_Tools
                 entriesToExtract = _currentReader.Entries
                     .Where(en => en.Type != PakFileEntryType.Directory)
                     .ToList();
-                dialogTitle = GetText("Entire PAK", "Todo o PAK");
+                dialogTitle = Strings.PakMaker_EntirePAK;
             }
             else
             {
@@ -983,18 +1038,18 @@ namespace PangYa_Suite_Tools
                                  en.Name.Replace('\\', '/').StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
                     .ToList();
 
-                dialogTitle = $"{GetText("Folder:", "Pasta:")} {tvFolders.SelectedNode.Text.Replace("📁 ", "")}";
+                dialogTitle = $"{Strings.PakMaker_Folder} {tvFolders.SelectedNode.Text.Replace("📁 ", "")}";
             }
 
             if (entriesToExtract.Count == 0)
             {
-                MessageBox.Show($"{GetText("No file found for path:", "Nenhum arquivo encontrado para o caminho:")} {cleanPath}", GetText("Warning", "Aviso"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show($"{Strings.PakMaker_NoFileFoundForPath} {cleanPath}", Strings.PakMaker_Warning, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
             using var folderDialog = new FolderBrowserDialog
             {
-                Description = $"{GetText("Select the destination to extract", "Selecione o destino para extrair a")} {dialogTitle}"
+                Description = $"{Strings.PakMaker_SelectTheDestinationToExtract} {dialogTitle}"
             };
             if (folderDialog.ShowDialog() != DialogResult.OK) return;
 
@@ -1005,7 +1060,7 @@ namespace PangYa_Suite_Tools
         private async Task RunExtractionWithStripAsync(List<PakFileEntry> entries, string destinationDir, string rootToStrip)
         {
             btnExtractSelected.Enabled = false;
-            lblStatus.Text = GetText("Extracting selected item(s)...", "Extraindo selecionado(s)...");
+            lblStatus.Text = Strings.PakMaker_ExtractingSelectedItemS;
 
             try
             {
@@ -1040,17 +1095,17 @@ namespace PangYa_Suite_Tools
                         _currentReader!.ExtractEntry(entry, outPath);
 
                         done++;
-                        ReportProgress(done, total, GetText("Extracting selected item(s)", "Extraindo selecionado(s)"));
+                        ReportProgress(done, total, Strings.PakMaker_ExtractingSelectedItemS_2);
                     }
                 });
 
-                lblStatus.Text = GetText("Ready", "Pronto");
-                MessageBox.Show(GetText("Folder extracted respecting the selected level!", "Pasta extraída respeitando o nível selecionado!"), GetText("Success", "Sucesso"), MessageBoxButtons.OK, MessageBoxIcon.Information);
+                lblStatus.Text = Strings.PakMaker_Ready;
+                MessageBox.Show(Strings.PakMaker_FolderExtractedRespectingTheSelectedLevel, Strings.PakMaker_Success, MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
-                lblStatus.Text = GetText("Extraction error", "Erro na extração");
-                MessageBox.Show($"{GetText("Error extracting:", "Erro ao extrair:")} {ex.Message}", GetText("Error", "Erro"), MessageBoxButtons.OK, MessageBoxIcon.Error);
+                lblStatus.Text = Strings.PakMaker_ExtractionError;
+                MessageBox.Show($"{Strings.PakMaker_ErrorExtracting} {ex.Message}", Strings.PakMaker_Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {
@@ -1068,7 +1123,8 @@ namespace PangYa_Suite_Tools
 
             var selectedEntries = lstEntries.SelectedItems
                 .Cast<ListViewItem>()
-                .Select(i => (PakFileEntry)i.Tag)
+                .Select(i => i.Tag)
+                .OfType<PakFileEntry>()
                 .Where(en => en.Type != PakFileEntryType.Directory)
                 .ToList();
 
@@ -1083,7 +1139,7 @@ namespace PangYa_Suite_Tools
                 using var saveFileDialog = new SaveFileDialog
                 {
                     FileName = suggestedName,
-                    Title = $"{GetText("Extract", "Extrair")} {suggestedName}"
+                    Title = $"{Strings.PakMaker_Extract} {suggestedName}"
                 };
                 if (saveFileDialog.ShowDialog() != DialogResult.OK) return;
 
@@ -1095,7 +1151,7 @@ namespace PangYa_Suite_Tools
             {
                 using var folderDialog = new FolderBrowserDialog
                 {
-                    Description = GetText("Select the destination folder for the selected files", "Selecione a pasta de destino para os arquivos selecionados")
+                    Description = Strings.PakMaker_SelectTheDestinationFolderForThe
                 };
                 if (folderDialog.ShowDialog() != DialogResult.OK) return;
 
@@ -1107,7 +1163,7 @@ namespace PangYa_Suite_Tools
         private async Task RunExtractionAsync(List<PakFileEntry> entries, string destinationDir, string? exactPathForSingle)
         {
             btnExtractSelected.Enabled = false;
-            lblStatus.Text = GetText("Extracting selected item(s)...", "Extraindo selecionado(s)...");
+            lblStatus.Text = Strings.PakMaker_ExtractingSelectedItemS;
 
             try
             {
@@ -1122,17 +1178,17 @@ namespace PangYa_Suite_Tools
                         _currentReader!.ExtractEntry(entry, outPath);
 
                         done++;
-                        ReportProgress(done, total, GetText("Extracting selected item(s)", "Extraindo selecionado(s)"));
+                        ReportProgress(done, total, Strings.PakMaker_ExtractingSelectedItemS_2);
                     }
                 });
 
-                lblStatus.Text = GetText("Ready", "Pronto");
-                MessageBox.Show(GetText("File(s) extracted successfully!", "Arquivo(s) extraído(s) com sucesso!"), GetText("Success", "Sucesso"), MessageBoxButtons.OK, MessageBoxIcon.Information);
+                lblStatus.Text = Strings.PakMaker_Ready;
+                MessageBox.Show(Strings.PakMaker_FileSExtractedSuccessfully, Strings.PakMaker_Success, MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
-                lblStatus.Text = GetText("Extraction error", "Erro na extração");
-                MessageBox.Show($"{GetText("Error extracting:", "Erro ao extrair:")} {ex.Message}", GetText("Error", "Erro"), MessageBoxButtons.OK, MessageBoxIcon.Error);
+                lblStatus.Text = Strings.PakMaker_ExtractionError;
+                MessageBox.Show($"{Strings.PakMaker_ErrorExtracting} {ex.Message}", Strings.PakMaker_Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {
@@ -1141,9 +1197,9 @@ namespace PangYa_Suite_Tools
             }
         }
 
-        private async void btnBatchExtract_Click(object sender, EventArgs e)
+        private async void btnBatchExtract_Click(object? sender, EventArgs e)
         {
-            using var sourceFolderDialog = new FolderBrowserDialog { Description = GetText("Select the folder that CONTAINS the .pak files", "Selecione a pasta que CONTÉM os arquivos .pak") };
+            using var sourceFolderDialog = new FolderBrowserDialog { Description = Strings.PakMaker_SelectTheFolderThatCONTAINSThe };
             if (sourceFolderDialog.ShowDialog() != DialogResult.OK) return;
 
             string sourceDir = sourceFolderDialog.SelectedPath;
@@ -1151,17 +1207,18 @@ namespace PangYa_Suite_Tools
 
             if (pakFiles.Length == 0)
             {
-                MessageBox.Show(GetText("No .pak files were found in the selected folder.", "Nenhum arquivo .pak foi encontrado na pasta selecionada."), GetText("Warning", "Aviso"), MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(Strings.PakMaker_NoPakFilesWereFoundIn, Strings.PakMaker_Warning, MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
 
-            using var destFolderDialog = new FolderBrowserDialog { Description = GetText("Select the DESTINATION folder for extraction", "Selecione a pasta de DESTINO para a extração") };
+            using var destFolderDialog = new FolderBrowserDialog { Description = Strings.PakMaker_SelectTheDESTINATIONFolderForExtraction };
             if (destFolderDialog.ShowDialog() != DialogResult.OK) return;
 
             string targetBaseDir = destFolderDialog.SelectedPath;
 
             // Mesma região/chave do PAK atualmente carregado (se houver), evita ficar perguntando por console.
             uint[]? sharedKeys = _currentReader?.LocationKeys;
+            Encoding filenameEncoding = SelectedFilenameEncoding;
 
             btnBatchExtract.Enabled = false;
             progressBar1.Visible = true;
@@ -1175,7 +1232,7 @@ namespace PangYa_Suite_Tools
                 string pakName = Path.GetFileNameWithoutExtension(pakPath);
                 string specificDestFolder = Path.Combine(targetBaseDir, pakName);
 
-                lblStatus.Text = $"{GetText("Processing", "Processando")} ({paksProcessados + 1}/{pakFiles.Length}): {pakName}.pak...";
+                lblStatus.Text = $"{Strings.PakMaker_Processing} ({paksProcessados + 1}/{pakFiles.Length}): {pakName}.pak...";
 
                 try
                 {
@@ -1184,25 +1241,25 @@ namespace PangYa_Suite_Tools
                         if (!Directory.Exists(specificDestFolder))
                             Directory.CreateDirectory(specificDestFolder);
 
-                        using var batchReader = new PakReader(pakPath);
+                        using var batchReader = new PakReader(pakPath, filenameEncoding);
                         batchReader.Parse(sharedKeys);
                         batchReader.Extract("*", specificDestFolder);
                     });
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"{GetText("Failed to extract", "Falha ao extrair")} {pakName}.pak:\n{ex.Message}", GetText("Batch Error", "Erro no Lote"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show($"{Strings.PakMaker_FailedToExtract} {pakName}.pak:\n{ex.Message}", Strings.PakMaker_BatchError, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
 
                 paksProcessados++;
                 progressBar1.Value = paksProcessados;
             }
 
-            lblStatus.Text = GetText("Batch extraction completed!", "Extração em lote concluída!");
+            lblStatus.Text = Strings.PakMaker_BatchExtractionCompleted;
             progressBar1.Visible = false;
             btnBatchExtract.Enabled = true;
 
-            MessageBox.Show($"{paksProcessados} {GetText("PAK packages extracted successfully to:", "pacotes PAK extraídos com sucesso em:")}\n{targetBaseDir}", GetText("Processing Complete", "Processamento Concluído"), MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show($"{paksProcessados} {Strings.PakMaker_PAKPackagesExtractedSuccessfullyTo}\n{targetBaseDir}", Strings.PakMaker_ProcessingComplete, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         // ─── INJETAR / ATUALIZAR ────────────────────────────────────────────────
@@ -1211,8 +1268,8 @@ namespace PangYa_Suite_Tools
         {
             if (_currentReader != null)
             {
-                string novoAutor = txtUpdateAuthor.Text?.Trim();
-                string autorAtual = _currentReader.Header.Author?.Trim();
+                string novoAutor = txtUpdateAuthor.Text?.Trim() ?? string.Empty;
+                string autorAtual = _currentReader.Header.Author?.Trim() ?? string.Empty;
 
                 // O campo de texto está vazio ou apenas com espaços
                 if (string.IsNullOrEmpty(novoAutor))
@@ -1222,10 +1279,8 @@ namespace PangYa_Suite_Tools
                     {
                         // Exibe a confirmação para redefinir para o padrão
                         var resultado = MessageBox.Show(
-                            GetText(
-                                "The Author field is empty. Do you want to reset the author name to 'PakMaker'?",
-                                "O campo do Autor está vazio. Deseja redefinir o nome do autor para 'PakMaker'?"),
-                            GetText("Confirm Author Reset", "Confirmar redefinição de Autor"),
+                            Strings.PakMaker_TheAuthorFieldIsEmptyDo,
+                            Strings.PakMaker_ConfirmAuthorReset,
                             MessageBoxButtons.YesNo,
                             MessageBoxIcon.Question
                         );
@@ -1245,10 +1300,9 @@ namespace PangYa_Suite_Tools
                     {
                         // Exibe a confirmação para atualizar para o novo nome digitado
                         var resultado = MessageBox.Show(
-                            GetText(
-                                $"Do you want to change the author name to '{novoAutor}'?",
-                                $"Deseja alterar o nome do autor para '{novoAutor}'?"),
-                            GetText("Confirm Author Change", "Confirmar alteração de Autor"),
+                            string.Format(LocalizationManager.CurrentCulture,
+                                Strings.Pak_ChangeAuthorConfirmation, novoAutor),
+                            Strings.PakMaker_ConfirmAuthorChange,
                             MessageBoxButtons.YesNo,
                             MessageBoxIcon.Question
                         );
@@ -1264,32 +1318,40 @@ namespace PangYa_Suite_Tools
             }
 
             // Obtém a região selecionada na ComboBox
-            var selectedRegion = (dynamic)cboRegion.SelectedItem;
+            RegionOption selectedRegion = cboRegion.SelectedItem as RegionOption
+                ?? new RegionOption("Japan", PakKeys.JP);
+            PakFileEntryVersion entryVersion = cboVersion.SelectedItem is PakFileEntryVersion version
+                ? version : PakFileEntryVersion.V3;
+            PakFileEntryType entryType = cboCompressType.SelectedItem is PakFileEntryType type
+                ? type : PakFileEntryType.LZ772;
 
             // Retorna as opções preenchidas corretamente com o estado atual do Header.Author
             return new PakRebuildOptions(
-                EntryVersion: (PakFileEntryVersion)cboVersion.SelectedItem,
-                EntryType: (PakFileEntryType)cboCompressType.SelectedItem,
+                EntryVersion: entryVersion,
+                EntryType: entryType,
                 CompressLevel: (byte)numCompressLevel.Value,
                 LocationKeys: _currentReader?.LocationKeys ?? (uint[])selectedRegion.Keys,
-                Author: _currentReader?.Header.Author
-            );
+                Author: _currentReader?.Header.Author ?? "PakMaker"
+            )
+            {
+                FileNameEncoding = _currentReader?.FileNameEncoding ?? SelectedFilenameEncoding
+            };
         }
 
 
-        private async void btnUpdatePak_Click(object sender, EventArgs e)
+        private async void btnUpdatePak_Click(object? sender, EventArgs e)
         {
             if (_currentReader == null || string.IsNullOrEmpty(txtPakPath.Text) || !File.Exists(txtPakPath.Text))
             {
                 MessageBox.Show(
-                                    GetText("Select an active .pak file first.", "Selecione um arquivo .pak ativo primeiro."),
-                                    GetText("Warning", "Aviso"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                                    Strings.PakMaker_SelectAnActivePakFileFirst,
+                                    Strings.PakMaker_Warning, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
             using var openFileDialog = new OpenFileDialog
             {
-                Title = GetText("Select the files to update/inject", "Selecione os arquivos para atualizar/injetar"),
+                Title = Strings.PakMaker_SelectTheFilesToUpdateInject,
                 Multiselect = true
             };
 
@@ -1309,8 +1371,8 @@ namespace PangYa_Suite_Tools
             if (_currentReader == null || string.IsNullOrEmpty(txtPakPath.Text) || !File.Exists(txtPakPath.Text))
             {
                 MessageBox.Show(
-                    GetText("Select an active .pak file first.", "Selecione um arquivo .pak ativo primeiro."),
-                    GetText("Warning", "Aviso"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    Strings.PakMaker_SelectAnActivePakFileFirst,
+                    Strings.PakMaker_Warning, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -1319,7 +1381,7 @@ namespace PangYa_Suite_Tools
             string pakPath = txtPakPath.Text;
             var reader = _currentReader;
 
-            lblStatus.Text = GetText("Merging and rebuilding PAK...", "Mesclando e reconstruindo PAK...");
+            lblStatus.Text = Strings.PakMaker_MergingAndRebuildingPAK;
             btnUpdatePak.Enabled = false;
 
             try
@@ -1330,19 +1392,19 @@ namespace PangYa_Suite_Tools
                 {
                     PakManager.InjectFiles(pakPath, reader, items, options,
                         log: msg => { },
-                        onProgress: (done, total) => ReportProgress(done, total, GetText("Rebuilding PAK", "Reconstruindo PAK")));
+                        onProgress: (done, total) => ReportProgress(done, total, Strings.PakMaker_RebuildingPAK));
                 });
 
-                lblStatus.Text = GetText("PAK updated successfully!", "PAK atualizado com sucesso!");
+                lblStatus.Text = Strings.PakMaker_PAKUpdatedSuccessfully;
                 MessageBox.Show(
-                      $"{items.Count} {GetText("file(s) injected and the PAK was rebuilt!", "arquivo(s) injetado(s) e o PAK foi reconstruído!")}",
-                      GetText("Success", "Sucesso"), MessageBoxButtons.OK, MessageBoxIcon.Information);
-                LoadPak(pakPath);
+                      $"{items.Count} {Strings.PakMaker_FileSInjectedAndThePAK}",
+                      Strings.PakMaker_Success, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                LoadPak(pakPath, options.FileNameEncoding);
             }
             catch (Exception ex)
             {
-                lblStatus.Text = GetText("Error injecting", "Erro ao injetar");
-                MessageBox.Show($"{GetText("Injection failed:", "Injeção falhou:")} {ex.Message}", GetText("Error", "Erro"), MessageBoxButtons.OK, MessageBoxIcon.Error);
+                lblStatus.Text = Strings.PakMaker_ErrorInjecting;
+                MessageBox.Show($"{Strings.PakMaker_InjectionFailed} {ex.Message}", Strings.PakMaker_Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {
@@ -1393,16 +1455,16 @@ namespace PangYa_Suite_Tools
                     }
                     catch (Exception ex)
                     {
-                        MessageBox.Show($"{GetText("Error reading folder", "Erro ao ler a pasta")} '{path}':\n{ex.Message}",
-                            GetText("Error", "Erro"), MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        MessageBox.Show($"{Strings.PakMaker_ErrorReadingFolder} '{path}':\n{ex.Message}",
+                            Strings.PakMaker_Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
                 }
             }
 
             if (items.Count == 0)
             {
-                MessageBox.Show(GetText("No valid file was found to inject.", "Nenhum arquivo válido encontrado para injetar."),
-                    GetText("Warning", "Aviso"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(Strings.PakMaker_NoValidFileWasFoundTo,
+                    Strings.PakMaker_Warning, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -1411,15 +1473,15 @@ namespace PangYa_Suite_Tools
 
         // ─── REMOVER ─────────────────────────────────────────────────────────────
 
-        private async void btnRemoveSelected_Click(object sender, EventArgs e) => await RemoveSelectedAsync();
+        private async void btnRemoveSelected_Click(object? sender, EventArgs e) => await RemoveSelectedAsync();
 
         private async Task RemoveSelectedAsync()
         {
             if (_currentReader == null || string.IsNullOrEmpty(txtPakPath.Text) || !File.Exists(txtPakPath.Text))
             {
                 MessageBox.Show(
-                    GetText("Select an active .pak file first.", "Selecione um arquivo .pak ativo primeiro."),
-                    GetText("Warning", "Aviso"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    Strings.PakMaker_SelectAnActivePakFileFirst,
+                    Strings.PakMaker_Warning, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -1431,7 +1493,8 @@ namespace PangYa_Suite_Tools
             {
                 var selectedFiles = lstEntries.SelectedItems
                     .Cast<ListViewItem>()
-                    .Select(i => (PakFileEntry)i.Tag)
+                    .Select(i => i.Tag)
+                    .OfType<PakFileEntry>()
                     .Where(en => en.Type != PakFileEntryType.Directory)
                     .Select(en => en.Name);
 
@@ -1459,7 +1522,7 @@ namespace PangYa_Suite_Tools
                             virtualTargetFolder = virtualTargetFolder.Substring("Todos os Arquivos/".Length);
                         else if (virtualTargetFolder.StartsWith("All Files/", StringComparison.OrdinalIgnoreCase))
                             virtualTargetFolder = virtualTargetFolder.Substring("All Files/".Length);
-                        else if (virtualTargetFolder.Equals(GetText("All Files", "Todos os Arquivos"), StringComparison.OrdinalIgnoreCase))
+                        else if (virtualTargetFolder.Equals(Strings.PakMaker_AllFiles_2, StringComparison.OrdinalIgnoreCase))
                             virtualTargetFolder = "";
 
                         // Ignora se for a raiz total, para evitar deletar o PAK inteiro sem querer
@@ -1497,8 +1560,8 @@ namespace PangYa_Suite_Tools
             if (namesToRemove.Count == 0)
             {
                 MessageBox.Show(
-                    GetText("Select files from the list or check folder boxes from the treeview to remove.", "Selecione arquivos na lista ou marque as caixas das pastas na árvore lateral para remover."),
-                    GetText("Warning", "Aviso"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    Strings.PakMaker_SelectFilesFromTheListOr_2,
+                    Strings.PakMaker_Warning, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -1506,27 +1569,26 @@ namespace PangYa_Suite_Tools
             string confirmationMessage;
             if (folderNamesForDialog.Count > 0)
             {
-                confirmationMessage = GetText(
-                    $"You are about to remove the checked folder(s): '{string.Join(", ", folderNamesForDialog)}' and/or selected files.\nTotal files to delete: {namesToRemove.Count}.\n\nDo you want to continue?",
-                    $"Você está prestes a remover a(s) pasta(s) marcada(s): '{string.Join(", ", folderNamesForDialog)}' e/ou os arquivos selecionados.\nTotal de arquivos a serem apagados: {namesToRemove.Count}.\n\nDeseja continuar?");
+                confirmationMessage = string.Format(LocalizationManager.CurrentCulture,
+                    Strings.Pak_RemoveFoldersConfirmation,
+                    string.Join(", ", folderNamesForDialog), namesToRemove.Count);
             }
             else
             {
-                confirmationMessage = GetText(
-                    $"Remove {namesToRemove.Count} selected file(s) from PAK?",
-                    $"Remover {namesToRemove.Count} arquivo(s) selecionado(s) do PAK?");
+                confirmationMessage = string.Format(LocalizationManager.CurrentCulture,
+                    Strings.Pak_RemoveFilesConfirmation, namesToRemove.Count);
             }
 
             var confirm = MessageBox.Show(
-                $"{confirmationMessage}\n\n{GetText("The PAK will be rebuilt and a backup (.bak) will be created automatically.", "O PAK será reconstruído e um backup (.bak) será criado automaticamente.")}",
-                GetText("Confirm Removal", "Confirmar remoção"), MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                $"{confirmationMessage}\n\n{Strings.PakMaker_ThePAKWillBeRebuiltAnd}",
+                Strings.PakMaker_ConfirmRemoval, MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
 
             if (confirm != DialogResult.Yes) return;
 
             string pakPath = txtPakPath.Text;
             var reader = _currentReader;
 
-            lblStatus.Text = GetText("Removing and rebuilding PAK...", "Removendo e reconstruindo PAK...");
+            lblStatus.Text = Strings.PakMaker_RemovingAndRebuildingPAK;
             btnRemoveSelected.Enabled = false;
 
             try
@@ -1537,20 +1599,20 @@ namespace PangYa_Suite_Tools
                 {
                     PakManager.RemoveFiles(pakPath, reader, namesToRemove.ToList(), options,
                         log: msg => { },
-                        onProgress: (done, total) => ReportProgress(done, total, GetText("Rebuilding PAK", "Reconstruindo PAK")));
+                        onProgress: (done, total) => ReportProgress(done, total, Strings.PakMaker_RebuildingPAK));
                 });
 
-                lblStatus.Text = GetText("Removal completed", "Remoção concluída");
+                lblStatus.Text = Strings.PakMaker_RemovalCompleted;
                 MessageBox.Show(
-                    GetText("The selected items were removed successfully and the PAK file was rebuilt!", "Os itens selecionados foram removidos com sucesso e o arquivo PAK foi reconstruído!"),
-                    GetText("Success", "Sucesso"), MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    Strings.PakMaker_TheSelectedItemsWereRemovedSuccessfully,
+                    Strings.PakMaker_Success, MessageBoxButtons.OK, MessageBoxIcon.Information);
 
-                LoadPak(pakPath);
+                LoadPak(pakPath, options.FileNameEncoding);
             }
             catch (Exception ex)
             {
-                lblStatus.Text = GetText("Error removing", "Erro ao remover");
-                MessageBox.Show($"{GetText("Failure:", "Falha na remoção:")} {ex.Message}", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                lblStatus.Text = Strings.PakMaker_ErrorRemoving;
+                MessageBox.Show($"{Strings.PakMaker_Failure} {ex.Message}", Strings.Common_Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {
@@ -1560,7 +1622,7 @@ namespace PangYa_Suite_Tools
         }
 
         // ─── ABA 2: CRIAÇÃO DE PAK ─────────────────────────────────────────────
-        private void btnBrowseFolder_Click(object sender, EventArgs e)
+        private void btnBrowseFolder_Click(object? sender, EventArgs e)
         {
             using var folderDialog = new FolderBrowserDialog();
             if (folderDialog.ShowDialog() == DialogResult.OK)
@@ -1569,29 +1631,30 @@ namespace PangYa_Suite_Tools
             }
         }
 
-        private async void btnCreatePak_Click(object sender, EventArgs e)
+        private async void btnCreatePak_Click(object? sender, EventArgs e)
         {
             string source = txtSourceFolder.Text;
             if (string.IsNullOrEmpty(source) || !Directory.Exists(source))
             {
                 MessageBox.Show(
-                          GetText("Select a valid source directory.", "Selecione um diretório de origem válido."),
-                          GetText("Warning", "Aviso"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                          Strings.PakMaker_SelectAValidSourceDirectory,
+                          Strings.PakMaker_Warning, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            using var saveFileDialog = new SaveFileDialog { Filter = "PangYa PAK|*.pak", Title = GetText("Save New PAK", "Salvar Novo PAK") };
+            using var saveFileDialog = new SaveFileDialog { Filter = Strings.Pak_SaveFileFilter, Title = Strings.PakMaker_SaveNewPAK };
             if (saveFileDialog.ShowDialog() == DialogResult.OK)
             {
                 try
                 {
-                    var selectedItem = cboRegion.SelectedItem as dynamic;
+                    RegionOption? selectedItem = cboRegion.SelectedItem as RegionOption;
                     if (selectedItem != null)
                     {
                         btnCreatePak.Enabled = false;
-                        lblStatus.Text = GetText("Compiling PAK...", "Compilando PAK...");
+                        lblStatus.Text = Strings.PakMaker_CompilingPAK;
                         uint[] selectedKeys = selectedItem.Keys;//name is keys, label is name key 
-                        var selectedVersion = (PakFileEntryVersion)cboVersion.SelectedItem;
+                        var selectedVersion = cboVersion.SelectedItem is PakFileEntryVersion version
+                            ? version : PakFileEntryVersion.V3;
                         //minha tecnica antiga para criar paks raw
                         if (selectedVersion == PakFileEntryVersion.Raw)
                         {
@@ -1602,48 +1665,50 @@ namespace PangYa_Suite_Tools
                         var writer = new PakWriter
                         {
                             EntryVersion = selectedVersion,
-                            EntryType = (PakFileEntryType)cboCompressType.SelectedItem,
+                            EntryType = cboCompressType.SelectedItem is PakFileEntryType type
+                                ? type : PakFileEntryType.LZ772,
                             CompressLevel = (byte)numCompressLevel.Value,
                             // Se não for Raw e selectedKeys vier nulo por falha de seleção, aplica o fallback JP
                             LocationKeys = selectedKeys ?? (selectedVersion == PakFileEntryVersion.Raw ? Array.Empty<uint>() : PakKeys.JP),
-                            Author = txtNewAuthorPak.Text // Assinatura do PAK
+                            Author = txtNewAuthorPak.Text, // Assinatura do PAK
+                            FileNameEncoding = SelectedFilenameEncoding
                         };
                         //inicia a criacao do pak
                         await Task.Run(() => writer.CreateFromDirectory(source, saveFileDialog.FileName));
                         //terminou
-                        lblStatus.Text = GetText("Ready", "Pronto");
+                        lblStatus.Text = Strings.PakMaker_Ready;
                         btnCreatePak.Enabled = true;
                         MessageBox.Show(
-                                            GetText(".pak file generated successfully!", "Arquivo .pak gerado com sucesso!"),
-                                            GetText("Success", "Sucesso"), MessageBoxButtons.OK, MessageBoxIcon.Information);
+                                            Strings.PakMaker_PakFileGeneratedSuccessfully,
+                                            Strings.PakMaker_Success, MessageBoxButtons.OK, MessageBoxIcon.Information);
                     }
                     else
                     {
-                        MessageBox.Show(GetText("Please select a valid region before continuing.", "Por favor, selecione uma região válida antes de continuar."), GetText("Warning", "Aviso"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        MessageBox.Show(Strings.PakMaker_PleaseSelectAValidRegionBefore, Strings.PakMaker_Warning, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                         return;
                     }
                 }
                 catch (Exception ex)
                 {
-                    lblStatus.Text = GetText("Error creating PAK", "Erro ao criar PAK");
+                    lblStatus.Text = Strings.PakMaker_ErrorCreatingPAK;
                     btnCreatePak.Enabled = true;
-                    MessageBox.Show($"{GetText("Compilation error:", "Erro de compilação:")} {ex.Message}", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show($"{Strings.PakMaker_CompilationError} {ex.Message}", Strings.Common_Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
         }
 
-        private async void btnChangeKey_Click(object sender, EventArgs e)
+        private async void btnChangeKey_Click(object? sender, EventArgs e)
         {
             if (_currentReader == null || string.IsNullOrEmpty(txtPakPath.Text) || !File.Exists(txtPakPath.Text))
             {
-                MessageBox.Show(GetText("Select an active .pak file first.", "Selecione um arquivo .pak ativo primeiro."), GetText("Warning", "Aviso"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(Strings.PakMaker_SelectAnActivePakFileFirst, Strings.PakMaker_Warning, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            var selectedRegion = cboNewRegion.SelectedItem as dynamic;
+            RegionOption? selectedRegion = cboNewRegion.SelectedItem as RegionOption;
             if (selectedRegion == null)
             {
-                MessageBox.Show(GetText("Select the target region/key.", "Selecione a região/chave de destino."), GetText("Warning", "Aviso"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(Strings.PakMaker_SelectTheTargetRegionKey, Strings.PakMaker_Warning, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -1652,13 +1717,13 @@ namespace PangYa_Suite_Tools
             // Evita reconstrução desnecessária se a chave de destino já for a mesma do PAK carregado
             if (_currentReader.LocationKeys != null && newKeys.SequenceEqual(_currentReader.LocationKeys))
             {
-                MessageBox.Show(GetText("The PAK is already using that key.", "O PAK já está usando essa chave."), GetText("Information", "Informação"), MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(Strings.PakMaker_ThePAKIsAlreadyUsingThat, Strings.PakMaker_Information, MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
 
             var confirm = MessageBox.Show(
-                $"{GetText("Change the PAK key to", "Trocar a chave do PAK para")} \"{selectedRegion.Label}\"?\n{GetText("The PAK will be rebuilt and a backup (.bak) will be created.", "O PAK será reconstruído e um backup (.bak) será criado.")}",
-                GetText("Confirm key change", "Confirmar troca de chave"), MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                $"{Strings.PakMaker_ChangeThePAKKeyTo} \"{selectedRegion.Label}\"?\n{Strings.PakMaker_ThePAKWillBeRebuiltAnd_2}",
+                Strings.PakMaker_ConfirmKeyChange, MessageBoxButtons.YesNo, MessageBoxIcon.Question);
             if (confirm != DialogResult.Yes) return;
 
             string pakPath = txtPakPath.Text;
@@ -1668,7 +1733,7 @@ namespace PangYa_Suite_Tools
             var currentOptions = BuildRebuildOptionsForCurrentPak();
             var newOptions = currentOptions with { LocationKeys = newKeys };
 
-            lblStatus.Text = GetText("Changing key and rebuilding PAK...", "Trocando chave e reconstruindo PAK...");
+            lblStatus.Text = Strings.PakMaker_ChangingKeyAndRebuildingPAK;
             btnChangeKey.Enabled = false;
 
             try
@@ -1677,35 +1742,25 @@ namespace PangYa_Suite_Tools
                 {
                     PakManager.ChangeEncryptionKey(pakPath, reader, newOptions,
                         log: msg => { },
-                        onProgress: (done, total) => ReportProgress(done, total, GetText("Rebuilding PAK", "Reconstruindo PAK")));
+                        onProgress: (done, total) => ReportProgress(done, total, Strings.PakMaker_RebuildingPAK));
                 });
 
-                lblStatus.Text = GetText("Key changed successfully!", "Chave trocada com sucesso!");
-                MessageBox.Show($"{GetText("The PAK was rebuilt with the key from", "O PAK foi reconstruído com a chave de")} \"{selectedRegion.Label}\"!",
-                    GetText("Success", "Sucesso"), MessageBoxButtons.OK, MessageBoxIcon.Information);
+                lblStatus.Text = Strings.PakMaker_KeyChangedSuccessfully;
+                MessageBox.Show($"{Strings.PakMaker_ThePAKWasRebuiltWithThe} \"{selectedRegion.Label}\"!",
+                    Strings.PakMaker_Success, MessageBoxButtons.OK, MessageBoxIcon.Information);
 
-                LoadPak(pakPath);
+                LoadPak(pakPath, newOptions.FileNameEncoding);
             }
             catch (Exception ex)
             {
-                lblStatus.Text = GetText("Error changing key", "Erro ao trocar chave");
-                MessageBox.Show($"{GetText("Rebuild failed:", "Falha na reconstrução:")} {ex.Message}", GetText("Error", "Erro"), MessageBoxButtons.OK, MessageBoxIcon.Error);
+                lblStatus.Text = Strings.PakMaker_ErrorChangingKey;
+                MessageBox.Show($"{Strings.PakMaker_RebuildFailed} {ex.Message}", Strings.PakMaker_Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {
                 HideProgress();
                 btnChangeKey.Enabled = true;
             }
-        }
-
-        private string GetText(string en, string br)
-        {
-            if (cboLanguage.SelectedItem is KeyValuePair<string, string> selectedItem)
-            {
-                string _currentLanguage = selectedItem.Value;
-                return (_currentLanguage == "br") ? br : en;
-            }
-            return "";
         }
     }
 }
