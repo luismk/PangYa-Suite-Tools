@@ -572,7 +572,8 @@ namespace PangYa_Suite_Tools
             // Agrupa por PAK físico para abrir cada arquivo apenas uma vez
             var groups = lstDiffFiles.CheckedItems
                 .Cast<ListViewItem>()
-                .Select(lvi => (FileDiffEntry)lvi.Tag)
+                .Select(lvi => lvi.Tag)
+                .OfType<FileDiffEntry>()
                 .GroupBy(entry => entry.SourcePakPath)
                 .ToList();
 

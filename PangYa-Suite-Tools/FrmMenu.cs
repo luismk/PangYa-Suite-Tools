@@ -120,6 +120,18 @@ namespace PangYa_Suite_Tools
             this.Show();
         }
 
+        private void btnOpenPakDiff_Click(object sender, EventArgs e)
+        {
+            string idiomaAtual = cboLanguage.SelectedItem is KeyValuePair<string, string> selectedItem
+                ? selectedItem.Value
+                : LocalizationManager.English;
+
+            this.Hide();
+            using var pakDiff = new FrmPakDiff(idiomaAtual);
+            pakDiff.ShowDialog();
+            this.Show();
+        }
+
         
     }
 }
