@@ -168,4 +168,41 @@
   <data name="Log_ToFile" xml:space="preserve"><value>Logga till fil</value></data>
   <data name="Pak_CancelOperation" xml:space="preserve"><value>Avbryt</value></data>
   <data name="Pak_OperationCancelled" xml:space="preserve"><value>Åtgärden avbröts.</value></data>
+  <data name="PakMaker_SSKeyNotSupported" xml:space="preserve"><value>Denna PAK använder pakkeys.ss. Filer som använder den nyckeln kan för närvarande inte packas upp.</value></data>
+  <data name="Pak_KeyUsed" xml:space="preserve"><value>PAK-nyckel:</value></data>
+  <data name="Pak_CustomKey" xml:space="preserve"><value>Anpassad</value></data>
+  <data name="IFFManager_AddColumn" xml:space="preserve"><value>Lägg till kolumn</value></data>
+  <data name="IFFManager_AddColumnTitle" xml:space="preserve"><value>Lägg till IFF-kolumn</value></data>
+  <data name="IFFManager_ColumnName" xml:space="preserve"><value>Kolumnnamn:</value></data>
+  <data name="IFFManager_ByteOffset" xml:space="preserve"><value>Byteposition (hex):</value></data>
+  <data name="IFFManager_ByteWidth" xml:space="preserve"><value>Byte att läsa:</value></data>
+  <data name="IFFManager_RenderAs" xml:space="preserve"><value>Visa som:</value></data>
+  <data name="IFFManager_TextBox" xml:space="preserve"><value>Textfält (hexadecimalt)</value></data>
+  <data name="IFFManager_CheckBox" xml:space="preserve"><value>Kryssruta</value></data>
+  <data name="IFFManager_ColumnNameRequired" xml:space="preserve"><value>Ange ett namn för kolumnen.</value></data>
+  <data name="IFFManager_DuplicateColumnName" xml:space="preserve"><value>Det finns redan en kolumn med det namnet.</value></data>
+  <data name="IFFManager_ManageColumns" xml:space="preserve"><value>Schemakolumner</value></data>
+  <data name="IFFManager_ManageColumnsTitle" xml:space="preserve"><value>Hantera IFF-schemakolumner</value></data>
+  <data name="IFFManager_EditColumn" xml:space="preserve"><value>Redigera kolumn</value></data>
+  <data name="IFFManager_EditColumnTitle" xml:space="preserve"><value>Redigera IFF-kolumn</value></data>
+  <data name="IFFManager_RemoveColumn" xml:space="preserve"><value>Ta bort kolumn</value></data>
+  <data name="IFFManager_SaveSchema" xml:space="preserve"><value>Spara schema</value></data>
+  <data name="IFFManager_OnlyCustomColumnsEditable" xml:space="preserve"><value>Endast hexadecimala kolumner och kryssrutor kan redigeras i den här dialogrutan.</value></data>
+  <data name="IFFManager_SchemaRequiresColumn" xml:space="preserve"><value>Ett IFF-schema måste innehålla minst en kolumn.</value></data>
+  <data name="IFFManager_SchemaWarning" xml:space="preserve"><value>IFF-filen öppnades som skrivskyddade rådata eftersom dess JSON-schema inte kunde läsas.</value></data>
+  <data name="IFFManager_Region" xml:space="preserve"><value>Region:</value></data>
+  <data name="IFFManager_RegionAuto" xml:space="preserve"><value>Identifiera automatiskt</value></data>
+  <data name="IFFManager_RegionThailand" xml:space="preserve"><value>Thailand</value></data>
+  <data name="IFFManager_RegionJapan" xml:space="preserve"><value>Japan</value></data>
+  <data name="IFFManager_RegionAppliesNextLoad" xml:space="preserve"><value>Den valda regionen används nästa gång en IFF-fil läses in.</value></data>
+  <data name="IFFManager_FieldType" xml:space="preserve"><value>Fälttyp:</value></data>
+  <data name="IFFManager_FieldEditable" xml:space="preserve"><value>Fältet är redigerbart</value></data>
+  <data name="IFFManager_EncodingCodePage" xml:space="preserve"><value>Teckenkodningssida:</value></data>
+  <data name="IFFManager_EncodingDocumentDefault" xml:space="preserve"><value>Dokumentets/standardens teckenkodning</value></data>
+  <data name="IFFManager_MinimumValue" xml:space="preserve"><value>Minimivärde:</value></data>
+  <data name="IFFManager_MaximumValue" xml:space="preserve"><value>Maximivärde:</value></data>
+  <data name="IFFManager_BitMask" xml:space="preserve"><value>Bitmask:</value></data>
+  <data name="IFFManager_BitShift" xml:space="preserve"><value>Bitförskjutning:</value></data>
+  <data name="IFFManager_ShowRawRecord" xml:space="preserve"><value>Visa råpost</value></data>
+  <data name="IFFManager_UnrepresentedBytes" xml:space="preserve"><value>Ej representerade byte: {0} / {1}</value></data>
 </root>

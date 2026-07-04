@@ -755,4 +755,41 @@
   <data name="Log_ToFile" xml:space="preserve"><value>Log to file</value></data>
   <data name="Pak_CancelOperation" xml:space="preserve"><value>Cancel</value></data>
   <data name="Pak_OperationCancelled" xml:space="preserve"><value>Operation cancelled.</value></data>
+  <data name="PakMaker_SSKeyNotSupported" xml:space="preserve"><value>This PAK uses pakkeys.ss. Files using this key cannot currently be unpacked.</value></data>
+  <data name="Pak_KeyUsed" xml:space="preserve"><value>PAK key:</value></data>
+  <data name="Pak_CustomKey" xml:space="preserve"><value>Custom</value></data>
+  <data name="IFFManager_AddColumn" xml:space="preserve"><value>Add column</value></data>
+  <data name="IFFManager_AddColumnTitle" xml:space="preserve"><value>Add IFF column</value></data>
+  <data name="IFFManager_ColumnName" xml:space="preserve"><value>Column name:</value></data>
+  <data name="IFFManager_ByteOffset" xml:space="preserve"><value>Byte offset (hex):</value></data>
+  <data name="IFFManager_ByteWidth" xml:space="preserve"><value>Bytes to read:</value></data>
+  <data name="IFFManager_RenderAs" xml:space="preserve"><value>Render as:</value></data>
+  <data name="IFFManager_TextBox" xml:space="preserve"><value>Text box (hexadecimal)</value></data>
+  <data name="IFFManager_CheckBox" xml:space="preserve"><value>Check box</value></data>
+  <data name="IFFManager_ColumnNameRequired" xml:space="preserve"><value>Enter a name for the column.</value></data>
+  <data name="IFFManager_DuplicateColumnName" xml:space="preserve"><value>A column with that name already exists.</value></data>
+  <data name="IFFManager_ManageColumns" xml:space="preserve"><value>Schema columns</value></data>
+  <data name="IFFManager_ManageColumnsTitle" xml:space="preserve"><value>Manage IFF schema columns</value></data>
+  <data name="IFFManager_EditColumn" xml:space="preserve"><value>Edit column</value></data>
+  <data name="IFFManager_EditColumnTitle" xml:space="preserve"><value>Edit IFF column</value></data>
+  <data name="IFFManager_RemoveColumn" xml:space="preserve"><value>Remove column</value></data>
+  <data name="IFFManager_SaveSchema" xml:space="preserve"><value>Save schema</value></data>
+  <data name="IFFManager_OnlyCustomColumnsEditable" xml:space="preserve"><value>Only hexadecimal and checkbox columns can be edited with this dialog.</value></data>
+  <data name="IFFManager_SchemaRequiresColumn" xml:space="preserve"><value>An IFF schema must contain at least one column.</value></data>
+  <data name="IFFManager_SchemaWarning" xml:space="preserve"><value>The IFF was opened as read-only raw data because its JSON schema could not be loaded.</value></data>
+  <data name="IFFManager_Region" xml:space="preserve"><value>Region:</value></data>
+  <data name="IFFManager_RegionAuto" xml:space="preserve"><value>Auto detect</value></data>
+  <data name="IFFManager_RegionThailand" xml:space="preserve"><value>Thailand</value></data>
+  <data name="IFFManager_RegionJapan" xml:space="preserve"><value>Japan</value></data>
+  <data name="IFFManager_RegionAppliesNextLoad" xml:space="preserve"><value>The selected region will be used the next time an IFF is loaded.</value></data>
+  <data name="IFFManager_FieldType" xml:space="preserve"><value>Field type:</value></data>
+  <data name="IFFManager_FieldEditable" xml:space="preserve"><value>Field is editable</value></data>
+  <data name="IFFManager_EncodingCodePage" xml:space="preserve"><value>Encoding code page:</value></data>
+  <data name="IFFManager_EncodingDocumentDefault" xml:space="preserve"><value>Document/default encoding</value></data>
+  <data name="IFFManager_MinimumValue" xml:space="preserve"><value>Minimum value:</value></data>
+  <data name="IFFManager_MaximumValue" xml:space="preserve"><value>Maximum value:</value></data>
+  <data name="IFFManager_BitMask" xml:space="preserve"><value>Bit mask:</value></data>
+  <data name="IFFManager_BitShift" xml:space="preserve"><value>Bit shift:</value></data>
+  <data name="IFFManager_ShowRawRecord" xml:space="preserve"><value>Show raw record</value></data>
+  <data name="IFFManager_UnrepresentedBytes" xml:space="preserve"><value>Unrepresented bytes: {0} / {1}</value></data>
 </root>

@@ -49,6 +49,7 @@ namespace PangYa_Suite_Tools
         // Barra de Status Global e Progresso
         private System.Windows.Forms.StatusStrip statusStrip1;
         private System.Windows.Forms.ToolStripStatusLabel lblStatus;
+        private System.Windows.Forms.ToolStripStatusLabel lblPakKey;
         private System.Windows.Forms.ToolStripProgressBar progressBar1;
         private System.Windows.Forms.ToolStripButton btnCancelOperation;
         private System.Windows.Forms.ToolStripStatusLabel lblFilenameEncoding;
@@ -118,6 +119,7 @@ namespace PangYa_Suite_Tools
             txtSourceFolder = new TextBox();
             statusStrip1 = new StatusStrip();
             lblStatus = new ToolStripStatusLabel();
+            lblPakKey = new ToolStripStatusLabel();
             progressBar1 = new ToolStripProgressBar();
             btnCancelOperation = new ToolStripButton();
             lblFilenameEncoding = new ToolStripStatusLabel();
@@ -524,7 +526,7 @@ namespace PangYa_Suite_Tools
             // statusStrip1
             // 
             statusStrip1.ImageScalingSize = new Size(20, 20);
-            statusStrip1.Items.AddRange(new ToolStripItem[] { lblStatus, progressBar1, btnCancelOperation, lblFilenameEncoding, cboFilenameEncoding, lblLanguage, cboLanguage });
+            statusStrip1.Items.AddRange(new ToolStripItem[] { lblStatus, progressBar1, btnCancelOperation, lblPakKey, lblFilenameEncoding, cboFilenameEncoding, lblLanguage, cboLanguage });
             statusStrip1.Location = new Point(9, 438);
             statusStrip1.Name = "statusStrip1";
             statusStrip1.Padding = new Padding(1, 0, 12, 0);
@@ -537,6 +539,11 @@ namespace PangYa_Suite_Tools
             lblStatus.Size = new Size(43, 18);
             lblStatus.Spring = true;
             lblStatus.TextAlign = ContentAlignment.MiddleLeft;
+            //
+            // lblPakKey
+            //
+            lblPakKey.Margin = new Padding(10, 0, 0, 0);
+            lblPakKey.Name = "lblPakKey";
             // 
             // progressBar1
             // 

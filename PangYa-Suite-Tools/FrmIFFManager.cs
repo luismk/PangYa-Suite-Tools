@@ -8,6 +8,7 @@ namespace PangYa_Suite_Tools;
 
 public partial class FrmIFFManager : Form
 {
+    private sealed record RegionOption(string Label, string? Region);
     private const string LogSource = "IFF Editor";
     private bool _initializingLanguages = true;
     private bool _rebuildingEntryList;
@@ -19,19 +20,34 @@ public partial class FrmIFFManager : Form
     private CancellationTokenSource? _loadCancellation;
     private bool _isSaving;
     private bool _initializingEncodings = true;
+    private bool _initializingRegions = true;
     private Encoding _documentStringEncoding = IffStringEncodingPreferences.GetEncoding(
         IffStringEncodingPreferences.DefaultCodePage);
     private bool _structureDirty;
+    private readonly List<IffField> _visibleFields = [];
+    private readonly DirectoryIffSchemaProvider _schemaProvider;
+    private bool _schemasSeeded;
+    private bool _initializingRawPreference = true;
+
+    private IReadOnlyList<IffField> VisibleFields => _visibleFields;
+
+    private bool CanEditDocument => _document?.Schema?.IsEditable == true;
 
     private Encoding SelectedStringEncoding => cboStringEncoding.SelectedItem is PakEncodingOption option
         ? IffStringEncodingPreferences.GetEncoding(option.CodePage)
         : IffStringEncodingPreferences.GetEncoding(IffStringEncodingPreferences.DefaultCodePage);
 
+    private string? SelectedSchemaRegion => cboRegion.SelectedItem is RegionOption option ? option.Region : null;
+
     public FrmIFFManager()
     {
         InitializeComponent();
+        chkShowRawRecord.Checked = IffRawRecordPreferences.LoadShowRawRecord();
+        _initializingRawPreference = false;
+        _schemaProvider = IffSchemaPreferences.CreateProvider();
         ConfigureGrid();
         InitializeEncodingComboBox();
+        InitializeRegionComboBox();
         InitializeLanguageComboBox();
         LocalizationManager.CultureChanged += LocalizationManager_CultureChanged;
         FormClosing += FrmIFFManager_FormClosing;
@@ -61,7 +77,7 @@ public partial class FrmIFFManager : Form
                 MessageBoxButtons.OK, MessageBoxIcon.Error);
         };
         gridRecords.SelectionChanged += (_, _) =>
-            btnDeleteRows.Enabled = _document?.Schema is not null && gridRecords.SelectedRows.Count > 0;
+            btnDeleteRows.Enabled = CanEditDocument && gridRecords.SelectedRows.Count > 0;
     }
 
     private void InitializeLanguageComboBox()
@@ -85,6 +101,27 @@ public partial class FrmIFFManager : Form
         cboStringEncoding.ComboBox.DataSource = encodings.ToList();
         cboStringEncoding.ComboBox.SelectedItem = encodings.First(option => option.CodePage == savedCodePage);
         _initializingEncodings = false;
+    }
+
+    private void InitializeRegionComboBox() => RefreshRegionComboBox(null);
+
+    private void RefreshRegionComboBox(string? selectedRegion)
+    {
+        _initializingRegions = true;
+        cboRegion.Items.Clear();
+        cboRegion.ComboBox.DisplayMember = nameof(RegionOption.Label);
+        cboRegion.Items.Add(new RegionOption(Strings.IFFManager_RegionAuto, null));
+        cboRegion.Items.Add(new RegionOption(Strings.IFFManager_RegionThailand, "TH"));
+        cboRegion.Items.Add(new RegionOption(Strings.IFFManager_RegionJapan, "JP"));
+        cboRegion.SelectedItem = cboRegion.Items.Cast<RegionOption>()
+            .First(option => string.Equals(option.Region, selectedRegion, StringComparison.OrdinalIgnoreCase));
+        _initializingRegions = false;
+    }
+
+    private void cboRegion_SelectedIndexChanged(object sender, EventArgs e)
+    {
+        if (!_initializingRegions && _document is not null)
+            lblStatus.Text = Strings.IFFManager_RegionAppliesNextLoad;
     }
 
     private void cboStringEncoding_SelectedIndexChanged(object sender, EventArgs e)
@@ -114,6 +151,7 @@ public partial class FrmIFFManager : Form
 
     private void ApplyLocalization()
     {
+        string? selectedRegion = SelectedSchemaRegion;
         Text = Strings.Iff_Title;
         lblIffDir.Text = Strings.Iff_Directory;
         btnBrowseIffDir.Text = Strings.Iff_Browse;
@@ -121,9 +159,14 @@ public partial class FrmIFFManager : Form
         btnSave.Text = Strings.IFFManager_Save;
         btnAddRow.Text = Strings.IFFManager_AddRow;
         btnDeleteRows.Text = Strings.IFFManager_DeleteRows;
+        btnAddColumn.Text = Strings.IFFManager_ManageColumns;
+        chkShowRawRecord.Text = Strings.IFFManager_ShowRawRecord;
         grpIffFiles.Text = Strings.Iff_Files;
         lblLanguage.Text = Strings.Common_Language;
         lblStringEncoding.Text = Strings.IFFManager_StringEncoding;
+        lblRegion.Text = Strings.IFFManager_Region;
+        RefreshRegionComboBox(selectedRegion);
+        UpdateSchemaCoverageLabel();
         if (_document is null) lblStatus.Text = Strings.IFFManager_ReadySelectTheIFFFilesDirectory;
     }
 
@@ -251,15 +294,37 @@ public partial class FrmIFFManager : Form
         ClearDocument();
         _entry = entry;
         _documentStringEncoding = SelectedStringEncoding;
+        if (!_schemasSeeded)
+        {
+            try
+            {
+                await Task.Run(IffSchemaPreferences.SeedDefaults, token);
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                AppLogger.Instance.Log(LogSource, $"Could not seed default JSON schemas: {ex.Message}", AppLogLevel.Warning);
+            }
+            _schemasSeeded = true;
+        }
         await using Stream stream = await entry.OpenAsync(token);
-        await using IffReader reader = IffReader.Open(stream, Path.GetFileName(entry.Name));
+        await using IffReader reader = IffReader.Open(stream, Path.GetFileName(entry.Name),
+            new(SchemaProvider: _schemaProvider, SchemaRegion: SelectedSchemaRegion));
         _document = reader.Info;
+        string detectedRegion = _document.Header.Region;
+        if (detectedRegion is "TH" or "JP") RefreshRegionComboBox(detectedRegion);
+        if (!string.IsNullOrEmpty(_document.SchemaWarning))
+        {
+            AppLogger.Instance.Log(LogSource, _document.SchemaWarning, AppLogLevel.Warning);
+            MessageBox.Show($"{Strings.IFFManager_SchemaWarning}\n{_document.SchemaWarning}",
+                Strings.IFFManager_Warning, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        }
         await foreach (IffRecord record in reader.ReadRecordsAsync(token)) _records.Add(record);
         BuildColumns();
         lblNoFileSelected.Visible = false;
         gridRecords.Visible = true;
-        btnSave.Enabled = _document.Schema is not null;
-        btnAddRow.Enabled = _document.Schema is not null;
+        btnSave.Enabled = _document.Schema?.IsEditable == true;
+        btnAddRow.Enabled = _document.Schema?.IsEditable == true;
+        btnAddColumn.Enabled = true;
         lblStatus.Text = $"{Strings.IFFManager_EditingStructureOf} {entry.Name} — {_document.Region}, {_records.Count} records, {_document.RecordSize} bytes";
         AppLogger.Instance.Log(LogSource,
             $"Loaded '{entry.Name}' using {_documentStringEncoding.EncodingName}: region {_document.Region}, {_records.Count} records, {_document.RecordSize} bytes per record.");
@@ -267,11 +332,18 @@ public partial class FrmIFFManager : Form
 
     private void BuildColumns()
     {
+        _visibleFields.Clear();
+        if (_document?.Schema is { } schema)
+        {
+            _visibleFields.AddRange(schema.Fields.Where(field =>
+                chkShowRawRecord.Checked || !IffSchemaCoverage.IsCatchAllRawRecord(field, _document.RecordSize)));
+        }
         gridRecords.Columns.Clear();
         gridRecords.Columns.Add(new DataGridViewTextBoxColumn { Name = "Record", HeaderText = "#", ReadOnly = true, Width = 70, Resizable = DataGridViewTriState.True });
-        foreach (IffField field in _document?.Schema?.Fields ?? [])
+        foreach (IffField field in VisibleFields)
         {
-            DataGridViewColumn column = field.Type is IffFieldType.Boolean or IffFieldType.BooleanBitField or IffFieldType.ZeroBoolean
+            DataGridViewColumn column = field.Type is IffFieldType.Boolean or IffFieldType.BooleanBitField
+                or IffFieldType.ZeroBoolean or IffFieldType.ByteRangeBoolean
                 ? new DataGridViewCheckBoxColumn()
                 : new DataGridViewTextBoxColumn();
             column.Name = field.Name;
@@ -283,13 +355,35 @@ public partial class FrmIFFManager : Form
         }
         gridRecords.RowCount = _records.Count;
         gridRecords.Invalidate();
+        UpdateSchemaCoverageLabel();
+    }
+
+    private void chkShowRawRecord_CheckedChanged(object sender, EventArgs e)
+    {
+        if (_initializingRawPreference) return;
+        IffRawRecordPreferences.SaveShowRawRecord(chkShowRawRecord.Checked);
+        if (_document is not null) BuildColumns();
+    }
+
+    private void UpdateSchemaCoverageLabel()
+    {
+        if (_document?.Schema is not { } schema)
+        {
+            lblSchemaCoverage.Visible = false;
+            return;
+        }
+
+        IffSchemaCoverageResult coverage = IffSchemaCoverage.Calculate(schema, _document.RecordSize);
+        lblSchemaCoverage.Text = string.Format(LocalizationManager.CurrentCulture,
+            Strings.IFFManager_UnrepresentedBytes, coverage.UnrepresentedBytes, coverage.RecordSize);
+        lblSchemaCoverage.Visible = true;
     }
 
     private void GridRecords_CellValueNeeded(object? sender, DataGridViewCellValueEventArgs e)
     {
         if (e.RowIndex < 0 || e.RowIndex >= _records.Count) return;
         if (e.ColumnIndex == 0) { e.Value = e.RowIndex; return; }
-        IffField field = _document!.Schema!.Fields[e.ColumnIndex - 1];
+        IffField field = VisibleFields[e.ColumnIndex - 1];
         e.Value = field.GetValue(_records[e.RowIndex].Bytes.Span, _documentStringEncoding);
     }
 
@@ -298,8 +392,8 @@ public partial class FrmIFFManager : Form
         if (e.RowIndex < 0 || e.ColumnIndex <= 0) return;
         try
         {
-            IffField field = _document!.Schema!.Fields[e.ColumnIndex - 1];
-            _records[e.RowIndex].SetValue(field.Name, e.Value, _documentStringEncoding);
+            IffField field = VisibleFields[e.ColumnIndex - 1];
+            _records[e.RowIndex].SetValue(field, e.Value, _documentStringEncoding);
             UpdateDirtyState();
             AppLogger.Instance.Log(LogSource,
                 $"Edited '{_entry?.Name}', record {e.RowIndex}, field '{field.Name}' = {e.Value ?? "<null>"}.");
@@ -373,7 +467,7 @@ public partial class FrmIFFManager : Form
         {
             _isSaving = false;
             UseWaitCursor = false;
-            if (_document?.Schema is not null) btnSave.Enabled = true;
+            if (CanEditDocument) btnSave.Enabled = true;
         }
     }
 
@@ -430,22 +524,23 @@ public partial class FrmIFFManager : Form
 
     private void ClearDocument()
     {
-        _records.Clear(); _document = null; _entry = null; _structureDirty = false;
+        _records.Clear(); _visibleFields.Clear(); _document = null; _entry = null; _structureDirty = false;
         gridRecords.RowCount = 0; gridRecords.Columns.Clear(); gridRecords.Visible = false;
-        lblNoFileSelected.Visible = true; btnSave.Enabled = false; btnAddRow.Enabled = false; btnDeleteRows.Enabled = false;
+        lblSchemaCoverage.Visible = false;
+        lblNoFileSelected.Visible = true; btnSave.Enabled = false; btnAddRow.Enabled = false; btnDeleteRows.Enabled = false; btnAddColumn.Enabled = false;
     }
 
     private void UpdateDirtyState()
     {
         bool dirty = _structureDirty || _records.Any(item => item.IsDirty);
-        btnSave.Enabled = _document?.Schema is not null && !_isSaving;
+        btnSave.Enabled = CanEditDocument && !_isSaving;
         Text = Strings.Iff_Title + (dirty ? " *" : string.Empty);
     }
 
     private void btnAddRow_Click(object sender, EventArgs e)
     {
         AppLogger.Instance.Log(LogSource, "Add row button clicked.");
-        if (_document?.Schema is null) return;
+        if (_document is not { } document || !CanEditDocument) return;
         if (_records.Count >= ushort.MaxValue)
         {
             MessageBox.Show(Strings.IFFManager_MaximumRows, Strings.IFFManager_Error,
@@ -454,7 +549,7 @@ public partial class FrmIFFManager : Form
             return;
         }
 
-        _records.Add(IffRecord.CreateBlank(_records.Count, _document.RecordSize, _document.Schema));
+        _records.Add(IffRecord.CreateBlank(_records.Count, document.RecordSize, document.Schema));
         _structureDirty = true;
         gridRecords.RowCount = _records.Count;
         gridRecords.CurrentCell = gridRecords.Rows[^1].Cells[0];
@@ -479,6 +574,35 @@ public partial class FrmIFFManager : Form
         gridRecords.RowCount = _records.Count;
         UpdateDirtyState();
         AppLogger.Instance.Log(LogSource, $"Deleted {indices.Length} rows from '{_entry?.Name}'.");
+    }
+
+    private void btnAddColumn_Click(object sender, EventArgs e)
+    {
+        if (_document?.Schema is not { } schema) return;
+        IffSchemaDefinition current = IffSchemaJson.FromSchema(_document.FileName, _document.Region, schema);
+        using var dialog = new IffSchemaManagerDialog(_document.RecordSize, current.Fields);
+        if (dialog.ShowDialog(this) != DialogResult.OK) return;
+        if (dialog.Fields.Count == 0)
+        {
+            MessageBox.Show(Strings.IFFManager_SchemaRequiresColumn, Strings.IFFManager_Error,
+                MessageBoxButtons.OK, MessageBoxIcon.Error);
+            return;
+        }
+
+        try
+        {
+            var updated = current with { IsEditable = true, Fields = dialog.Fields.ToArray() };
+            _schemaProvider.Save(updated);
+            _document = _document with { Schema = IffSchemaJson.ToSchema(updated, _document.RecordSize), SchemaWarning = null };
+            BuildColumns();
+            btnSave.Enabled = true;
+            btnAddRow.Enabled = true;
+            AppLogger.Instance.Log(LogSource, $"Saved JSON schema for '{_document.FileName}' ({_document.Region}).");
+        }
+        catch (Exception ex)
+        {
+            ShowError(ex);
+        }
     }
 
     private static void ShowError(Exception ex)

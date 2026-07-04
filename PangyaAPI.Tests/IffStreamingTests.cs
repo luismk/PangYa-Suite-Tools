@@ -7,6 +7,42 @@ namespace PangyaAPI.Tests;
 public sealed class IffStreamingTests
 {
     [Fact]
+    public void EmbeddedJsonSchema_ResolvesKnownRegion()
+    {
+        var header = new IffHeader(1, 0, 11, [0, 0, 0]);
+        IffSchemaResolution resolution = IffSchemaRegistry.ResolveDetailed("Item.iff", header, 196);
+
+        Assert.True(resolution.Schema is not null, resolution.Warning);
+        Assert.Contains(resolution.Schema.Fields, field => field.Name == "Price");
+    }
+
+    [Fact]
+    public void EditableRawField_RoundTripsExactBytes()
+    {
+        var field = new IffField("Custom", 1, 3, IffFieldType.Raw);
+        byte[] record = [0xFF, 0, 0, 0, 0xFF];
+
+        field.SetValue(record, "12 34-AB");
+
+        Assert.Equal("1234AB", field.GetValue(record));
+        Assert.Equal([0xFF, 0x12, 0x34, 0xAB, 0xFF], record);
+        Assert.Throws<ArgumentException>(() => field.SetValue(record, "1234"));
+    }
+
+    [Fact]
+    public void ByteRangeBoolean_UsesAndClearsTheEntireRange()
+    {
+        var field = new IffField("Custom flag", 1, 3, IffFieldType.ByteRangeBoolean);
+        byte[] record = [0xFF, 0, 0x80, 0, 0xFF];
+
+        Assert.True((bool)field.GetValue(record));
+        field.SetValue(record, false);
+        Assert.Equal([0xFF, 0, 0, 0, 0xFF], record);
+        field.SetValue(record, true);
+        Assert.Equal([0xFF, 1, 0, 0, 0xFF], record);
+    }
+
+    [Fact]
     public void FixedString_UsesSelectedEncodingForReadingAndWriting()
     {
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
@@ -33,14 +69,37 @@ public sealed class IffStreamingTests
         Assert.All(record.Bytes.ToArray(), value => Assert.Equal(0, value));
     }
 
+    [Fact]
+    public void UnknownIffFile_UsesReadOnlyRawRecordSchema()
+    {
+        var header = new IffHeader(1, 0, 11, [0, 0, 0]);
+
+        IffSchema schema = Assert.IsType<IffSchema>(IffSchemaRegistry.Resolve("UnknownData.iff", header, 12));
+        IffField rawRecord = Assert.Single(schema.Fields);
+
+        Assert.Equal("UnknownData", schema.Name);
+        Assert.False(schema.IsEditable);
+        Assert.Equal("Raw record", rawRecord.Name);
+        Assert.Equal(IffFieldType.Raw, rawRecord.Type);
+        Assert.Equal(0, rawRecord.Offset);
+        Assert.Equal(12, rawRecord.Width);
+        Assert.False(rawRecord.IsEditable);
+        Assert.Equal("000102030405060708090A0B", rawRecord.GetValue(Enumerable.Range(0, 12).Select(i => (byte)i).ToArray()));
+    }
+
     public static TheoryData<string, int> ThailandSchemas => new()
     {
-        { "AuxPart.iff", 176 }, { "Ball.iff", 764 }, { "Caddie.iff", 200 }, { "CaddieItem.iff", 236 },
+        { "Ability.iff", 80 }, { "Achievement.iff", 1512 }, { "AuxPart.iff", 176 }, { "Ball.iff", 764 },
+        { "Caddie.iff", 200 }, { "CaddieItem.iff", 236 },
         { "CadieMagicBox.iff", 104 }, { "CadieMagicBoxRandom.iff", 16 }, { "Card.iff", 328 },
         { "Character.iff", 372 }, { "Club.iff", 196 }, { "ClubSet.iff", 179 }, { "Course.iff", 312 },
         { "CutinInfomation.iff", 208 }, { "Desc.iff", 516 }, { "Enchant.iff", 16 }, { "Furniture.iff", 464 },
-        { "FurnitureAbility.iff", 60 }, { "HairStyle.iff", 148 }, { "Item.iff", 196 }, { "Mascot.iff", 256 },
+        { "FurnitureAbility.iff", 60 }, { "GrandPrixData.iff", 816 }, { "GrandPrixRankReward.iff", 76 },
+        { "GrandPrixSpecialHole.iff", 20 }, { "HairStyle.iff", 148 }, { "Item.iff", 196 },
+        { "LevelUpPrizeItem.iff", 192 }, { "Mascot.iff", 256 }, { "MemorialShopCoinItem.iff", 64 },
+        { "MemorialShopRareItem.iff", 68 },
         { "Match.iff", 332 }, { "OfflineShop.iff", 200 }, { "Part.iff", 512 }, { "QuestDrop.iff", 244 },
+        { "QuestItem.iff", 248 }, { "QuestStuff.iff", 244 }, { "SetEffectTable.iff", 56 },
         { "SetItem.iff", 220 }, { "Skin.iff", 208 }, { "TikiPointTable.iff", 48 }, { "TikiRecipe.iff", 52 },
         { "TikiSpecialTable.iff", 60 }
     };
@@ -61,6 +120,22 @@ public sealed class IffStreamingTests
             Assert.True(field.Offset + field.Width <= recordSize,
                 $"{fileName}: {field.Name} ends at {field.Offset + field.Width}, record size is {recordSize}.");
         });
+    }
+
+    [Theory]
+    [MemberData(nameof(ThailandSchemas))]
+    public void EveryJapaneseJsonSchema_HasTheExpectedRecordSize(string fileName, int thailandSize)
+    {
+        string[] extended = ["AuxPart.iff", "Ball.iff", "Caddie.iff", "CaddieItem.iff", "Card.iff",
+            "Character.iff", "Club.iff", "ClubSet.iff", "Course.iff", "Furniture.iff", "HairStyle.iff",
+            "Item.iff", "Mascot.iff", "OfflineShop.iff", "Part.iff", "QuestDrop.iff", "SetItem.iff", "Skin.iff"];
+        int recordSize = thailandSize + (extended.Contains(fileName, StringComparer.OrdinalIgnoreCase) ? 48 : 0);
+        var header = new IffHeader(1, 30319, 12, [0, 0, 0]);
+
+        IffSchema schema = Assert.IsType<IffSchema>(IffSchemaRegistry.Resolve(fileName, header, recordSize));
+
+        Assert.Equal(recordSize, schema.MinimumRecordSize);
+        Assert.All(schema.Fields, field => Assert.True(field.Offset + field.Width <= recordSize, field.Name));
     }
 
     [Theory]
@@ -117,31 +192,41 @@ public sealed class IffStreamingTests
     }
 
     [Fact]
-    public void MoneyAndShopFlags_ExposeBooleansAndPreserveUnknownBits()
+    public void ShopAndMoneyFlags_UseDocumentedBitsAndPreserveNeighbors()
     {
         var header = new IffHeader(1, 0, 11, [0, 0, 0]);
         IffSchema schema = IffSchemaRegistry.Resolve("Item.iff", header, 196)!;
         byte[] record = new byte[196];
-        IffField cookies = Field("Cookies");
-        IffField pang = Field("Pang");
-        IffField free = Field("Free");
+        IffField isCash = Field("IsCash");
+        IffField enabled = Field("Enabled");
+        IffField isSaleable = Field("IsSaleable");
+        IffField isGift = Field("IsGift");
         IffField inStock = Field("InStock");
         IffField showHot = Field("ShowHot");
 
-        Assert.True((bool)free.GetValue(record));
-        cookies.SetValue(record, true);
-        pang.SetValue(record, true);
-        Assert.Equal(0x03, record[104]);
-        Assert.False((bool)free.GetValue(record));
-        cookies.SetValue(record, false);
-        Assert.Equal(0x02, record[104]);
+        record[104] = 0x1E;
+        isCash.SetValue(record, true);
+        isSaleable.SetValue(record, true);
+        Assert.Equal(0x3F, record[104]);
+        isGift.SetValue(record, true);
+        Assert.Equal(0x7F, record[104]);
 
-        record[105] = 0xE0;
+        record[105] = 0x9C;
         inStock.SetValue(record, true);
         showHot.SetValue(record, true);
-        Assert.Equal(0xF1, record[105]);
+        Assert.Equal(0xBD, record[105]);
         inStock.SetValue(record, false);
-        Assert.Equal(0xF0, record[105]);
+        Assert.Equal(0xBC, record[105]);
+
+        enabled.SetValue(record, true);
+        Assert.False(IsGiftItem());
+        isSaleable.SetValue(record, false);
+        Assert.True(IsGiftItem());
+        isCash.SetValue(record, false);
+        Assert.False(IsGiftItem());
+
+        bool IsGiftItem() => (bool)enabled.GetValue(record) && (bool)isCash.GetValue(record) &&
+            ((bool)isSaleable.GetValue(record) ^ (bool)isGift.GetValue(record));
 
         IffField Field(string name) => schema.Fields.Single(field => field.Name == name);
     }

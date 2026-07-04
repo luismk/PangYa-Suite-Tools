@@ -8,4 +8,7 @@
     <ProjectReference Include="..\PangyaAPI.PAK\PangyaAPI.PAK.csproj" />
     <ProjectReference Include="..\PangyaAPI.Utilities\PangyaAPI.Utilities.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Schemas\Defaults\*.json" WithCulture="false" />
+  </ItemGroup>
 </Project>

@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "fileName": "Match.iff",
+  "region": "JP",
+  "minimumRecordSize": 332,
+  "isEditable": true,
+  "fields": [
+    {
+      "name": "Valid",
+      "offset": 0,
+      "width": 1,
+      "type": "Boolean",
+      "isEditable": true,
+      "encodingCodePage": null,
+      "minimum": null,
+      "maximum": null,
+      "bitMask": null,
+      "bitShift": 0
+    },
+    {
+      "name": "ItemId",
+      "offset": 4,
+      "width": 4,
+      "type": "UInt32",
+      "isEditable": true,
+      "encodingCodePage": null,
+      "minimum": null,
+      "maximum": null,
+      "bitMask": null,
+      "bitShift": 0
+    },
+    {
+      "name": "Name",
+      "offset": 8,
+      "width": 80,
+      "type": "FixedString",
+      "isEditable": true,
+      "encodingCodePage": 28591,
+      "minimum": null,
+      "maximum": null,
+      "bitMask": null,
+      "bitShift": 0
+    },
+    {
+      "name": "RequiredLevel",
+      "offset": 88,
+      "width": 1,
+      "type": "Byte",
+      "isEditable": true,
+      "encodingCodePage": null,
+      "minimum": null,
+      "maximum": null,
+      "bitMask": null,
+      "bitShift": 0
+    },
+    {
+      "name": "Raw record",
+      "offset": 0,
+      "width": 332,
+      "type": "Raw",
+      "isEditable": false,
+      "encodingCodePage": null,
+      "minimum": null,
+      "maximum": null,
+      "bitMask": null,
+      "bitShift": 0
+    }
+  ]
+}

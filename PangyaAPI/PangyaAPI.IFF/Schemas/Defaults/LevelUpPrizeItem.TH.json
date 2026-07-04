@@ -1,0 +1,141 @@
+{
+  "schemaVersion": 1,
+  "fileName": "LevelUpPrizeItem.iff",
+  "region": "TH",
+  "minimumRecordSize": 192,
+  "isEditable": true,
+  "fields": [
+    {
+      "name": "Active",
+      "offset": 0,
+      "width": 1,
+      "type": "Boolean",
+      "isEditable": true,
+      "encodingCodePage": null,
+      "minimum": null,
+      "maximum": null,
+      "bitMask": null,
+      "bitShift": 0
+    },
+    {
+      "name": "Name",
+      "offset": 1,
+      "width": 33,
+      "type": "FixedString",
+      "isEditable": true,
+      "encodingCodePage": 28591,
+      "minimum": null,
+      "maximum": null,
+      "bitMask": null,
+      "bitShift": 0
+    },
+    {
+      "name": "Level",
+      "offset": 34,
+      "width": 2,
+      "type": "UInt16",
+      "isEditable": true,
+      "encodingCodePage": null,
+      "minimum": null,
+      "maximum": null,
+      "bitMask": null,
+      "bitShift": 0
+    },
+    {
+      "name": "Item1TypeId",
+      "offset": 36,
+      "width": 4,
+      "type": "UInt32",
+      "isEditable": true,
+      "encodingCodePage": null,
+      "minimum": null,
+      "maximum": null,
+      "bitMask": null,
+      "bitShift": 0
+    },
+    {
+      "name": "Item2TypeId",
+      "offset": 40,
+      "width": 4,
+      "type": "UInt32",
+      "isEditable": true,
+      "encodingCodePage": null,
+      "minimum": null,
+      "maximum": null,
+      "bitMask": null,
+      "bitShift": 0
+    },
+    {
+      "name": "Item1Quantity",
+      "offset": 44,
+      "width": 4,
+      "type": "UInt32",
+      "isEditable": true,
+      "encodingCodePage": null,
+      "minimum": null,
+      "maximum": null,
+      "bitMask": null,
+      "bitShift": 0
+    },
+    {
+      "name": "Item2Quantity",
+      "offset": 48,
+      "width": 4,
+      "type": "UInt32",
+      "isEditable": true,
+      "encodingCodePage": null,
+      "minimum": null,
+      "maximum": null,
+      "bitMask": null,
+      "bitShift": 0
+    },
+    {
+      "name": "Item1Time",
+      "offset": 52,
+      "width": 4,
+      "type": "UInt32",
+      "isEditable": true,
+      "encodingCodePage": null,
+      "minimum": null,
+      "maximum": null,
+      "bitMask": null,
+      "bitShift": 0
+    },
+    {
+      "name": "Item2Time",
+      "offset": 56,
+      "width": 4,
+      "type": "UInt32",
+      "isEditable": true,
+      "encodingCodePage": null,
+      "minimum": null,
+      "maximum": null,
+      "bitMask": null,
+      "bitShift": 0
+    },
+    {
+      "name": "Description",
+      "offset": 60,
+      "width": 132,
+      "type": "FixedString",
+      "isEditable": true,
+      "encodingCodePage": 28591,
+      "minimum": null,
+      "maximum": null,
+      "bitMask": null,
+      "bitShift": 0
+    },
+    {
+      "name": "Raw record",
+      "offset": 0,
+      "width": 192,
+      "type": "Raw",
+      "isEditable": false,
+      "encodingCodePage": null,
+      "minimum": null,
+      "maximum": null,
+      "bitMask": null,
+      "bitShift": 0
+    }
+  ]
+}

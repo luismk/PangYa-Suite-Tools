@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "fileName": "GrandPrixSpecialHole.iff",
+  "region": "TH",
+  "minimumRecordSize": 20,
+  "isEditable": true,
+  "fields": [
+    {
+      "name": "Enabled",
+      "offset": 0,
+      "width": 4,
+      "type": "UInt32",
+      "isEditable": true,
+      "encodingCodePage": null,
+      "minimum": null,
+      "maximum": null,
+      "bitMask": null,
+      "bitShift": 0
+    },
+    {
+      "name": "TypeId",
+      "offset": 4,
+      "width": 4,
+      "type": "UInt32",
+      "isEditable": true,
+      "encodingCodePage": null,
+      "minimum": null,
+      "maximum": null,
+      "bitMask": null,
+      "bitShift": 0
+    },
+    {
+      "name": "HolePosition",
+      "offset": 8,
+      "width": 4,
+      "type": "UInt32",
+      "isEditable": true,
+      "encodingCodePage": null,
+      "minimum": null,
+      "maximum": null,
+      "bitMask": null,
+      "bitShift": 0
+    },
+    {
+      "name": "Map",
+      "offset": 12,
+      "width": 4,
+      "type": "UInt32",
+      "isEditable": true,
+      "encodingCodePage": null,
+      "minimum": null,
+      "maximum": null,
+      "bitMask": null,
+      "bitShift": 0
+    },
+    {
+      "name": "Hole",
+      "offset": 16,
+      "width": 4,
+      "type": "UInt32",
+      "isEditable": true,
+      "encodingCodePage": null,
+      "minimum": null,
+      "maximum": null,
+      "bitMask": null,
+      "bitShift": 0
+    },
+    {
+      "name": "Raw record",
+      "offset": 0,
+      "width": 20,
+      "type": "Raw",
+      "isEditable": false,
+      "encodingCodePage": null,
+      "minimum": null,
+      "maximum": null,
+      "bitMask": null,
+      "bitShift": 0
+    }
+  ]
+}

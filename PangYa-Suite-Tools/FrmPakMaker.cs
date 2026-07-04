@@ -152,6 +152,7 @@ namespace PangYa_Suite_Tools
 
             // --- COMPONENTES GLOBAIS ---
             if (string.IsNullOrWhiteSpace(lblStatus.Text)) lblStatus.Text = Strings.Pak_Ready;
+            UpdateDisplayedPakKey();
 
             // Menu de contexto (criado dinamicamente em código, não pelo Designer)
             if (_menuExtractSingle != null)
@@ -599,6 +600,14 @@ namespace PangYa_Suite_Tools
                 var reader = new PakReader(path, filenameEncoding ?? SelectedFilenameEncoding, AppLogger.Instance);
                 _currentReader = reader;
                 reader.Parse();
+                UpdateDisplayedPakKey();
+                if (reader.LocationKeys?.SequenceEqual(PakKeys.SS) == true)
+                {
+                    AppLogger.Instance.Log("PAK Manager",
+                        $"Loaded '{path}' with the unsupported pakkeys.ss key.", AppLogLevel.Warning);
+                    MessageBox.Show(Strings.PakMaker_SSKeyNotSupported,
+                        Strings.PakMaker_Warning, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
                 // Atualiza as Labels de informação do Header
                 txtUpdateAuthor.Text = reader.Header.Author;
                 lblAuthor.Text = $"{Strings.PakMaker_Author} {reader.Header.Author}";
@@ -929,6 +938,21 @@ namespace PangYa_Suite_Tools
 
             if (InvokeRequired) Invoke(Apply);
             else Apply();
+        }
+
+        private void UpdateDisplayedPakKey()
+        {
+            uint[]? keys = _currentReader?.LocationKeys;
+            if (keys is not { Length: > 0 })
+            {
+                lblPakKey.Text = string.Empty;
+                return;
+            }
+
+            string keyName = PakKeys.All
+                .FirstOrDefault(candidate => candidate.Keys.SequenceEqual(keys)).Label
+                ?? Strings.Pak_CustomKey;
+            lblPakKey.Text = $"{Strings.Pak_KeyUsed} {keyName}";
         }
 
         private CancellationTokenSource BeginOperation()

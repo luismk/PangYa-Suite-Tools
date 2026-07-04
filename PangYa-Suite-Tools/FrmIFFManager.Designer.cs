@@ -9,6 +9,8 @@
         private System.Windows.Forms.ToolStripComboBox cboLanguage;
         private System.Windows.Forms.ToolStripStatusLabel lblStringEncoding;
         private System.Windows.Forms.ToolStripComboBox cboStringEncoding;
+        private System.Windows.Forms.ToolStripStatusLabel lblRegion;
+        private System.Windows.Forms.ToolStripComboBox cboRegion;
         private System.Windows.Forms.SplitContainer splitContainerMain;
         private System.Windows.Forms.GroupBox grpIffFiles;
         private System.Windows.Forms.ListBox lstIffFiles;
@@ -23,6 +25,9 @@
         private System.Windows.Forms.Button btnSave;
         private System.Windows.Forms.Button btnAddRow;
         private System.Windows.Forms.Button btnDeleteRows;
+        private System.Windows.Forms.Button btnAddColumn;
+        private System.Windows.Forms.Label lblSchemaCoverage;
+        private System.Windows.Forms.CheckBox chkShowRawRecord;
 
         protected override void Dispose(bool disposing)
         {
@@ -38,6 +43,8 @@
             this.cboLanguage = new System.Windows.Forms.ToolStripComboBox();
             this.lblStringEncoding = new System.Windows.Forms.ToolStripStatusLabel();
             this.cboStringEncoding = new System.Windows.Forms.ToolStripComboBox();
+            this.lblRegion = new System.Windows.Forms.ToolStripStatusLabel();
+            this.cboRegion = new System.Windows.Forms.ToolStripComboBox();
             this.splitContainerMain = new System.Windows.Forms.SplitContainer();
             this.grpIffFiles = new System.Windows.Forms.GroupBox();
             this.lstIffFiles = new System.Windows.Forms.ListBox();
@@ -50,6 +57,9 @@
             this.btnSave = new System.Windows.Forms.Button();
             this.btnAddRow = new System.Windows.Forms.Button();
             this.btnDeleteRows = new System.Windows.Forms.Button();
+            this.btnAddColumn = new System.Windows.Forms.Button();
+            this.lblSchemaCoverage = new System.Windows.Forms.Label();
+            this.chkShowRawRecord = new System.Windows.Forms.CheckBox();
             this.txtIffDirectory = new System.Windows.Forms.TextBox();
             this.lblIffDir = new System.Windows.Forms.Label();
             this.statusStrip.SuspendLayout();
@@ -65,7 +75,7 @@
             //
             // statusStrip
             //
-            this.statusStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { this.lblStatus, this.lblStringEncoding, this.cboStringEncoding, this.lblLanguage, this.cboLanguage });
+            this.statusStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { this.lblStatus, this.lblRegion, this.cboRegion, this.lblStringEncoding, this.cboStringEncoding, this.lblLanguage, this.cboLanguage });
             this.statusStrip.Location = new System.Drawing.Point(0, 539);
             this.statusStrip.Name = "statusStrip";
             this.statusStrip.Size = new System.Drawing.Size(984, 22);
@@ -101,6 +111,18 @@
             this.cboStringEncoding.Name = "cboStringEncoding";
             this.cboStringEncoding.Size = new System.Drawing.Size(180, 23);
             this.cboStringEncoding.SelectedIndexChanged += new System.EventHandler(this.cboStringEncoding_SelectedIndexChanged);
+            //
+            // lblRegion
+            //
+            this.lblRegion.Margin = new System.Windows.Forms.Padding(20, 3, 0, 2);
+            this.lblRegion.Name = "lblRegion";
+            //
+            // cboRegion
+            //
+            this.cboRegion.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cboRegion.Name = "cboRegion";
+            this.cboRegion.Size = new System.Drawing.Size(105, 23);
+            this.cboRegion.SelectedIndexChanged += new System.EventHandler(this.cboRegion_SelectedIndexChanged);
             // 
             // splitContainerMain
             // 
@@ -187,6 +209,9 @@
             this.pnlTopBar.Controls.Add(this.btnSave);
             this.pnlTopBar.Controls.Add(this.btnAddRow);
             this.pnlTopBar.Controls.Add(this.btnDeleteRows);
+            this.pnlTopBar.Controls.Add(this.btnAddColumn);
+            this.pnlTopBar.Controls.Add(this.lblSchemaCoverage);
+            this.pnlTopBar.Controls.Add(this.chkShowRawRecord);
             this.pnlTopBar.Controls.Add(this.txtIffDirectory);
             this.pnlTopBar.Controls.Add(this.lblIffDir);
             this.pnlTopBar.Dock = System.Windows.Forms.DockStyle.Top;
@@ -240,6 +265,29 @@
             this.btnDeleteRows.Name = "btnDeleteRows";
             this.btnDeleteRows.Size = new System.Drawing.Size(100, 28);
             this.btnDeleteRows.Click += new System.EventHandler(this.btnDeleteRows_Click);
+            //
+            // btnAddColumn
+            //
+            this.btnAddColumn.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right;
+            this.btnAddColumn.Enabled = false;
+            this.btnAddColumn.Location = new System.Drawing.Point(660, 55);
+            this.btnAddColumn.Name = "btnAddColumn";
+            this.btnAddColumn.Size = new System.Drawing.Size(100, 28);
+            this.btnAddColumn.Click += new System.EventHandler(this.btnAddColumn_Click);
+            //
+            // lblSchemaCoverage
+            //
+            this.lblSchemaCoverage.AutoSize = true;
+            this.lblSchemaCoverage.Location = new System.Drawing.Point(12, 63);
+            this.lblSchemaCoverage.Name = "lblSchemaCoverage";
+            this.lblSchemaCoverage.Visible = false;
+            //
+            // chkShowRawRecord
+            //
+            this.chkShowRawRecord.AutoSize = true;
+            this.chkShowRawRecord.Location = new System.Drawing.Point(250, 61);
+            this.chkShowRawRecord.Name = "chkShowRawRecord";
+            this.chkShowRawRecord.CheckedChanged += new System.EventHandler(this.chkShowRawRecord_CheckedChanged);
             //
             // txtIffDirectory
             //

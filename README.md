@@ -45,6 +45,14 @@ var writer = new PakWriter
 // Compiles recursively while preserving offsets.
 writer.CreateFromDirectory(@"C:\Modding\data", @"C:\Games\PangYa\ProjectG.pak");
 ```
+
+### JSON IFF schemas
+
+IFF editor layouts are defined by versioned JSON files in
+`%LocalAppData%\PangYa-Suite-Tools\schemas`. Default TH and JP schemas are copied there on first use without overwriting existing files. Schema files are matched by IFF filename and region (for example, `Item.TH.json`), with `.default.json` as the optional fallback. The editor's **Schema columns** dialog saves column changes back to the matching JSON file.
+The region selector can be set before opening an IFF; recognized TH or JP headers automatically update the selector, while the manual choice is used for files whose region cannot be detected.
+The editor reports bytes whose bits are not fully represented by schema fields. Its catch-all `Raw record` column is hidden by default and can be shown with a persisted display option without affecting this coverage count.
+
 ---
 
 ## 🇧🇷 Português

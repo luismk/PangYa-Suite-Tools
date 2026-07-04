@@ -25,6 +25,12 @@ public sealed class IffRecord
     public void SetValue(string fieldName, object? value, Encoding? stringEncoding = null)
     {
         IffField field = Find(fieldName);
+        SetValue(field, value, stringEncoding);
+    }
+
+    public void SetValue(IffField field, object? value, Encoding? stringEncoding = null)
+    {
+        ArgumentNullException.ThrowIfNull(field);
         byte[] before = _bytes.AsSpan(field.Offset, field.Width).ToArray();
         field.SetValue(_bytes, value, stringEncoding);
         IsDirty |= !before.AsSpan().SequenceEqual(_bytes.AsSpan(field.Offset, field.Width));
@@ -36,6 +42,8 @@ public sealed class IffRecord
         ?? throw new KeyNotFoundException($"The IFF field '{name}' does not exist.");
 }
 
-public sealed record IffDocumentInfo(string FileName, string Region, int RecordSize, IffSchema? Schema, IffHeader Header);
+public sealed record IffDocumentInfo(string FileName, string Region, int RecordSize, IffSchema? Schema, IffHeader Header,
+    string? SchemaWarning = null);
 
-public sealed record IffReaderOptions(int MaximumRecordSize = 1024 * 1024, ushort MaximumRecordCount = ushort.MaxValue, bool LeaveOpen = false);
+public sealed record IffReaderOptions(int MaximumRecordSize = 1024 * 1024, ushort MaximumRecordCount = ushort.MaxValue,
+    bool LeaveOpen = false, IIffSchemaProvider? SchemaProvider = null, string? SchemaRegion = null);

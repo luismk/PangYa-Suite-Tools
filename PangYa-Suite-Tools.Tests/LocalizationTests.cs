@@ -6,6 +6,7 @@ using System.Windows.Forms;
 using PangYa_Suite_Tools.Configuration;
 using PangYa_Suite_Tools.Localization;
 using PangyaAPI.PAK.Models;
+using PangyaAPI.IFF;
 using Xunit;
 
 namespace PangYa_Suite_Tools.Tests;
@@ -22,6 +23,8 @@ public sealed class LocalizationTests : IDisposable
             Path.Combine(_tempDirectory, "filename-encoding.txt");
         IffStringEncodingPreferences.PreferencePathOverride =
             Path.Combine(_tempDirectory, "iff-string-encoding.txt");
+        IffSchemaPreferences.SchemaDirectoryOverride = Path.Combine(_tempDirectory, "schemas");
+        IffRawRecordPreferences.PreferencePathOverride = Path.Combine(_tempDirectory, "show-raw-record.txt");
     }
 
     [Fact]
@@ -97,6 +100,16 @@ public sealed class LocalizationTests : IDisposable
     }
 
     [Fact]
+    public void RawRecordVisibilityPreference_DefaultsHiddenAndPersists()
+    {
+        Assert.False(IffRawRecordPreferences.LoadShowRawRecord());
+        IffRawRecordPreferences.SaveShowRawRecord(true);
+        Assert.True(IffRawRecordPreferences.LoadShowRawRecord());
+        IffRawRecordPreferences.SaveShowRawRecord(false);
+        Assert.False(IffRawRecordPreferences.LoadShowRawRecord());
+    }
+
+    [Fact]
     public void FilenameEncodingChange_AppliesOnlyToTheNextPakLoad()
     {
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
@@ -169,8 +182,14 @@ public sealed class LocalizationTests : IDisposable
                 Assert.Equal(Strings.Log_Title, log.Text);
                 Assert.Equal(Strings.Log_ToFile, log.Controls.Find("chkLogToFile", true).Single().Text);
                 Assert.NotEmpty(PrivateField<ToolStripComboBox>(iff, "cboStringEncoding").Items);
+                var regionCombo = PrivateField<ToolStripComboBox>(iff, "cboRegion");
+                Assert.Equal(3, regionCombo.Items.Count);
+                Assert.Contains(Strings.IFFManager_RegionAuto, regionCombo.Items[0]!.ToString());
                 Assert.Equal(Strings.IFFManager_AddRow, iff.Controls.Find("btnAddRow", true).Single().Text);
                 Assert.Equal(Strings.IFFManager_DeleteRows, iff.Controls.Find("btnDeleteRows", true).Single().Text);
+                Assert.Equal(Strings.IFFManager_ManageColumns, iff.Controls.Find("btnAddColumn", true).Single().Text);
+                Assert.Equal(Strings.IFFManager_ShowRawRecord, iff.Controls.Find("chkShowRawRecord", true).Single().Text);
+                Assert.False(((CheckBox)iff.Controls.Find("chkShowRawRecord", true).Single()).Checked);
                 Assert.Equal(Strings.Common_OK, options.Controls.Find("btnOK", true).Single().Text);
                 Assert.Equal(Strings.PakMaker_Author, pak.Controls.Find("label1", true).Single().Text);
                 Assert.Equal(Strings.PakMaker_Author, pak.Controls.Find("label2", true).Single().Text);
@@ -212,6 +231,83 @@ public sealed class LocalizationTests : IDisposable
         Assert.Null(failure);
     }
 
+    [Fact]
+    public void SchemaColumnDialog_LoadsEveryFieldTypeForEditing()
+    {
+        Exception? failure = null;
+        var thread = new Thread(() =>
+        {
+            try
+            {
+                foreach (IffFieldType type in Enum.GetValues<IffFieldType>())
+                {
+                    int width = type switch
+                    {
+                        IffFieldType.Boolean or IffFieldType.Byte => 1,
+                        IffFieldType.UInt16 or IffFieldType.Int16 => 2,
+                        IffFieldType.UInt32 or IffFieldType.Int32 or IffFieldType.Single or IffFieldType.BitField => 4,
+                        IffFieldType.DateTime => 16,
+                        IffFieldType.BooleanBitField or IffFieldType.ZeroBoolean => 1,
+                        _ => 8
+                    };
+                    uint? mask = type is IffFieldType.BitField or IffFieldType.BooleanBitField ? 1u : null;
+                    var field = new IffFieldDefinition(type.ToString(), 0, width, type, BitMask: mask);
+                    using var dialog = new CustomIffColumnDialog(32, field);
+                    ComboBox typeCombo = PrivateField<ComboBox>(dialog, "_type");
+                    ComboBox encodingCombo = PrivateField<ComboBox>(dialog, "_encoding");
+                    Assert.Equal(type, typeCombo.SelectedItem);
+                    Assert.Equal(Enum.GetValues<IffFieldType>().Length, typeCombo.Items.Count);
+                    Assert.Equal(type == IffFieldType.FixedString, encodingCombo.Enabled);
+                    Assert.NotEmpty(encodingCombo.Items);
+                }
+            }
+            catch (Exception ex) { failure = ex; }
+        });
+        thread.SetApartmentState(ApartmentState.STA);
+        thread.Start();
+        thread.Join();
+        Assert.Null(failure);
+    }
+
+    [Fact]
+    public void IffEditor_ShowsCoverageAndHidesOnlyCatchAllRawColumn()
+    {
+        Exception? failure = null;
+        var thread = new Thread(() =>
+        {
+            try
+            {
+                using var form = new FrmIFFManager();
+                var schema = new IffSchema("Test", 2,
+                [
+                    new IffField("Known", 0, 1, IffFieldType.Byte),
+                    new IffField("Raw record", 0, 2, IffFieldType.Raw, false)
+                ]);
+                var document = new IffDocumentInfo("Test.iff", "TH", 2, schema,
+                    new IffHeader(0, 0, 11, [0, 0, 0]));
+                typeof(FrmIFFManager).GetField("_document", BindingFlags.Instance | BindingFlags.NonPublic)!
+                    .SetValue(form, document);
+                typeof(FrmIFFManager).GetMethod("BuildColumns", BindingFlags.Instance | BindingFlags.NonPublic)!
+                    .Invoke(form, null);
+
+                var grid = PrivateField<DataGridView>(form, "gridRecords");
+                var coverage = PrivateField<Label>(form, "lblSchemaCoverage");
+                var showRaw = PrivateField<CheckBox>(form, "chkShowRawRecord");
+                Assert.Equal(2, grid.Columns.Count);
+                Assert.Contains("1 / 2", coverage.Text);
+
+                showRaw.Checked = true;
+                Assert.Equal(3, grid.Columns.Count);
+                Assert.Contains("1 / 2", coverage.Text);
+            }
+            catch (Exception ex) { failure = ex; }
+        });
+        thread.SetApartmentState(ApartmentState.STA);
+        thread.Start();
+        thread.Join();
+        Assert.Null(failure);
+    }
+
     private static HashSet<string> KeysFor(CultureInfo culture)
     {
         var set = Strings.ResourceManager.GetResourceSet(culture, createIfNotExists: true, tryParents: false)!;
@@ -228,6 +324,8 @@ public sealed class LocalizationTests : IDisposable
         LocalizationManager.PreferencePathOverride = null;
         PakFilenameEncodingPreferences.PreferencePathOverride = null;
         IffStringEncodingPreferences.PreferencePathOverride = null;
+        IffSchemaPreferences.SchemaDirectoryOverride = null;
+        IffRawRecordPreferences.PreferencePathOverride = null;
         Directory.Delete(_tempDirectory, recursive: true);
     }
 }
