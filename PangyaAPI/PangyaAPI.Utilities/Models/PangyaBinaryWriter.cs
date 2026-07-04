@@ -18,6 +18,7 @@ namespace PangyaAPI.Utilities.Models
 
         public PangyaBinaryWriter(Stream output, Encoding encoding, bool leaveOpen) : base(output, encoding, leaveOpen)
         {
+            _Encoding = encoding;
         }
 
         public PangyaBinaryWriter() : base(new MemoryStream())
