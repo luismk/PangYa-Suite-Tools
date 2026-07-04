@@ -298,5 +298,24 @@ internal static class Strings
     public static string PakDiff_ColumnFilePath => ResourceManager.GetString(nameof(PakDiff_ColumnFilePath), Culture) ?? "";
     public static string PakDiff_ColumnSourcePak => ResourceManager.GetString(nameof(PakDiff_ColumnSourcePak), Culture) ?? "";
     public static string PakDiff_ExtractSelected => ResourceManager.GetString(nameof(PakDiff_ExtractSelected), Culture) ?? "";
+    public static string IFFManager_OpenArchive => ResourceManager.GetString(nameof(IFFManager_OpenArchive), Culture) ?? "";
+    public static string IFFManager_Save => ResourceManager.GetString(nameof(IFFManager_Save), Culture) ?? "";
+    public static string IFFManager_Saved => ResourceManager.GetString(nameof(IFFManager_Saved), Culture) ?? "";
+    public static string IFFManager_InvalidValue => ResourceManager.GetString(nameof(IFFManager_InvalidValue), Culture) ?? "";
+    public static string IFFManager_ConfirmOverwrite => ResourceManager.GetString(nameof(IFFManager_ConfirmOverwrite), Culture) ?? "";
+    public static string IFFManager_DiscardChanges => ResourceManager.GetString(nameof(IFFManager_DiscardChanges), Culture) ?? "";
+    public static string IFFManager_NoChanges => ResourceManager.GetString(nameof(IFFManager_NoChanges), Culture) ?? "";
+    public static string Menu_Log => ResourceManager.GetString(nameof(Menu_Log), Culture) ?? "";
+    public static string Log_Title => ResourceManager.GetString(nameof(Log_Title), Culture) ?? "";
+    public static string Log_Clear => ResourceManager.GetString(nameof(Log_Clear), Culture) ?? "";
+    public static string IFFManager_NoEditableEntryLoaded => ResourceManager.GetString(nameof(IFFManager_NoEditableEntryLoaded), Culture) ?? "";
+    public static string IFFManager_StringEncoding => ResourceManager.GetString(nameof(IFFManager_StringEncoding), Culture) ?? "";
+    public static string IFFManager_EncodingAppliesNextLoad => ResourceManager.GetString(nameof(IFFManager_EncodingAppliesNextLoad), Culture) ?? "";
+    public static string IFFManager_AddRow => ResourceManager.GetString(nameof(IFFManager_AddRow), Culture) ?? "";
+    public static string IFFManager_DeleteRows => ResourceManager.GetString(nameof(IFFManager_DeleteRows), Culture) ?? "";
+    public static string IFFManager_MaximumRows => ResourceManager.GetString(nameof(IFFManager_MaximumRows), Culture) ?? "";
+    public static string Log_ToFile => ResourceManager.GetString(nameof(Log_ToFile), Culture) ?? "";
+    public static string Pak_CancelOperation => ResourceManager.GetString(nameof(Pak_CancelOperation), Culture) ?? "";
+    public static string Pak_OperationCancelled => ResourceManager.GetString(nameof(Pak_OperationCancelled), Culture) ?? "";
 }
 

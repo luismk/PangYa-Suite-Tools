@@ -736,4 +736,23 @@
   <data name="PakDiff_ColumnFilePath" xml:space="preserve"><value>File Path</value></data>
   <data name="PakDiff_ColumnSourcePak" xml:space="preserve"><value>Source PAK</value></data>
   <data name="PakDiff_ExtractSelected" xml:space="preserve"><value>📦 Extract Selected</value></data>
+  <data name="IFFManager_OpenArchive" xml:space="preserve"><value>Open archive</value></data>
+  <data name="IFFManager_Save" xml:space="preserve"><value>Save</value></data>
+  <data name="IFFManager_Saved" xml:space="preserve"><value>IFF saved successfully. A backup was created.</value></data>
+  <data name="IFFManager_InvalidValue" xml:space="preserve"><value>The value is invalid for this field.</value></data>
+  <data name="IFFManager_ConfirmOverwrite" xml:space="preserve"><value>Overwrite the selected IFF? The original will be retained as a .bak file.</value></data>
+  <data name="IFFManager_DiscardChanges" xml:space="preserve"><value>Discard unsaved IFF changes?</value></data>
+  <data name="IFFManager_NoChanges" xml:space="preserve"><value>There are no IFF changes to save.</value></data>
+  <data name="Menu_Log" xml:space="preserve"><value>View Log</value></data>
+  <data name="Log_Title" xml:space="preserve"><value>Application Log</value></data>
+  <data name="Log_Clear" xml:space="preserve"><value>Clear view</value></data>
+  <data name="IFFManager_NoEditableEntryLoaded" xml:space="preserve"><value>Save cannot start because no editable IFF entry is loaded.</value></data>
+  <data name="IFFManager_StringEncoding" xml:space="preserve"><value>String encoding:</value></data>
+  <data name="IFFManager_EncodingAppliesNextLoad" xml:space="preserve"><value>The selected string encoding will apply the next time an IFF is loaded.</value></data>
+  <data name="IFFManager_AddRow" xml:space="preserve"><value>Add row</value></data>
+  <data name="IFFManager_DeleteRows" xml:space="preserve"><value>Delete selected</value></data>
+  <data name="IFFManager_MaximumRows" xml:space="preserve"><value>An IFF file cannot contain more than 65,535 rows.</value></data>
+  <data name="Log_ToFile" xml:space="preserve"><value>Log to file</value></data>
+  <data name="Pak_CancelOperation" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Pak_OperationCancelled" xml:space="preserve"><value>Operation cancelled.</value></data>
 </root>

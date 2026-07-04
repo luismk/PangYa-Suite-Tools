@@ -736,4 +736,23 @@
   <data name="PakDiff_ColumnFilePath" xml:space="preserve"><value>Caminho do arquivo</value></data>
   <data name="PakDiff_ColumnSourcePak" xml:space="preserve"><value>PAK de origem</value></data>
   <data name="PakDiff_ExtractSelected" xml:space="preserve"><value>📦 Extrair selecionados</value></data>
+  <data name="IFFManager_OpenArchive" xml:space="preserve"><value>Abrir arquivo</value></data>
+  <data name="IFFManager_Save" xml:space="preserve"><value>Salvar</value></data>
+  <data name="IFFManager_Saved" xml:space="preserve"><value>IFF salvo com sucesso. Um backup foi criado.</value></data>
+  <data name="IFFManager_InvalidValue" xml:space="preserve"><value>O valor é inválido para este campo.</value></data>
+  <data name="IFFManager_ConfirmOverwrite" xml:space="preserve"><value>Sobrescrever o IFF selecionado? O original será mantido como arquivo .bak.</value></data>
+  <data name="IFFManager_DiscardChanges" xml:space="preserve"><value>Descartar alterações de IFF não salvas?</value></data>
+  <data name="IFFManager_NoChanges" xml:space="preserve"><value>Não há alterações de IFF para salvar.</value></data>
+  <data name="Menu_Log" xml:space="preserve"><value>Ver log</value></data>
+  <data name="Log_Title" xml:space="preserve"><value>Log do aplicativo</value></data>
+  <data name="Log_Clear" xml:space="preserve"><value>Limpar visualização</value></data>
+  <data name="IFFManager_NoEditableEntryLoaded" xml:space="preserve"><value>Não é possível salvar porque nenhuma entrada IFF editável está carregada.</value></data>
+  <data name="IFFManager_StringEncoding" xml:space="preserve"><value>Codificação de texto:</value></data>
+  <data name="IFFManager_EncodingAppliesNextLoad" xml:space="preserve"><value>A codificação de texto selecionada será aplicada no próximo carregamento de um IFF.</value></data>
+  <data name="IFFManager_AddRow" xml:space="preserve"><value>Adicionar linha</value></data>
+  <data name="IFFManager_DeleteRows" xml:space="preserve"><value>Excluir selecionadas</value></data>
+  <data name="IFFManager_MaximumRows" xml:space="preserve"><value>Um arquivo IFF não pode conter mais de 65.535 linhas.</value></data>
+  <data name="Log_ToFile" xml:space="preserve"><value>Registrar em arquivo</value></data>
+  <data name="Pak_CancelOperation" xml:space="preserve"><value>Cancelar</value></data>
+  <data name="Pak_OperationCancelled" xml:space="preserve"><value>Operação cancelada.</value></data>
 </root>

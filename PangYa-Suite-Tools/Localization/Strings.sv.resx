@@ -149,4 +149,23 @@
   <data name="PakDiff_ColumnFilePath" xml:space="preserve"><value>Filsökväg</value></data>
   <data name="PakDiff_ColumnSourcePak" xml:space="preserve"><value>Käll-PAK</value></data>
   <data name="PakDiff_ExtractSelected" xml:space="preserve"><value>📦 Extrahera valda</value></data>
+  <data name="IFFManager_OpenArchive" xml:space="preserve"><value>Öppna arkiv</value></data>
+  <data name="IFFManager_Save" xml:space="preserve"><value>Spara</value></data>
+  <data name="IFFManager_Saved" xml:space="preserve"><value>IFF-filen sparades. En säkerhetskopia skapades.</value></data>
+  <data name="IFFManager_InvalidValue" xml:space="preserve"><value>Värdet är ogiltigt för detta fält.</value></data>
+  <data name="IFFManager_ConfirmOverwrite" xml:space="preserve"><value>Skriv över vald IFF? Originalet sparas som en .bak-fil.</value></data>
+  <data name="IFFManager_DiscardChanges" xml:space="preserve"><value>Kassera osparade IFF-ändringar?</value></data>
+  <data name="IFFManager_NoChanges" xml:space="preserve"><value>Det finns inga IFF-ändringar att spara.</value></data>
+  <data name="Menu_Log" xml:space="preserve"><value>Visa logg</value></data>
+  <data name="Log_Title" xml:space="preserve"><value>Programlogg</value></data>
+  <data name="Log_Clear" xml:space="preserve"><value>Rensa visning</value></data>
+  <data name="IFFManager_NoEditableEntryLoaded" xml:space="preserve"><value>Det går inte att spara eftersom ingen redigerbar IFF-post har lästs in.</value></data>
+  <data name="IFFManager_StringEncoding" xml:space="preserve"><value>Textkodning:</value></data>
+  <data name="IFFManager_EncodingAppliesNextLoad" xml:space="preserve"><value>Den valda textkodningen används nästa gång en IFF-fil läses in.</value></data>
+  <data name="IFFManager_AddRow" xml:space="preserve"><value>Lägg till rad</value></data>
+  <data name="IFFManager_DeleteRows" xml:space="preserve"><value>Ta bort valda</value></data>
+  <data name="IFFManager_MaximumRows" xml:space="preserve"><value>En IFF-fil kan inte innehålla fler än 65 535 rader.</value></data>
+  <data name="Log_ToFile" xml:space="preserve"><value>Logga till fil</value></data>
+  <data name="Pak_CancelOperation" xml:space="preserve"><value>Avbryt</value></data>
+  <data name="Pak_OperationCancelled" xml:space="preserve"><value>Åtgärden avbröts.</value></data>
 </root>
