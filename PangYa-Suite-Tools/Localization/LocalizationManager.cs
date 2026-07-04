@@ -7,15 +7,17 @@ internal static class LocalizationManager
     public const string English = "en";
     public const string PortugueseBrazil = "pt-BR";
     public const string Swedish = "sv";
+    public const string Japonese = "ja";
 
     private static readonly HashSet<string> SupportedCultures =
-        new(StringComparer.OrdinalIgnoreCase) { English, PortugueseBrazil, Swedish };
+        new(StringComparer.OrdinalIgnoreCase) { English, PortugueseBrazil, Swedish, Japonese };
 
     internal static int CurrentCultureIndex => CurrentCulture.Name switch
     {
         PortugueseBrazil => 0,
-        Swedish => 2,
-        _ => 1
+        Swedish => 2, 
+        Japonese => 3,
+        _ => 1,
     };
 
     internal static string? PreferencePathOverride { get; set; }

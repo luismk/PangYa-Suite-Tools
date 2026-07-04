@@ -492,6 +492,9 @@
   <data name="Common_Swedish" xml:space="preserve">
     <value>Swedish</value>
   </data>
+   <data name="Common_Japonese" xml:space="preserve">
+    <value>Japones</value>
+  </data>
   <data name="Common_Language" xml:space="preserve">
     <value>Language:</value>
   </data>

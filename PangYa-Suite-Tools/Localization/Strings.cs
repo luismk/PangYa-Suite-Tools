@@ -168,6 +168,7 @@ internal static class Strings
     public static string Common_PortugueseBrazil => ResourceManager.GetString(nameof(Common_PortugueseBrazil), Culture) ?? "";
     public static string Common_EnglishUS => ResourceManager.GetString(nameof(Common_EnglishUS), Culture) ?? "";
     public static string Common_Swedish => ResourceManager.GetString(nameof(Common_Swedish), Culture) ?? "";
+    public static string Common_Japonese => ResourceManager.GetString(nameof(Common_Japonese), Culture) ?? "";
     public static string Common_Language => ResourceManager.GetString(nameof(Common_Language), Culture) ?? "";
     public static string Menu_Title => ResourceManager.GetString(nameof(Menu_Title), Culture) ?? "";
     public static string Menu_PakManager => ResourceManager.GetString(nameof(Menu_PakManager), Culture) ?? "";
