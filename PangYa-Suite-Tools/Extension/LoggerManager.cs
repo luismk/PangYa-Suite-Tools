@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using PangYa_Suite_Tools.Logging;
 
 namespace PangYa_Suite_Tools.Extension
 {
@@ -10,6 +11,12 @@ namespace PangYa_Suite_Tools.Extension
 
         public static void LogAction(string pakName, string actionType, List<string> files, string author = "")
         {
+            var details = new StringBuilder();
+            details.Append($"{actionType.ToUpperInvariant()} - PAK: {Path.GetFileName(pakName)}");
+            if (!string.IsNullOrEmpty(author)) details.Append($" | Author: {author}");
+            details.Append($" | Files affected ({files.Count}): {string.Join(", ", files)}");
+            AppLogger.Instance.Log("PAK", details.ToString());
+
             try
             {
                 using (StreamWriter sw = File.AppendText(LogPath))

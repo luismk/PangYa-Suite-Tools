@@ -1,11 +1,13 @@
 using System.Text;
 using PangyaAPI.PAK.Flags;
 using PangyaAPI.Utilities.Cryptography;
+using PangyaAPI.Utilities.Logging;
 
 namespace PangyaAPI.PAK.Models;
 
 public class PakWriter
 {
+    public ILogSink? LogSink { get; set; }
     public byte PakVersion = 0x12;
     public uint kXorKey = 0x71u;
     public string Author { get; set; } = "PangyaAPI.PAK";
@@ -100,15 +102,33 @@ public class PakWriter
 
         try
         {
+            Report(log, $"Creating PAK '{fullOutputPath}' from {items.Count} items using {FileNameEncoding.EncodingName} filenames, {EntryVersion}/{EntryType}.");
             WriteCandidate(items, candidate, log, cancellationToken);
+            Report(log, $"Wrote temporary PAK candidate '{candidate}'.");
             ValidateCandidate(candidate);
+            Report(log, "Validated the PAK candidate successfully.");
             PromoteCandidate(candidate, fullOutputPath);
-            log?.Invoke($"Pak criado com sucesso: {fullOutputPath} ({new FileInfo(fullOutputPath).Length} bytes)");
+            Report(log, $"Created PAK successfully: {fullOutputPath} ({new FileInfo(fullOutputPath).Length} bytes).");
+        }
+        catch (Exception ex)
+        {
+            Report(log, $"PAK creation failed: {ex.Message}", LogSeverity.Error);
+            throw;
         }
         finally
         {
-            if (File.Exists(candidate)) File.Delete(candidate);
+            if (File.Exists(candidate))
+            {
+                File.Delete(candidate);
+                Report(log, $"Removed temporary PAK candidate '{candidate}'.");
+            }
         }
+    }
+
+    private void Report(Action<string>? callback, string message, LogSeverity severity = LogSeverity.Information)
+    {
+        callback?.Invoke(message);
+        LogSink?.Log("PAK Writer", message, severity);
     }
 
     internal void WriteCandidate(IReadOnlyList<BuildItem> items, string candidatePath,

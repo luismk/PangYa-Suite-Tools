@@ -3,6 +3,7 @@ using PangyaAPI.PAK.Models;
 using System.Text;
 using System.Text.Json;
 using PangYa_Suite_Tools.Localization;
+using PangYa_Suite_Tools.Logging;
 
 namespace PangYa_Suite_Tools
 {
@@ -362,7 +363,7 @@ namespace PangYa_Suite_Tools
 
                     try
                     {
-                        using var reader = new PakReader(pakPath);
+                        using var reader = new PakReader(pakPath, logSink: AppLogger.Instance);
                         reader.Parse();
                         foreach (var entry in reader.Entries)
                         {
@@ -512,7 +513,7 @@ namespace PangYa_Suite_Tools
                         {
                             try
                             {
-                                using var compReader = new PakReader(matchingComparePakPath);
+                                using var compReader = new PakReader(matchingComparePakPath, logSink: AppLogger.Instance);
                                 compReader.Parse();
                                 foreach (var entry in compReader.Entries)
                                     compareEntriesMap[entry.Name] = entry;
@@ -522,7 +523,7 @@ namespace PangYa_Suite_Tools
 
                         try
                         {
-                            using var srcReader = new PakReader(sourcePakPath);
+                            using var srcReader = new PakReader(sourcePakPath, logSink: AppLogger.Instance);
                             srcReader.Parse();
 
                             foreach (var srcEntry in srcReader.Entries)
@@ -659,7 +660,7 @@ namespace PangYa_Suite_Tools
                 {
                     foreach (var pakGroup in groups)
                     {
-                        using var reader = new PakReader(pakGroup.Key);
+                        using var reader = new PakReader(pakGroup.Key, logSink: AppLogger.Instance);
                         reader.Parse();
 
                         foreach (var diffEntry in pakGroup)

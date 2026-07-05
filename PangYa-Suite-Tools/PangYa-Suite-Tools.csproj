@@ -23,6 +23,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\PangyaAPI\PangyaAPI.PAK\PangyaAPI.PAK.csproj" />
+    <ProjectReference Include="..\PangyaAPI\PangyaAPI.IFF\PangyaAPI.IFF.csproj" />
     <ProjectReference Include="..\PangyaAPI\PangyaAPI.UpdateList\PangyaAPI.UpdateList.csproj" />
     <ProjectReference Include="..\PangyaAPI\PangyaAPI.Utilities\PangyaAPI.Utilities.csproj" />
    </ItemGroup>

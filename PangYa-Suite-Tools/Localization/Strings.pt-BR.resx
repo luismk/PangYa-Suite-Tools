@@ -763,4 +763,78 @@
   <data name="PakDiff_ColumnFilePath" xml:space="preserve"><value>Caminho do arquivo</value></data>
   <data name="PakDiff_ColumnSourcePak" xml:space="preserve"><value>PAK de origem</value></data>
   <data name="PakDiff_ExtractSelected" xml:space="preserve"><value>📦 Extrair selecionados</value></data>
+  <data name="IFFManager_OpenArchive" xml:space="preserve"><value>Abrir arquivo</value></data>
+  <data name="IFFManager_Save" xml:space="preserve"><value>Salvar</value></data>
+  <data name="IFFManager_Saved" xml:space="preserve"><value>IFF salvo com sucesso. Um backup foi criado.</value></data>
+  <data name="IFFManager_InvalidValue" xml:space="preserve"><value>O valor é inválido para este campo.</value></data>
+  <data name="IFFManager_ConfirmOverwrite" xml:space="preserve"><value>Sobrescrever o IFF selecionado? O original será mantido como arquivo .bak.</value></data>
+  <data name="IFFManager_DiscardChanges" xml:space="preserve"><value>Descartar alterações de IFF não salvas?</value></data>
+  <data name="IFFManager_NoChanges" xml:space="preserve"><value>Não há alterações de IFF para salvar.</value></data>
+  <data name="Menu_Log" xml:space="preserve"><value>Ver log</value></data>
+  <data name="Log_Title" xml:space="preserve"><value>Log do aplicativo</value></data>
+  <data name="Log_Clear" xml:space="preserve"><value>Limpar visualização</value></data>
+  <data name="IFFManager_NoEditableEntryLoaded" xml:space="preserve"><value>Não é possível salvar porque nenhuma entrada IFF editável está carregada.</value></data>
+  <data name="IFFManager_StringEncoding" xml:space="preserve"><value>Codificação de texto:</value></data>
+  <data name="IFFManager_EncodingAppliesNextLoad" xml:space="preserve"><value>A codificação de texto selecionada será aplicada no próximo carregamento de um IFF.</value></data>
+  <data name="IFFManager_AddRow" xml:space="preserve"><value>Adicionar linha</value></data>
+  <data name="IFFManager_DeleteRows" xml:space="preserve"><value>Excluir selecionadas</value></data>
+  <data name="IFFManager_MaximumRows" xml:space="preserve"><value>Um arquivo IFF não pode conter mais de 65.535 linhas.</value></data>
+  <data name="Log_ToFile" xml:space="preserve"><value>Registrar em arquivo</value></data>
+  <data name="Pak_CancelOperation" xml:space="preserve"><value>Cancelar</value></data>
+  <data name="Pak_OperationCancelled" xml:space="preserve"><value>Operação cancelada.</value></data>
+  <data name="PakMaker_SSKeyNotSupported" xml:space="preserve"><value>Este PAK usa pakkeys.ss. No momento, não é possível descompactar arquivos que usam essa chave.</value></data>
+  <data name="Pak_KeyUsed" xml:space="preserve"><value>Chave PAK:</value></data>
+  <data name="Pak_CustomKey" xml:space="preserve"><value>Personalizada</value></data>
+  <data name="IFFManager_AddColumn" xml:space="preserve"><value>Adicionar coluna</value></data>
+  <data name="IFFManager_AddColumnTitle" xml:space="preserve"><value>Adicionar coluna IFF</value></data>
+  <data name="IFFManager_ColumnName" xml:space="preserve"><value>Nome da coluna:</value></data>
+  <data name="IFFManager_ByteOffset" xml:space="preserve"><value>Deslocamento em bytes (hex):</value></data>
+  <data name="IFFManager_ByteWidth" xml:space="preserve"><value>Bytes a ler:</value></data>
+  <data name="IFFManager_RenderAs" xml:space="preserve"><value>Renderizar como:</value></data>
+  <data name="IFFManager_TextBox" xml:space="preserve"><value>Caixa de texto (hexadecimal)</value></data>
+  <data name="IFFManager_CheckBox" xml:space="preserve"><value>Caixa de seleção</value></data>
+  <data name="IFFManager_ColumnNameRequired" xml:space="preserve"><value>Digite um nome para a coluna.</value></data>
+  <data name="IFFManager_DuplicateColumnName" xml:space="preserve"><value>Já existe uma coluna com esse nome.</value></data>
+  <data name="IFFManager_ManageColumns" xml:space="preserve"><value>Colunas do esquema</value></data>
+  <data name="IFFManager_ManageColumnsTitle" xml:space="preserve"><value>Gerenciar colunas do esquema IFF</value></data>
+  <data name="IFFManager_EditColumn" xml:space="preserve"><value>Editar coluna</value></data>
+  <data name="IFFManager_EditColumnTitle" xml:space="preserve"><value>Editar coluna IFF</value></data>
+  <data name="IFFManager_RemoveColumn" xml:space="preserve"><value>Remover coluna</value></data>
+  <data name="IFFManager_SaveSchema" xml:space="preserve"><value>Salvar esquema</value></data>
+  <data name="IFFManager_OnlyCustomColumnsEditable" xml:space="preserve"><value>Somente colunas hexadecimais e caixas de seleção podem ser editadas nesta janela.</value></data>
+  <data name="IFFManager_SchemaRequiresColumn" xml:space="preserve"><value>Um esquema IFF deve conter pelo menos uma coluna.</value></data>
+  <data name="IFFManager_SchemaWarning" xml:space="preserve"><value>O IFF foi aberto como dados brutos somente leitura porque seu esquema JSON não pôde ser carregado.</value></data>
+  <data name="IFFManager_Region" xml:space="preserve"><value>Região:</value></data>
+  <data name="IFFManager_RegionAuto" xml:space="preserve"><value>Detectar automaticamente</value></data>
+  <data name="IFFManager_RegionThailand" xml:space="preserve"><value>Tailândia</value></data>
+  <data name="IFFManager_RegionJapan" xml:space="preserve"><value>Japão</value></data>
+  <data name="IFFManager_RegionAppliesNextLoad" xml:space="preserve"><value>A região selecionada será usada na próxima vez que um IFF for carregado.</value></data>
+  <data name="IFFManager_FieldType" xml:space="preserve"><value>Tipo do campo:</value></data>
+  <data name="IFFManager_FieldEditable" xml:space="preserve"><value>Campo editável</value></data>
+  <data name="IFFManager_EncodingCodePage" xml:space="preserve"><value>Página de código:</value></data>
+  <data name="IFFManager_EncodingDocumentDefault" xml:space="preserve"><value>Codificação do documento/padrão</value></data>
+  <data name="IFFManager_MinimumValue" xml:space="preserve"><value>Valor mínimo:</value></data>
+  <data name="IFFManager_MaximumValue" xml:space="preserve"><value>Valor máximo:</value></data>
+  <data name="IFFManager_BitMask" xml:space="preserve"><value>Máscara de bits:</value></data>
+  <data name="IFFManager_BitShift" xml:space="preserve"><value>Deslocamento de bits:</value></data>
+  <data name="IFFManager_ShowRawRecord" xml:space="preserve"><value>Mostrar registro bruto</value></data>
+  <data name="IFFManager_UnrepresentedBytes" xml:space="preserve"><value>Bytes não representados: {0} / {1}</value></data>
+  <data name="IFFManager_FieldVisible" xml:space="preserve"><value>Exibir campo</value></data>
+  <data name="IFFManager_CloneColumn" xml:space="preserve"><value>Clonar coluna</value></data>
+  <data name="IFFManager_MoveUp" xml:space="preserve"><value>Para cima</value></data>
+  <data name="IFFManager_MoveDown" xml:space="preserve"><value>Para baixo</value></data>
+  <data name="IFFManager_DefaultStringSize" xml:space="preserve"><value>Tamanho padrão da string:</value></data>
+  <data name="IFFManager_ContainerKey" xml:space="preserve"><value>Chave IFF:</value></data>
+  <data name="IFFManager_KeyNone" xml:space="preserve"><value>Nenhuma</value></data>
+  <data name="IFFManager_KeyPlainZip" xml:space="preserve"><value>ZIP sem criptografia</value></data>
+  <data name="IFFManager_SelectTemplate" xml:space="preserve"><value>Selecionar modelo de campo</value></data>
+  <data name="IFFManager_TemplateSchema" xml:space="preserve"><value>Esquema:</value></data>
+  <data name="IFFManager_Select" xml:space="preserve"><value>Selecionar</value></data>
+  <data name="IFFManager_CurrentSchema" xml:space="preserve"><value>Esquema atual</value></data>
+  <data name="IFFManager_SortByOffset" xml:space="preserve"><value>Ordenar por deslocamento</value></data>
+  <data name="IFFManager_AfterPreviousField" xml:space="preserve"><value>Após o anterior</value></data>
+  <data name="IFFManager_DefineRawColumnTitle" xml:space="preserve"><value>Definir coluna a partir dos bytes brutos</value></data>
+  <data name="IFFManager_ByteValue" xml:space="preserve"><value>Valor do byte</value></data>
+  <data name="IFFManager_DefineColumn" xml:space="preserve"><value>Definir coluna</value></data>
+  <data name="IFFManager_SelectContiguousBytes" xml:space="preserve"><value>Selecione um intervalo contínuo de bytes.</value></data>
 </root>

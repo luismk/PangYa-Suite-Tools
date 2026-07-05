@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 1,
+  "fileName": "CadieMagicBoxRandom.iff",
+  "region": "JP",
+  "minimumRecordSize": 16,
+  "isEditable": true,
+  "fields": [
+    {
+      "name": "Item1Count",
+      "offset": 0,
+      "width": 4,
+      "type": "UInt32",
+      "isEditable": true,
+      "encodingCodePage": null,
+      "minimum": null,
+      "maximum": null,
+      "bitMask": null,
+      "bitShift": 0,
+      "isVisible": true
+    },
+    {
+      "name": "Item1",
+      "offset": 4,
+      "width": 4,
+      "type": "UInt32",
+      "isEditable": true,
+      "encodingCodePage": null,
+      "minimum": null,
+      "maximum": null,
+      "bitMask": null,
+      "bitShift": 0,
+      "isVisible": true
+    },
+    {
+      "name": "Item2Count",
+      "offset": 8,
+      "width": 4,
+      "type": "UInt32",
+      "isEditable": true,
+      "encodingCodePage": null,
+      "minimum": null,
+      "maximum": null,
+      "bitMask": null,
+      "bitShift": 0,
+      "isVisible": true
+    },
+    {
+      "name": "Item2",
+      "offset": 12,
+      "width": 4,
+      "type": "UInt32",
+      "isEditable": true,
+      "encodingCodePage": null,
+      "minimum": null,
+      "maximum": null,
+      "bitMask": null,
+      "bitShift": 0,
+      "isVisible": true
+    },
+    {
+      "name": "Raw record",
+      "offset": 0,
+      "width": 16,
+      "type": "Raw",
+      "isEditable": false,
+      "encodingCodePage": null,
+      "minimum": null,
+      "maximum": null,
+      "bitMask": null,
+      "bitShift": 0,
+      "isVisible": false
+    }
+  ],
+  "defaultStringSize": 16
+}

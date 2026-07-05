@@ -2,6 +2,7 @@
   <Project Path="PangYa-Suite-Tools/PangYa-Suite-Tools.csproj" />
   <Project Path="PangYa-Suite-Tools.Tests/PangYa-Suite-Tools.Tests.csproj" />
   <Project Path="PangyaAPI/PangyaAPI.PAK/PangyaAPI.PAK.csproj" />
+  <Project Path="PangyaAPI/PangyaAPI.IFF/PangyaAPI.IFF.csproj" />
   <Project Path="PangyaAPI/PangyaAPI.UpdateList/PangyaAPI.UpdateList.csproj" />
   <Project Path="PangyaAPI/PangyaAPI.Utilities/PangyaAPI.Utilities.csproj" />
   <Project Path="PangyaAPI.Tests/PangyaAPI.Tests.csproj" />

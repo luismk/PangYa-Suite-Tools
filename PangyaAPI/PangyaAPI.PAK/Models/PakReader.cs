@@ -1,6 +1,7 @@
 ﻿//criado por LUISMK -> github.com/luismk
 using PangyaAPI.PAK.Flags;
 using PangyaAPI.Utilities.Cryptography; 
+using PangyaAPI.Utilities.Logging;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -11,6 +12,8 @@ namespace PangyaAPI.PAK.Models
     {
         private readonly BinaryReader _reader;
         private readonly object _ioLock = new();
+        private readonly ILogSink? _logSink;
+        private readonly string _path;
         private bool _disposed;
         public uint xorKey = 0x71;
         public PakHeader Header { get; private set; } = new();
@@ -18,15 +21,33 @@ namespace PangyaAPI.PAK.Models
         public uint[]? LocationKeys { get; private set; }
         public Encoding FileNameEncoding { get; }
 
-        public PakReader(string path, Encoding? fileNameEncoding = null)
+        public PakReader(string path, Encoding? fileNameEncoding = null, ILogSink? logSink = null)
         {
+            _path = Path.GetFullPath(path);
+            _logSink = logSink;
             FileNameEncoding = fileNameEncoding ?? PakFileNameEncoding.CreateDefault();
             _reader = new BinaryReader(File.OpenRead(path), Encoding.ASCII, leaveOpen: false);
+            Log($"Opened '{_path}' using {FileNameEncoding.EncodingName} filename encoding.");
         }
 
         // ── Parsing ─────────────────────────────────────────────────────────
 
         public void Parse(uint[]? forceKeys = null)
+        {
+            Log(forceKeys is null ? "Parsing PAK with automatic key detection." : "Parsing PAK with supplied location keys.");
+            try
+            {
+                ParseCore(forceKeys);
+                Log($"Parsed {Entries.Count} entries. Version 0x{Header.Version:X2}; author '{Header.Author}'.");
+            }
+            catch (Exception ex)
+            {
+                Log($"Parse failed: {ex.Message}", LogSeverity.Error);
+                throw;
+            }
+        }
+
+        private void ParseCore(uint[]? forceKeys)
         {
             var br = _reader;
             long fileLen = br.BaseStream.Length;
@@ -51,12 +72,11 @@ namespace PangyaAPI.PAK.Models
             if (minimumEntryBytes > fileLen - PakHeader.BinarySize - Header.OffsetFileEntry)
                 throw new InvalidDataException("A tabela de entradas está truncada ou possui uma contagem inválida.");
 
-            Console.WriteLine($"  Versão  : 0x{Header.Version:X2}");
-            Console.WriteLine($"  Entradas: {Header.NumFileEntry}");
+            Log($"Header read: version 0x{Header.Version:X2}, {Header.NumFileEntry} entries, table offset 0x{Header.OffsetFileEntry:X}.");
 
             const byte kVersion = 0x12;
             if (Header.Version != kVersion)
-                Console.WriteLine($"[Aviso] Versão Pak: 0x{Header.Version:X2} != 0x{kVersion:X2}");
+                Log($"Unexpected PAK version 0x{Header.Version:X2}; expected 0x{kVersion:X2}.", LogSeverity.Warning);
 
             // ── Entries ──────────────────────────────────────────────────────
             br.BaseStream.Seek(Header.OffsetFileEntry, SeekOrigin.Begin);
@@ -90,7 +110,12 @@ namespace PangyaAPI.PAK.Models
                 else if (version == PakFileEntryVersion.V3)
                 {
                     if (LocationKeys == null)
+                    {
                         LocationKeys = AutoDetectKeys(offset, sz) ?? PromptKeys();
+                        Log(LocationKeys.Length == 0
+                            ? "No XTEA location key matched; using XOR fallback."
+                            : "Detected XTEA location keys.");
+                    }
 
                     ulong packed = ((ulong)sz << 32) | offset;
                     if (LocationKeys.Count() > 0)
@@ -166,7 +191,8 @@ namespace PangyaAPI.PAK.Models
         /// </summary>
         public void Extract(string pattern, string outputDir = "./",
                             Action<string>? log = null,
-                            Action<int, int>? onProgress = null)
+                            Action<int, int>? onProgress = null,
+                            CancellationToken cancellationToken = default)
         {
             // 1. Filtragem inicial (Rápida)
             var regexPattern = "^" + Regex.Escape(pattern).Replace(@"\*", ".*") + "$";
@@ -177,7 +203,12 @@ namespace PangyaAPI.PAK.Models
                 .ToList();
 
             int total = matches.Count;
-            if (total == 0) return;
+            Log($"Extraction requested for pattern '{pattern}' to '{Path.GetFullPath(outputDir)}'; {total} entries matched.");
+            if (total == 0)
+            {
+                Log("Extraction completed with no matching entries.", LogSeverity.Warning);
+                return;
+            }
 
             int done = 0;
             string baseOutDir = Path.GetFullPath(outputDir);
@@ -189,8 +220,13 @@ namespace PangyaAPI.PAK.Models
 
             // 2. Processamento em Paralelo usando Parallel.ForEach
             // Limitamos o grau de paralelismo se necessário, mas por padrão ele usa os cores disponíveis.
-            Parallel.ForEach(matches, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, entry =>
+            Parallel.ForEach(matches, new ParallelOptions
             {
+                MaxDegreeOfParallelism = Environment.ProcessorCount,
+                CancellationToken = cancellationToken
+            }, entry =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
                 string name = entry.Name;
                 byte[]? compressedBytes = null;
                 byte[]? decompressedData = null;
@@ -227,6 +263,7 @@ namespace PangyaAPI.PAK.Models
                     }
                     catch (Exception ex)
                     {
+                        Log($"Failed to decompress '{name}': {ex.Message}", LogSeverity.Error);
                         log?.Invoke($"[Erro] Falha ao descomprimir {name}: {ex.Message}");
                     }
                 }
@@ -248,15 +285,18 @@ namespace PangyaAPI.PAK.Models
                         Directory.CreateDirectory(outDir);
 
                         File.WriteAllBytes(outPath, decompressedData);
+                        Log($"Extracted '{name}' to '{outPath}'.");
                         log?.Invoke($"Extraído: {name} → {outPath.Replace("\\", "/")}");
                     }
                     catch (Exception ex)
                     {
+                        Log($"Failed to write '{name}': {ex.Message}", LogSeverity.Error);
                         log?.Invoke($"[Erro] Falha ao gravar no disco {name}: {ex.Message}");
                     }
                 }
                 else
                 {
+                    Log($"Failed to extract data for '{name}'.", LogSeverity.Error);
                     log?.Invoke($"[Erro] Falha ao extrair dados de: {name}");
                 }
 
@@ -264,6 +304,7 @@ namespace PangyaAPI.PAK.Models
                 int currentDone = Interlocked.Increment(ref done);
                 onProgress?.Invoke(currentDone, total);
             });
+            Log($"Extraction completed: {done} of {total} entries processed.");
         }
 
         private static string GetSafeOutputPath(string baseOutPrefix, string entryName)
@@ -284,6 +325,7 @@ namespace PangyaAPI.PAK.Models
         /// </summary>
         public byte[]? ExtractEntryToBytes(PakFileEntry entry)
         {
+            Log($"Reading entry '{entry.Name}' into memory.");
             lock (_ioLock)
             {
                 _reader.BaseStream.Seek(entry.Offset, SeekOrigin.Begin);
@@ -329,6 +371,7 @@ namespace PangyaAPI.PAK.Models
         /// </summary>
         public void ExtractEntry(PakFileEntry entry, string outputPath)
         {
+            Log($"Extracting entry '{entry.Name}' to '{Path.GetFullPath(outputPath)}'.");
             if (entry.Type == PakFileEntryType.Directory)
                 throw new InvalidOperationException("Não é possível extrair uma entrada de diretório como arquivo.");
 
@@ -345,6 +388,7 @@ namespace PangyaAPI.PAK.Models
                 Directory.CreateDirectory(dir);
 
             File.WriteAllBytes(outputPath, data);
+            Log($"Extracted entry '{entry.Name}' successfully.");
         }
 
         // ── Auto-detecção de chave ───────────────────────────────────────────
@@ -402,9 +446,17 @@ namespace PangyaAPI.PAK.Models
         {
             lock (_ioLock)
             {
-                if (!_disposed) { _reader.Dispose(); _disposed = true; }
+                if (!_disposed)
+                {
+                    _reader.Dispose();
+                    _disposed = true;
+                    Log($"Closed '{_path}'.");
+                }
             }
         }
+
+        private void Log(string message, LogSeverity severity = LogSeverity.Information) =>
+            _logSink?.Log("PAK Reader", message, severity);
     }
 
 }

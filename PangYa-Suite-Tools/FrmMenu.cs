@@ -8,6 +8,7 @@ namespace PangYa_Suite_Tools
     public partial class FrmMenu : Form
     {
         private bool isInitializingLanguages = true;
+        private FrmLog? _logWindow;
 
         // Caminho no registro para salvar as configurações da Suite
         private const string RegistryKeyPath = @"Software\PangYaSuiteTools";
@@ -67,6 +68,7 @@ namespace PangYa_Suite_Tools
             btnOpenIffManager.Text = Strings.Menu_IffManager;
             btnOpenOptions.Text = Strings.Menu_Options;
             btnOpenPakDiff.Text = Strings.Menu_PakDiff;
+            btnOpenLog.Text = Strings.Menu_Log;
             lblLanguage.Text = Strings.Common_Language;
         }
 
@@ -78,12 +80,7 @@ namespace PangYa_Suite_Tools
                 idiomaAtual = selectedItem.Value;
             }
 
-            this.Hide();
-            using (var pakMaker = new FrmPakMaker(idiomaAtual, ""))
-            {
-                pakMaker.ShowDialog();
-            }
-            this.Show();
+            OpenToolWindow(new FrmPakMaker(idiomaAtual, ""), hideMenu: true);
         }
 
         private void btnOpenUpdateList_Click(object sender, EventArgs e)
@@ -94,12 +91,7 @@ namespace PangYa_Suite_Tools
                 idiomaAtual = selectedItem.Value;
             }
 
-            this.Hide();
-            using (var updateList = new FrmUpdateList(idiomaAtual))
-            {
-                updateList.ShowDialog();
-            }
-            this.Show();
+            OpenToolWindow(new FrmUpdateList(idiomaAtual), hideMenu: true);
         }
 
         private void btnOpenIffManager_Click(object sender, EventArgs e)
@@ -110,22 +102,13 @@ namespace PangYa_Suite_Tools
                 idiomaAtual = selectedItem.Value;
             }
 
-            this.Hide();
-            using (var iffManager = new FrmIFFManager(idiomaAtual))
-            {
-                iffManager.ShowDialog();
-            }
-            this.Show();
+            OpenToolWindow(new FrmIFFManager(idiomaAtual), hideMenu: true);
         }
 
         private void btnOpenOptions_Click(object sender, EventArgs e)
         {
             // Obtém o idioma selecionado em tempo real no menu principal ('br' ou 'en')
-            using (var frmOptions = new FrmOptions())
-            {
-                frmOptions.ShowDialog();
-            }
-            this.Show();
+            OpenToolWindow(new FrmOptions(), hideMenu: false);
         }
 
         private void btnOpenPakDiff_Click(object sender, EventArgs e)
@@ -134,10 +117,36 @@ namespace PangYa_Suite_Tools
                 ? selectedItem.Value
                 : LocalizationManager.English;
 
-            this.Hide();
-            using var pakDiff = new FrmPakDiff(idiomaAtual);
-            pakDiff.ShowDialog();
-            this.Show();
+            OpenToolWindow(new FrmPakDiff(idiomaAtual), hideMenu: true);
+        }
+
+        private void OpenToolWindow(Form tool, bool hideMenu)
+        {
+            if (hideMenu) Hide();
+            tool.FormClosed += (_, _) =>
+            {
+                tool.Dispose();
+                if (hideMenu && !IsDisposed) Show();
+            };
+            tool.Show();
+        }
+
+        private void btnOpenLog_Click(object sender, EventArgs e)
+        {
+            if (_logWindow is null || _logWindow.IsDisposed)
+            {
+                _logWindow = new FrmLog();
+                _logWindow.FormClosed += (_, _) => _logWindow = null;
+                _logWindow.Show();
+                return;
+            }
+
+            if (_logWindow.WindowState == FormWindowState.Minimized)
+            {
+                _logWindow.WindowState = FormWindowState.Normal;
+            }
+
+            _logWindow.Activate();
         }
 
         

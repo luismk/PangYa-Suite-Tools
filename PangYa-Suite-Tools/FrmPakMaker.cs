@@ -1,4 +1,5 @@
 using PangYa_Suite_Tools.Localization;
+using PangYa_Suite_Tools.Logging;
 using PangYa_Suite_Tools.Configuration;
 using PangyaAPI.PAK.Flags;
 using PangyaAPI.PAK.Models;
@@ -23,6 +24,7 @@ namespace PangYa_Suite_Tools
         private sealed record RegionOption(string Label, uint[] Keys);
         private bool isInitializingLanguages = true;
         private bool _isInitializingEncodings = true;
+        private CancellationTokenSource? _operationCancellation;
         public FrmPakMaker()
         {
             InitializeComponent();
@@ -35,6 +37,8 @@ namespace PangYa_Suite_Tools
             Disposed += (_, _) =>
             {
                 LocalizationManager.CultureChanged -= LocalizationManager_CultureChanged;
+                _operationCancellation?.Cancel();
+                _operationCancellation?.Dispose();
                 _currentReader?.Dispose();
             };
         }
@@ -119,6 +123,7 @@ namespace PangYa_Suite_Tools
             btnBatchExtract.Text = Strings.Pak_BatchExtract;
             btnUpdatePak.Text = Strings.Pak_Update;
             btnExtractAll.Text = Strings.Pak_ExtractAll;
+            btnCancelOperation.Text = Strings.Pak_CancelOperation;
 
             // Colunas de Exibição
             colName.Text = Strings.Pak_ColumnName;
@@ -148,6 +153,7 @@ namespace PangYa_Suite_Tools
 
             // --- COMPONENTES GLOBAIS ---
             if (string.IsNullOrWhiteSpace(lblStatus.Text)) lblStatus.Text = Strings.Pak_Ready;
+            UpdateDisplayedPakKey();
 
             // Menu de contexto (criado dinamicamente em código, não pelo Designer)
             if (_menuExtractSingle != null)
@@ -588,7 +594,12 @@ namespace PangYa_Suite_Tools
 
         private void LoadPak(string path, Encoding? filenameEncoding = null)
         {
-            if (string.IsNullOrEmpty(path) || !File.Exists(path)) return;
+            AppLogger.Instance.Log("PAK Manager", $"PAK load requested: '{path}'.");
+            if (string.IsNullOrEmpty(path) || !File.Exists(path))
+            {
+                AppLogger.Instance.Log("PAK Manager", $"PAK load stopped because the file does not exist: '{path}'.", AppLogLevel.Warning);
+                return;
+            }
 
             try
             {
@@ -596,9 +607,17 @@ namespace PangYa_Suite_Tools
                     txtPakPath.Text = path;
 
                 _currentReader?.Dispose();
-                var reader = new PakReader(path, filenameEncoding ?? SelectedFilenameEncoding);
+                var reader = new PakReader(path, filenameEncoding ?? SelectedFilenameEncoding, AppLogger.Instance);
                 _currentReader = reader;
                 reader.Parse();
+                UpdateDisplayedPakKey();
+                if (reader.LocationKeys?.SequenceEqual(PakKeys.SS) == true)
+                {
+                    AppLogger.Instance.Log("PAK Manager",
+                        $"Loaded '{path}' with the unsupported pakkeys.ss key.", AppLogLevel.Warning);
+                    MessageBox.Show(Strings.PakMaker_SSKeyNotSupported,
+                        Strings.PakMaker_Warning, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
                 // Atualiza as Labels de informação do Header
                 txtUpdateAuthor.Text = reader.Header.Author;
                 lblAuthor.Text = $"{Strings.PakMaker_Author} {reader.Header.Author}";
@@ -607,9 +626,11 @@ namespace PangYa_Suite_Tools
 
                 txtSearch.Text = "";
                 BuildFolderTree();
+                AppLogger.Instance.Log("PAK Manager", $"Loaded '{path}' successfully with {reader.Entries.Count} entries.");
             }
             catch (Exception ex)
             {
+                AppLogger.Instance.Log("PAK Manager", $"Failed to load '{path}': {ex}", AppLogLevel.Error);
                 MessageBox.Show($"{Strings.PakMaker_ErrorOpeningPAKFile}\n{ex.Message}", Strings.PakMaker_Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
@@ -673,10 +694,7 @@ namespace PangYa_Suite_Tools
         /// </summary>
         private void TvFolders_NodeMouseClick(object? sender, TreeNodeMouseClickEventArgs e)
         {
-            if (e.Button == MouseButtons.Right)
-            {
-                tvFolders.SelectedNode = e.Node; // Força a seleção do nó clicado
-            }
+            tvFolders.SelectedNode = e.Node;
         }
 
         /// <summary>
@@ -696,21 +714,25 @@ namespace PangYa_Suite_Tools
             if (_currentReader == null) return;
 
             string folderTag = e.Node?.Tag as string ?? RootFolderTag;
+            string normalizedFolder = folderTag.Replace('\\', '/').Trim('/');
+            string prefix = string.IsNullOrEmpty(normalizedFolder) ? string.Empty : normalizedFolder + "/";
 
             _scopedEntries = string.IsNullOrEmpty(folderTag)
                 ? [.. _currentReader.Entries.Where(en => en.Type != PakFileEntryType.Directory)]
                 : _currentReader.Entries
-                    .Where(en => string.Equals(
-                        Path.GetDirectoryName(en.Name.Replace('/', '\\')) ?? "",
-                        folderTag,
-                        StringComparison.OrdinalIgnoreCase))
+                    .Where(en => en.Type != PakFileEntryType.Directory &&
+                        en.Name.Replace('\\', '/').StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
                     .ToList();
 
             lblCurrentPath.Text = string.IsNullOrEmpty(folderTag)
                 ? Strings.PakMaker_PathAllFiles
                 : $"{Strings.PakMaker_Path} {folderTag.Replace('\\', '/')}";
 
+            txtSearch.Clear();
             ApplyDisplayFilter();
+            foreach (ListViewItem item in lstEntries.Items) item.Selected = true;
+            AppLogger.Instance.Log("PAK Manager",
+                $"Selected folder '{(string.IsNullOrEmpty(folderTag) ? "/" : folderTag)}' and {_scopedEntries.Count} files below it.");
         }
 
         private async void TvFolders_AfterLabelEdit(object sender, NodeLabelEditEventArgs e)
@@ -777,20 +799,27 @@ namespace PangYa_Suite_Tools
         /// </summary>
         private async Task RemoveFolderFromTreeAsync()
         {
+            AppLogger.Instance.Log("PAK Manager", "Folder removal requested.");
             if (_currentReader == null || string.IsNullOrEmpty(txtPakPath.Text) || !File.Exists(txtPakPath.Text))
             {
+                AppLogger.Instance.Log("PAK Manager", "Folder removal stopped because no active PAK is loaded.", AppLogLevel.Warning);
                 MessageBox.Show(Strings.PakMaker_SelectAnActivePakFileFirst,
                     Strings.PakMaker_Warning, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            if (tvFolders.SelectedNode == null) return;
+            if (tvFolders.SelectedNode == null)
+            {
+                AppLogger.Instance.Log("PAK Manager", "Folder removal stopped because no folder is selected.", AppLogLevel.Warning);
+                return;
+            }
 
             string folderTag = tvFolders.SelectedNode.Tag as string ?? "";
 
             // Evita deletar tudo caso esteja no nó raiz virtual sem querer
             if (string.IsNullOrEmpty(folderTag))
             {
+                AppLogger.Instance.Log("PAK Manager", "Root-folder removal was rejected.", AppLogLevel.Warning);
                 MessageBox.Show(Strings.PakMaker_YouCannotDeleteTheRootFolder,
                     Strings.PakMaker_Warning, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
@@ -807,6 +836,7 @@ namespace PangYa_Suite_Tools
 
             if (filesInFolder.Count == 0)
             {
+                AppLogger.Instance.Log("PAK Manager", $"No files were found in folder '{folderTag}'.", AppLogLevel.Warning);
                 MessageBox.Show(Strings.PakMaker_NoFilesFoundInsideThisFolder,
                     Strings.PakMaker_Warning, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
@@ -821,10 +851,15 @@ namespace PangYa_Suite_Tools
                 $"{confirmationMessage}\n\n{Strings.PakMaker_ThePAKWillBeRebuiltAnd}",
                 Strings.PakMaker_ConfirmRemoval, MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
 
-            if (confirm != DialogResult.Yes) return;
+            if (confirm != DialogResult.Yes)
+            {
+                AppLogger.Instance.Log("PAK Manager", $"Removal of folder '{folderTag}' was cancelled.", AppLogLevel.Warning);
+                return;
+            }
 
             string pakPath = txtPakPath.Text;
             var reader = _currentReader;
+            using CancellationTokenSource operation = BeginOperation();
 
             lblStatus.Text = Strings.PakMaker_RemovingAndRebuildingPAK;
             tvFolders.Enabled = false; // Bloqueia a árvore durante o processo
@@ -832,23 +867,33 @@ namespace PangYa_Suite_Tools
             try
             {
                 var options = BuildRebuildOptionsForCurrentPak();
+                AppLogger.Instance.Log("PAK Manager",
+                    $"Removing {filesInFolder.Count} files from folder '{folderTag}' in '{pakPath}'.");
 
                 await Task.Run(() =>
                 {
                     PakManager.RemoveFiles(pakPath, reader, filesInFolder, options,
-                        log: msg => { },
-                        onProgress: (done, total) => ReportProgress(done, total, Strings.PakMaker_RebuildingPAK));
+                        log: msg => AppLogger.Instance.Log("PAK Manager", msg),
+                        onProgress: (done, total) => ReportProgress(done, total, Strings.PakMaker_RebuildingPAK),
+                        SaveBck: false, cancellationToken: operation.Token);
                 });
 
                 lblStatus.Text = Strings.PakMaker_RemovalCompleted;
+                AppLogger.Instance.Log("PAK Manager",
+                    $"Removed folder '{folderTag}' and {filesInFolder.Count} files successfully.");
                 MessageBox.Show(
                     Strings.PakMaker_TheFolderAndItsItemsWere,
                     Strings.PakMaker_Success, MessageBoxButtons.OK, MessageBoxIcon.Information);
 
                 LoadPak(pakPath, options.FileNameEncoding);
             }
+            catch (OperationCanceledException)
+            {
+                lblStatus.Text = Strings.Pak_OperationCancelled;
+            }
             catch (Exception ex)
             {
+                AppLogger.Instance.Log("PAK Manager", $"Folder removal failed: {ex}", AppLogLevel.Error);
                 lblStatus.Text = Strings.PakMaker_ErrorRemoving;
                 MessageBox.Show($"{Strings.PakMaker_Failure} {ex.Message}", Strings.Common_Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
@@ -856,6 +901,7 @@ namespace PangYa_Suite_Tools
             {
                 HideProgress();
                 tvFolders.Enabled = true;
+                EndOperation(operation);
             }
         }
 
@@ -963,6 +1009,46 @@ namespace PangYa_Suite_Tools
             else Apply();
         }
 
+        private void UpdateDisplayedPakKey()
+        {
+            uint[]? keys = _currentReader?.LocationKeys;
+            if (keys is not { Length: > 0 })
+            {
+                lblPakKey.Text = string.Empty;
+                return;
+            }
+
+            string keyName = PakKeys.All
+                .FirstOrDefault(candidate => candidate.Keys.SequenceEqual(keys)).Label
+                ?? Strings.Pak_CustomKey;
+            lblPakKey.Text = $"{Strings.Pak_KeyUsed} {keyName}";
+        }
+
+        private CancellationTokenSource BeginOperation()
+        {
+            _operationCancellation?.Dispose();
+            _operationCancellation = new CancellationTokenSource();
+            btnCancelOperation.Enabled = true;
+            return _operationCancellation;
+        }
+
+        private void EndOperation(CancellationTokenSource operation)
+        {
+            if (!ReferenceEquals(_operationCancellation, operation)) return;
+            btnCancelOperation.Enabled = false;
+            _operationCancellation.Dispose();
+            _operationCancellation = null;
+        }
+
+        private void btnCancelOperation_Click(object? sender, EventArgs e)
+        {
+            if (_operationCancellation is null) return;
+            btnCancelOperation.Enabled = false;
+            _operationCancellation.Cancel();
+            lblStatus.Text = Strings.Pak_OperationCancelled;
+            AppLogger.Instance.Log("PAK Manager", "Cancellation requested by the user.", AppLogLevel.Warning);
+        }
+
         private void HideProgress()
         {
             void Apply() => progressBar1.Visible = false;
@@ -984,6 +1070,7 @@ namespace PangYa_Suite_Tools
             if (folderDialog.ShowDialog() == DialogResult.OK)
             {
                 string destination = folderDialog.SelectedPath;
+                using CancellationTokenSource operation = BeginOperation();
                 btnExtractAll.Enabled = false;
                 lblStatus.Text = Strings.PakMaker_ExtractingFiles;
 
@@ -991,8 +1078,8 @@ namespace PangYa_Suite_Tools
                 {
                     await Task.Run(() =>
                     {
-                        _currentReader.Extract("*", destination, msg => { },
-                            (done, total) => ReportProgress(done, total, Strings.PakMaker_Extracting));
+                        _currentReader.Extract("*", destination, msg => AppLogger.Instance.Log("PAK Reader", msg),
+                            (done, total) => ReportProgress(done, total, Strings.PakMaker_Extracting), operation.Token);
                     });
 
                     lblStatus.Text = Strings.PakMaker_Ready;
@@ -1007,6 +1094,7 @@ namespace PangYa_Suite_Tools
                 {
                     HideProgress();
                     btnExtractAll.Enabled = true;
+                    EndOperation(operation);
                 }
             }
         }
@@ -1045,23 +1133,8 @@ namespace PangYa_Suite_Tools
         private async Task ExtractSelectedFolderAsync()
         {
             if (_currentReader == null || tvFolders.SelectedNode == null) return;
-
-            string rawPath = tvFolders.SelectedNode.FullPath;
-
-            // Limpa os emojis e espaços extras
-            string cleanPath = rawPath
-                .Replace("🗂 ", "").Replace("🗂", "")
-                .Replace("📁 ", "").Replace("📁", "")
-                .Replace('\\', '/');
-
-            if (cleanPath.StartsWith("Todos os Arquivos/", StringComparison.OrdinalIgnoreCase))
-            {
-                cleanPath = cleanPath.Substring("Todos os Arquivos/".Length);
-            }
-            else if (cleanPath.Equals(Strings.PakMaker_AllFiles_2, StringComparison.OrdinalIgnoreCase))
-            {
-                cleanPath = "";
-            }
+            string cleanPath = (tvFolders.SelectedNode.Tag as string ?? string.Empty)
+                .Replace('\\', '/').Trim('/');
 
             List<PakFileEntry> entriesToExtract;
             string dialogTitle;
@@ -1112,6 +1185,7 @@ namespace PangYa_Suite_Tools
 
         private async Task RunExtractionWithStripAsync(List<PakFileEntry> entries, string destinationDir, string rootToStrip)
         {
+            using CancellationTokenSource operation = BeginOperation();
             btnExtractSelected.Enabled = false;
             lblStatus.Text = Strings.PakMaker_ExtractingSelectedItemS;
 
@@ -1124,6 +1198,7 @@ namespace PangYa_Suite_Tools
 
                     foreach (var entry in entries)
                     {
+                        operation.Token.ThrowIfCancellationRequested();
                         // Padroniza o nome do arquivo interno
                         string relativePath = entry.Name.Replace('\\', '/');
 
@@ -1164,6 +1239,7 @@ namespace PangYa_Suite_Tools
             {
                 HideProgress();
                 btnExtractSelected.Enabled = true;
+                EndOperation(operation);
             }
         }
 
@@ -1215,6 +1291,7 @@ namespace PangYa_Suite_Tools
 
         private async Task RunExtractionAsync(List<PakFileEntry> entries, string destinationDir, string? exactPathForSingle)
         {
+            using CancellationTokenSource operation = BeginOperation();
             btnExtractSelected.Enabled = false;
             lblStatus.Text = Strings.PakMaker_ExtractingSelectedItemS;
 
@@ -1227,6 +1304,7 @@ namespace PangYa_Suite_Tools
 
                     foreach (var entry in entries)
                     {
+                        operation.Token.ThrowIfCancellationRequested();
                         string outPath = exactPathForSingle ?? Path.Combine(destinationDir, entry.Name.Replace('/', '\\'));
                         _currentReader!.ExtractEntry(entry, outPath);
 
@@ -1247,6 +1325,7 @@ namespace PangYa_Suite_Tools
             {
                 HideProgress();
                 btnExtractSelected.Enabled = true;
+                EndOperation(operation);
             }
         }
 
@@ -1268,6 +1347,7 @@ namespace PangYa_Suite_Tools
             if (destFolderDialog.ShowDialog() != DialogResult.OK) return;
 
             string targetBaseDir = destFolderDialog.SelectedPath;
+            using CancellationTokenSource operation = BeginOperation();
 
             // Mesma região/chave do PAK atualmente carregado (se houver), evita ficar perguntando por console.
             uint[]? sharedKeys = _currentReader?.LocationKeys;
@@ -1282,6 +1362,7 @@ namespace PangYa_Suite_Tools
 
             foreach (var pakPath in pakFiles)
             {
+                if (operation.IsCancellationRequested) break;
                 string pakName = Path.GetFileNameWithoutExtension(pakPath);
                 string specificDestFolder = Path.Combine(targetBaseDir, pakName);
 
@@ -1294,10 +1375,15 @@ namespace PangYa_Suite_Tools
                         if (!Directory.Exists(specificDestFolder))
                             Directory.CreateDirectory(specificDestFolder);
 
-                        using var batchReader = new PakReader(pakPath, filenameEncoding);
+                        using var batchReader = new PakReader(pakPath, filenameEncoding, AppLogger.Instance);
                         batchReader.Parse(sharedKeys);
-                        batchReader.Extract("*", specificDestFolder);
+                        batchReader.Extract("*", specificDestFolder, cancellationToken: operation.Token);
                     });
+                }
+                catch (OperationCanceledException)
+                {
+                    lblStatus.Text = Strings.Pak_OperationCancelled;
+                    break;
                 }
                 catch (Exception ex)
                 {
@@ -1311,8 +1397,11 @@ namespace PangYa_Suite_Tools
             lblStatus.Text = Strings.PakMaker_BatchExtractionCompleted;
             progressBar1.Visible = false;
             btnBatchExtract.Enabled = true;
+            bool wasCancelled = operation.IsCancellationRequested;
+            EndOperation(operation);
 
-            MessageBox.Show($"{paksProcessados} {Strings.PakMaker_PAKPackagesExtractedSuccessfullyTo}\n{targetBaseDir}", Strings.PakMaker_ProcessingComplete, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            if (!wasCancelled)
+                MessageBox.Show($"{paksProcessados} {Strings.PakMaker_PAKPackagesExtractedSuccessfullyTo}\n{targetBaseDir}", Strings.PakMaker_ProcessingComplete, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         // ─── INJETAR / ATUALIZAR ────────────────────────────────────────────────
@@ -1421,6 +1510,7 @@ namespace PangYa_Suite_Tools
         /// </summary>
         private async Task InjectFilesIntoCurrentPakAsync(List<PakInjectItem> items)
         {
+            AppLogger.Instance.Log("PAK Writer", $"Injection requested for {items?.Count ?? 0} items.");
             if (_currentReader == null || string.IsNullOrEmpty(txtPakPath.Text) || !File.Exists(txtPakPath.Text))
             {
                 MessageBox.Show(
@@ -1436,6 +1526,7 @@ namespace PangYa_Suite_Tools
 
             lblStatus.Text = Strings.PakMaker_MergingAndRebuildingPAK;
             btnUpdatePak.Enabled = false;
+            using CancellationTokenSource operation = BeginOperation();
 
             try
             {
@@ -1444,11 +1535,14 @@ namespace PangYa_Suite_Tools
                 await Task.Run(() =>
                 {
                     PakManager.InjectFiles(pakPath, reader, items, options,
-                        log: msg => { },
-                        onProgress: (done, total) => ReportProgress(done, total, Strings.PakMaker_RebuildingPAK));
+                        defaultRelativeFolder: string.Empty,
+                        log: msg => AppLogger.Instance.Log("PAK Writer", msg),
+                        onProgress: (done, total) => ReportProgress(done, total, Strings.PakMaker_RebuildingPAK),
+                        SaveBck: false, cancellationToken: operation.Token);
                 });
 
                 lblStatus.Text = Strings.PakMaker_PAKUpdatedSuccessfully;
+                AppLogger.Instance.Log("PAK Writer", $"Injected {items.Count} items into '{pakPath}' successfully.");
                 MessageBox.Show(
                       $"{items.Count} {Strings.PakMaker_FileSInjectedAndThePAK}",
                       Strings.PakMaker_Success, MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -1463,6 +1557,7 @@ namespace PangYa_Suite_Tools
             {
                 HideProgress();
                 btnUpdatePak.Enabled = true;
+                EndOperation(operation);
             }
         }
 
@@ -1530,8 +1625,10 @@ namespace PangYa_Suite_Tools
 
         private async Task RemoveSelectedAsync()
         {
+            AppLogger.Instance.Log("PAK Manager", "Selected-file removal requested.");
             if (_currentReader == null || string.IsNullOrEmpty(txtPakPath.Text) || !File.Exists(txtPakPath.Text))
             {
+                AppLogger.Instance.Log("PAK Manager", "Removal stopped because no active PAK is loaded.", AppLogLevel.Warning);
                 MessageBox.Show(
                     Strings.PakMaker_SelectAnActivePakFileFirst,
                     Strings.PakMaker_Warning, MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -1612,6 +1709,7 @@ namespace PangYa_Suite_Tools
             // Se nenhum arquivo e nenhuma pasta foram marcados
             if (namesToRemove.Count == 0)
             {
+                AppLogger.Instance.Log("PAK Manager", "Removal stopped because no files or folders were selected.", AppLogLevel.Warning);
                 MessageBox.Show(
                     Strings.PakMaker_SelectFilesFromTheListOr_2,
                     Strings.PakMaker_Warning, MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -1636,34 +1734,50 @@ namespace PangYa_Suite_Tools
                 $"{confirmationMessage}\n\n{Strings.PakMaker_ThePAKWillBeRebuiltAnd}",
                 Strings.PakMaker_ConfirmRemoval, MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
 
-            if (confirm != DialogResult.Yes) return;
+            if (confirm != DialogResult.Yes)
+            {
+                AppLogger.Instance.Log("PAK Manager",
+                    $"Removal of {namesToRemove.Count} selected files was cancelled.", AppLogLevel.Warning);
+                return;
+            }
 
             string pakPath = txtPakPath.Text;
             var reader = _currentReader;
 
             lblStatus.Text = Strings.PakMaker_RemovingAndRebuildingPAK;
             btnRemoveSelected.Enabled = false;
+            using CancellationTokenSource operation = BeginOperation();
 
             try
             {
                 var options = BuildRebuildOptionsForCurrentPak();
+                AppLogger.Instance.Log("PAK Manager",
+                    $"Removing {namesToRemove.Count} selected files from '{pakPath}'.");
 
                 await Task.Run(() =>
                 {
                     PakManager.RemoveFiles(pakPath, reader, namesToRemove.ToList(), options,
-                        log: msg => { },
-                        onProgress: (done, total) => ReportProgress(done, total, Strings.PakMaker_RebuildingPAK));
+                        log: msg => AppLogger.Instance.Log("PAK Manager", msg),
+                        onProgress: (done, total) => ReportProgress(done, total, Strings.PakMaker_RebuildingPAK),
+                        SaveBck: false, cancellationToken: operation.Token);
                 });
 
                 lblStatus.Text = Strings.PakMaker_RemovalCompleted;
+                AppLogger.Instance.Log("PAK Manager",
+                    $"Removed {namesToRemove.Count} selected files successfully.");
                 MessageBox.Show(
                     Strings.PakMaker_TheSelectedItemsWereRemovedSuccessfully,
                     Strings.PakMaker_Success, MessageBoxButtons.OK, MessageBoxIcon.Information);
 
                 LoadPak(pakPath, options.FileNameEncoding);
             }
+            catch (OperationCanceledException)
+            {
+                lblStatus.Text = Strings.Pak_OperationCancelled;
+            }
             catch (Exception ex)
             {
+                AppLogger.Instance.Log("PAK Manager", $"Selected-file removal failed: {ex}", AppLogLevel.Error);
                 lblStatus.Text = Strings.PakMaker_ErrorRemoving;
                 MessageBox.Show($"{Strings.PakMaker_Failure} {ex.Message}", Strings.Common_Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
@@ -1671,6 +1785,7 @@ namespace PangYa_Suite_Tools
             {
                 HideProgress();
                 btnRemoveSelected.Enabled = true;
+                EndOperation(operation);
             }
         }
 
@@ -1686,6 +1801,7 @@ namespace PangYa_Suite_Tools
 
         private async void btnCreatePak_Click(object? sender, EventArgs e)
         {
+            AppLogger.Instance.Log("PAK Writer", "Create PAK requested.");
             string source = txtSourceFolder.Text;
             if (string.IsNullOrEmpty(source) || !Directory.Exists(source))
             {
@@ -1698,6 +1814,7 @@ namespace PangYa_Suite_Tools
             using var saveFileDialog = new SaveFileDialog { Filter = Strings.Pak_SaveFileFilter, Title = Strings.PakMaker_SaveNewPAK };
             if (saveFileDialog.ShowDialog() == DialogResult.OK)
             {
+                using CancellationTokenSource operation = BeginOperation();
                 try
                 {
                     RegionOption? selectedItem = cboRegion.SelectedItem as RegionOption;
@@ -1724,10 +1841,12 @@ namespace PangYa_Suite_Tools
                             // Se não for Raw e selectedKeys vier nulo por falha de seleção, aplica o fallback JP
                             LocationKeys = selectedKeys ?? (selectedVersion == PakFileEntryVersion.Raw ? Array.Empty<uint>() : PakKeys.JP),
                             Author = txtNewAuthorPak.Text, // Assinatura do PAK
-                            FileNameEncoding = SelectedFilenameEncoding
+                            FileNameEncoding = SelectedFilenameEncoding,
+                            LogSink = AppLogger.Instance
                         };
                         //inicia a criacao do pak
-                        await Task.Run(() => writer.CreateFromDirectory(source, saveFileDialog.FileName));
+                        await Task.Run(() => writer.CreateFromDirectory(
+                            source, saveFileDialog.FileName, log: null, operation.Token));
                         //terminou
                         lblStatus.Text = Strings.PakMaker_Ready;
                         btnCreatePak.Enabled = true;
@@ -1741,17 +1860,28 @@ namespace PangYa_Suite_Tools
                         return;
                     }
                 }
+                catch (OperationCanceledException)
+                {
+                    lblStatus.Text = Strings.Pak_OperationCancelled;
+                }
                 catch (Exception ex)
                 {
+                    AppLogger.Instance.Log("PAK Writer", $"Create PAK failed: {ex}", AppLogLevel.Error);
                     lblStatus.Text = Strings.PakMaker_ErrorCreatingPAK;
                     btnCreatePak.Enabled = true;
                     MessageBox.Show($"{Strings.PakMaker_CompilationError} {ex.Message}", Strings.Common_Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                finally
+                {
+                    btnCreatePak.Enabled = true;
+                    EndOperation(operation);
                 }
             }
         }
 
         private async void btnChangeKey_Click(object? sender, EventArgs e)
         {
+            AppLogger.Instance.Log("PAK Writer", "Encryption-key change requested.");
             if (_currentReader == null || string.IsNullOrEmpty(txtPakPath.Text) || !File.Exists(txtPakPath.Text))
             {
                 MessageBox.Show(Strings.PakMaker_SelectAnActivePakFileFirst, Strings.PakMaker_Warning, MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -1777,7 +1907,11 @@ namespace PangYa_Suite_Tools
             var confirm = MessageBox.Show(
                 $"{Strings.PakMaker_ChangeThePAKKeyTo} \"{selectedRegion.Label}\"?\n{Strings.PakMaker_ThePAKWillBeRebuiltAnd_2}",
                 Strings.PakMaker_ConfirmKeyChange, MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-            if (confirm != DialogResult.Yes) return;
+            if (confirm != DialogResult.Yes)
+            {
+                AppLogger.Instance.Log("PAK Writer", "Encryption-key change was cancelled.", AppLogLevel.Warning);
+                return;
+            }
 
             string pakPath = txtPakPath.Text;
             var reader = _currentReader;
@@ -1788,24 +1922,32 @@ namespace PangYa_Suite_Tools
 
             lblStatus.Text = Strings.PakMaker_ChangingKeyAndRebuildingPAK;
             btnChangeKey.Enabled = false;
+            using CancellationTokenSource operation = BeginOperation();
 
             try
             {
                 await Task.Run(() =>
                 {
                     PakManager.ChangeEncryptionKey(pakPath, reader, newOptions,
-                        log: msg => { },
-                        onProgress: (done, total) => ReportProgress(done, total, Strings.PakMaker_RebuildingPAK));
+                        log: msg => AppLogger.Instance.Log("PAK Writer", msg),
+                        onProgress: (done, total) => ReportProgress(done, total, Strings.PakMaker_RebuildingPAK),
+                        SaveBck: false, cancellationToken: operation.Token);
                 });
 
                 lblStatus.Text = Strings.PakMaker_KeyChangedSuccessfully;
+                AppLogger.Instance.Log("PAK Writer", $"Changed the encryption key for '{pakPath}' to '{selectedRegion.Label}'.");
                 MessageBox.Show($"{Strings.PakMaker_ThePAKWasRebuiltWithThe} \"{selectedRegion.Label}\"!",
                     Strings.PakMaker_Success, MessageBoxButtons.OK, MessageBoxIcon.Information);
 
                 LoadPak(pakPath, newOptions.FileNameEncoding);
             }
+            catch (OperationCanceledException)
+            {
+                lblStatus.Text = Strings.Pak_OperationCancelled;
+            }
             catch (Exception ex)
             {
+                AppLogger.Instance.Log("PAK Writer", $"Encryption-key change failed: {ex}", AppLogLevel.Error);
                 lblStatus.Text = Strings.PakMaker_ErrorChangingKey;
                 MessageBox.Show($"{Strings.PakMaker_RebuildFailed} {ex.Message}", Strings.PakMaker_Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
@@ -1813,6 +1955,7 @@ namespace PangYa_Suite_Tools
             {
                 HideProgress();
                 btnChangeKey.Enabled = true;
+                EndOperation(operation);
             }
         }
 

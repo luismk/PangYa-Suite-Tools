@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\PangyaAPI.PAK\PangyaAPI.PAK.csproj" />
+    <ProjectReference Include="..\PangyaAPI.Utilities\PangyaAPI.Utilities.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Schemas\Defaults\*.json" WithCulture="false" />
+  </ItemGroup>
+</Project>

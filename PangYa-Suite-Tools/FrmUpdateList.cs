@@ -1,4 +1,5 @@
 using PangYa_Suite_Tools.Localization;
+using PangYa_Suite_Tools.Logging;
 
 using System.ComponentModel;
 using System.Text; 
@@ -637,6 +638,7 @@ private void SetupComponents()
 
         private void Log(string text)
         {
+            AppLogger.Instance.Log("Update List", text);
             string line = $"[{DateTime.Now:HH:mm:ss}] {text}{Environment.NewLine}";
             if (InvokeRequired) this.Invoke(() => AppendLog(line));
             else AppendLog(line);

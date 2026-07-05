@@ -22,7 +22,7 @@ The project is built on top of a high-performance API (`PangyaAPI`) and a rich *
 ### 🚀 Advanced Features
 - **Auto-Elevated Execution:** Built-in dynamic check to request administrative UAC privileges automatically, preserving file path arguments.
 - **Windows File Association:** Integrated option to register the `.pak` extension into the Windows Registry, enabling direct execution via double-click or the "Open with PakMaker" context menu.
-- **Activity Logging Manager:** Background background logger (`activity_log.txt`) that tracks structural updates, additions, and removals for server auditing.
+- **Application Log Viewer:** A shared logging interface retains tool activity for the current session and exposes it from the main menu; PAK audit activity is also written to `activity_log.txt`.
 - **Multi-Region XTEA Cryptography:** Full support for official and custom header encryptions: Global (GB), Thailand (TH), Japan (JP), Korea (KR), Indonesia (ID), Europe (EU), and Super SS Dev (Custom).
 - **Advanced Tree View Interaction:** Full keyboard mapping supporting the **Delete** key for instant folder removals, along with right-click context menus for targeted extraction or deletion.
 
@@ -45,6 +45,26 @@ var writer = new PakWriter
 // Compiles recursively while preserving offsets.
 writer.CreateFromDirectory(@"C:\Modding\data", @"C:\Games\PangYa\ProjectG.pak");
 ```
+
+### JSON IFF schemas
+
+IFF editor layouts are defined by versioned JSON files in
+`%LocalAppData%\PangYa-Suite-Tools\schemas`. Default TH and JP schemas are copied there on first use without overwriting existing files. Schema files are matched by IFF filename and region (for example, `Item.TH.json`), with `.default.json` as the optional fallback. The editor's **Schema columns** dialog saves column changes back to the matching JSON file.
+The region selector can be set before opening an IFF; delimited `TH` or `JP` tokens in the container filename automatically update the selector, while the manual choice is used for files whose region cannot be detected.
+The schema editor can clone fields from the current or another schema, reorder fields, configure a default width for new strings, and control each field's visibility. Embedded defaults are used whenever no matching user schema exists. Raw hexadecimal bytes are colored by their defining schema fields, with overlaps shown in red. The editor reports bytes whose bits are not fully represented by schema fields.
+Double-click a Raw grid cell to open its byte-range picker. Select one contiguous range and choose **Define column** to create a schema field prefilled with the selected offset and width.
+ZIP-based IFF containers expose their detected XTEA key and can be saved as plain ZIP or with another supported key. Delimited `TH`/`JP` filename tokens select the schema region, while encryption keys are detected independently by trying the supported keys.
+
+#### Column-header scrolling
+
+Hover an IFF grid column header and use the mouse wheel to adjust its schema field. Wheel up increases the value by one byte; wheel down decreases it.
+
+- **Ctrl + wheel:** adjust the field offset and move following fields with it.
+- **Alt + wheel:** adjust the field width and update following offsets.
+- Hold **Shift** with either shortcut to change only the hovered field, leaving following fields unchanged.
+
+Valid changes are saved immediately to the matching user JSON schema. Invalid changes, such as moving a field outside the fixed record size, are rejected.
+
 ---
 
 ## 🇧🇷 Português
@@ -62,9 +82,19 @@ O projeto é estruturado sobre uma API de alto desempenho (`PangyaAPI`) e uma in
 ### 🚀 Recursos Avançados
 - **Execução Auto-Elevada:** Verificação dinâmica integrada para solicitar privilégios administrativos (UAC) automaticamente, preservando os argumentos de arquivos originais.
 - **Associação de Arquivos do Windows:** Opção de registrar a extensão `.pak` no Registro do Windows, permitindo abertura direta por duplo clique ou pelo menu "Abrir com PakMaker".
-- **Histórico e Logs de Atividades:** Mecanismo em segundo plano (`activity_log.txt`) para auditoria de adições, modificações e exclusões estruturais de arquivos.
+- **Visualizador de Log do Aplicativo:** Uma interface de log compartilhada mantém a atividade das ferramentas durante a sessão e pode ser aberta pelo menu principal; a auditoria de PAK também é gravada em `activity_log.txt`.
 - **Criptografia por Região (XTEA):** Suporte completo ao algoritmo XTEA para criptografia de cabeçalhos utilizando chaves oficiais e customizadas: Global (GB), Tailândia (TH), Japão (JP), Coreia (KR), Indonésia (ID), Europa (EU) e Super SS Dev (Custom).
 - **Interação Avançada em Árvore:** Mapeamento completo do teclado com suporte à tecla **Delete** para remoção instantânea de diretórios, além de menus de contexto via botão direito para extração ou exclusão direcionada.
+
+### Rolagem nos cabeçalhos das colunas IFF
+
+Posicione o cursor sobre o cabeçalho de uma coluna da grade IFF e use a roda do mouse para ajustar o campo do esquema. Rolar para cima aumenta o valor em um byte; rolar para baixo diminui.
+
+- **Ctrl + roda:** ajusta o deslocamento do campo e move os campos seguintes.
+- **Alt + roda:** ajusta a largura do campo e atualiza os deslocamentos seguintes.
+- Segure **Shift** com qualquer atalho para alterar somente o campo sob o cursor, sem modificar os campos seguintes.
+
+Alterações válidas são salvas imediatamente no esquema JSON do usuário. Alterações inválidas, como mover um campo para fora do tamanho fixo do registro, são rejeitadas.
 
 ### 🛠️ Trecho Técnico (Exemplo de Compilação PAK)
 Código base para compilar uma pasta de modificações usando a especificação do cliente Japonês (V3):

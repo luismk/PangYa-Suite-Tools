@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Security.Principal;
 using System.Windows.Forms;
+using PangYa_Suite_Tools.Localization;
 
 namespace PangYa_Suite_Tools
 {
@@ -15,6 +16,7 @@ namespace PangYa_Suite_Tools
         static void Main(string[] args)
         {
             ApplicationConfiguration.Initialize();
+            LocalizationManager.Initialize();
 
             // 1. Verifica se a aplicação ATUAL já possui privilégios de administrador
             if (!IsRunningAsAdmin())
@@ -44,8 +46,8 @@ namespace PangYa_Suite_Tools
                 {
                     // Caso o usuário clique em "Não" na tela de aviso do Windows (UAC)
                     MessageBox.Show(
-                        "This application requires Administrative privileges to run correctly. Please restart and click 'Yes'.",
-                        "Admin Privileges Required", MessageBoxButtons.OK, MessageBoxIcon.Stop);
+                        Strings.Program_ThisApplicationRequiresAdministrativePrivilegesTo,
+                        Strings.Program_AdminPrivilegesRequired, MessageBoxButtons.OK, MessageBoxIcon.Stop);
                     return;
                 }
             }

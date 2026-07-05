@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "fileName": "Desc.iff",
+  "region": "TH",
+  "minimumRecordSize": 516,
+  "isEditable": true,
+  "fields": [
+    {
+      "name": "ItemId",
+      "offset": 0,
+      "width": 4,
+      "type": "UInt32",
+      "isEditable": true,
+      "encodingCodePage": null,
+      "minimum": null,
+      "maximum": null,
+      "bitMask": null,
+      "bitShift": 0,
+      "isVisible": true
+    },
+    {
+      "name": "Description",
+      "offset": 4,
+      "width": 512,
+      "type": "FixedString",
+      "isEditable": true,
+      "encodingCodePage": 28591,
+      "minimum": null,
+      "maximum": null,
+      "bitMask": null,
+      "bitShift": 0,
+      "isVisible": true
+    },
+    {
+      "name": "Raw record",
+      "offset": 0,
+      "width": 516,
+      "type": "Raw",
+      "isEditable": false,
+      "encodingCodePage": null,
+      "minimum": null,
+      "maximum": null,
+      "bitMask": null,
+      "bitShift": 0,
+      "isVisible": false
+    }
+  ],
+  "defaultStringSize": 512
+}
