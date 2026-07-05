@@ -66,6 +66,7 @@ namespace PangYa_Suite_Tools
         private ToolStripMenuItem _menuRemoveSingle;
         private ToolStripMenuItem _menuExtractFolder;
         private ToolStripMenuItem _menuRemoveFolder;
+        private ToolStripMenuItem _menuRename;
         protected override void Dispose(bool disposing)
         {
             if (disposing && (components != null))

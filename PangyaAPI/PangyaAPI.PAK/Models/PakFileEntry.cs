@@ -38,8 +38,24 @@ namespace PangyaAPI.PAK.Models
             set => _fileNameEncoding = value ?? throw new ArgumentNullException(nameof(value));
         }
 
-        public string Name => FileNameEncoding.GetString(_nameRaw).Replace('/', '\\').Trim();
+        public string Name
+        {
+            get => FileNameEncoding.GetString(_nameRaw).Replace('/', '\\').Trim();
+            set
+            {
+                if (string.IsNullOrWhiteSpace(value)) return;
 
+                // Transforma as barras invertidas do Windows no padrão interno do PAK ('/')
+                string normalizedName = value.Replace('\\', '/').Trim('/');
+
+                // Codifica a string de volta para os bytes corretos na codificação do jogo (EUC-KR)
+                byte[] encodedBytes = EncodeName(normalizedName, FileNameEncoding);
+
+                // Atualiza o buffer bruto e reajusta o comprimento do indicador de tamanho do cabeçalho
+                _nameRaw = encodedBytes;
+                NameLength = (byte)encodedBytes.Length;
+            }
+        }
         internal static byte[] EncodeName(string name, Encoding encoding) => encoding.GetBytes(name);
 
         /// <summary>

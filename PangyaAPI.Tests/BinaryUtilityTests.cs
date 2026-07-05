@@ -1,11 +1,19 @@
 using System.Runtime.InteropServices;
 using System.Text;
 using PangyaAPI.Utilities.Models;
+using Xunit;
 
 namespace PangyaAPI.Tests;
 
 public sealed class BinaryUtilityTests
 {
+    
+    public BinaryUtilityTests()
+    {
+        //add for encoding support for code page 1252 (Windows-1252) in .NET Core
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+    }
+
     [Fact]
     public void FixedStringRead_RejectsTruncatedInput()
     {

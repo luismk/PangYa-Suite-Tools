@@ -32,7 +32,8 @@ namespace PangyaAPI.Utilities.Models
         {
             _Encoder = encoding;
         }
-
+        
+    
         public void Skip(int count)
         {
             Seek(count, 1);

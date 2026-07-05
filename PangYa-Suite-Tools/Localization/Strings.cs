@@ -33,6 +33,14 @@ internal static class Strings
     public static string PakMaker_RemoveSelectedItemSFromPAK => ResourceManager.GetString(nameof(PakMaker_RemoveSelectedItemSFromPAK), Culture) ?? "";
     public static string PakMaker_ExtractThisFolder => ResourceManager.GetString(nameof(PakMaker_ExtractThisFolder), Culture) ?? "";
     public static string PakMaker_RemoveThisFolderFromPAK => ResourceManager.GetString(nameof(PakMaker_RemoveThisFolderFromPAK), Culture) ?? "";
+    public static string PakMaker_RenameThisPAK => ResourceManager.GetString(nameof(PakMaker_RenameThisPAK), Culture) ?? "";
+    public static string PakMaker_RenameProcess => ResourceManager.GetString(nameof(PakMaker_RenameProcess), Culture) ?? "";
+    public static string PakMaker_RenameNotFound => ResourceManager.GetString(nameof(PakMaker_RenameNotFound), Culture) ?? "";
+    public static string PakMaker_RenameWriter => ResourceManager.GetString(nameof(PakMaker_RenameWriter), Culture) ?? "";
+    public static string PakMaker_RenameSuccess => ResourceManager.GetString(nameof(PakMaker_RenameSuccess), Culture) ?? "";
+    public static string PakMaker_RenameError => ResourceManager.GetString(nameof(PakMaker_RenameError), Culture) ?? "";
+    public static string PakMaker_RenamePhysicalFailed => ResourceManager.GetString(nameof(PakMaker_RenamePhysicalFailed), Culture) ?? "";
+    public static string PakMaker_InvalidCharacters => ResourceManager.GetString(nameof(PakMaker_InvalidCharacters), Culture) ?? "";
     public static string PakMaker_PreparingFilesForDragging => ResourceManager.GetString(nameof(PakMaker_PreparingFilesForDragging), Culture) ?? "";
     public static string PakMaker_Ready => ResourceManager.GetString(nameof(PakMaker_Ready), Culture) ?? "";
     public static string PakMaker_PreparingFolderStructureForDragging => ResourceManager.GetString(nameof(PakMaker_PreparingFolderStructureForDragging), Culture) ?? "";
@@ -163,6 +171,7 @@ internal static class Strings
     public static string Common_PortugueseBrazil => ResourceManager.GetString(nameof(Common_PortugueseBrazil), Culture) ?? "";
     public static string Common_EnglishUS => ResourceManager.GetString(nameof(Common_EnglishUS), Culture) ?? "";
     public static string Common_Swedish => ResourceManager.GetString(nameof(Common_Swedish), Culture) ?? "";
+    public static string Common_Japonese => ResourceManager.GetString(nameof(Common_Japonese), Culture) ?? "";
     public static string Common_Language => ResourceManager.GetString(nameof(Common_Language), Culture) ?? "";
     public static string Menu_Title => ResourceManager.GetString(nameof(Menu_Title), Culture) ?? "";
     public static string Menu_PakManager => ResourceManager.GetString(nameof(Menu_PakManager), Culture) ?? "";

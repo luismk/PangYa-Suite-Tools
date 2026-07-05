@@ -29,9 +29,15 @@ namespace PangYa_Suite_Tools
             cboLanguage.Items.Add(new KeyValuePair<string, string>(Strings.Common_PortugueseBrazil, LocalizationManager.PortugueseBrazil));
             cboLanguage.Items.Add(new KeyValuePair<string, string>(Strings.Common_EnglishUS, LocalizationManager.English));
             cboLanguage.Items.Add(new KeyValuePair<string, string>(Strings.Common_Swedish, LocalizationManager.Swedish));
+            cboLanguage.Items.Add(new KeyValuePair<string, string>(Strings.Common_Japonese, LocalizationManager.Japonese));
             cboLanguage.SelectedIndex = LocalizationManager.CurrentCultureIndex;
 
             isInitializingLanguages = false;
+            //init lang
+            if (cboLanguage.SelectedItem is KeyValuePair<string, string> selectedItem)
+            {
+                LocalizationManager.SetCulture(selectedItem.Value);
+            }
             ApplyLocalization();
         }
 

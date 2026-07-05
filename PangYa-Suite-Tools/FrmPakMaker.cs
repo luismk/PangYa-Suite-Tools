@@ -66,6 +66,7 @@ namespace PangYa_Suite_Tools
             cboLanguage.Items.Add(new KeyValuePair<string, string>(Strings.Common_PortugueseBrazil, LocalizationManager.PortugueseBrazil));
             cboLanguage.Items.Add(new KeyValuePair<string, string>(Strings.Common_EnglishUS, LocalizationManager.English));
             cboLanguage.Items.Add(new KeyValuePair<string, string>(Strings.Common_Swedish, LocalizationManager.Swedish));
+            cboLanguage.Items.Add(new KeyValuePair<string, string>(Strings.Common_Japonese, LocalizationManager.Japonese));
             cboLanguage.SelectedIndex = LocalizationManager.CurrentCultureIndex;
 
             isInitializingLanguages = false;
@@ -173,6 +174,7 @@ namespace PangYa_Suite_Tools
             this.DragLeave += FrmPakMaker_DragLeave;
             this.DragDrop += FrmPakMaker_DragDrop;
             tvFolders.CheckBoxes = true;
+            tvFolders.CheckBoxes = true;
             lstEntries.MultiSelect = true;
             lstEntries.DoubleClick += LstEntries_DoubleClick;
             tvFolders.AfterSelect += TvFolders_AfterSelect;
@@ -191,6 +193,9 @@ namespace PangYa_Suite_Tools
             lstEntries.ItemDrag += LstEntries_ItemDrag;
             tvFolders.ItemDrag += TvFolders_ItemDrag;
 
+            // Permite renomear arquivos ou pastas
+            tvFolders.LabelEdit = true; // Permite alterar o texto do nó nativamente
+            tvFolders.AfterLabelEdit += TvFolders_AfterLabelEdit; // Evento executado pós-edição 
         }
 
         /// <summary>
@@ -203,11 +208,16 @@ namespace PangYa_Suite_Tools
             _menuExtractFolder.Click += async (s, e) => await ExtractSelectedFolderAsync();
 
             _menuRemoveFolder = new ToolStripMenuItem(Strings.PakMaker_RemoveThisFolderFromPAK);
-            _menuRemoveFolder.Click += async (s, e) => await RemoveFolderFromTreeAsync();
-
+            _menuRemoveFolder.Click += async (s, e) => await RemoveFolderFromTreeAsync(); 
+            _menuRename = new ToolStripMenuItem(Strings.PakMaker_RenameThisPAK);
+            _menuRename.Click += (s, e) => {
+                if (tvFolders.SelectedNode != null)
+                    tvFolders.SelectedNode.BeginEdit();
+            };
+            folderContextMenu.Items.Add(_menuRename); 
             folderContextMenu.Items.Add(_menuExtractFolder);
             folderContextMenu.Items.Add(_menuRemoveFolder);
-            tvFolders.ContextMenuStrip = folderContextMenu;
+            tvFolders.ContextMenuStrip = folderContextMenu; 
         }
 
         // ─── ARRASTAR PARA FORA (DRAG-OUT / EXPORTAÇÃO RÁPIDA) ─────────────────
@@ -723,6 +733,65 @@ namespace PangYa_Suite_Tools
             foreach (ListViewItem item in lstEntries.Items) item.Selected = true;
             AppLogger.Instance.Log("PAK Manager",
                 $"Selected folder '{(string.IsNullOrEmpty(folderTag) ? "/" : folderTag)}' and {_scopedEntries.Count} files below it.");
+        }
+
+        private async void TvFolders_AfterLabelEdit(object sender, NodeLabelEditEventArgs e)
+        {
+            // Se o usuário cancelou a digitação ou enviou vazio, ignora
+            if (string.IsNullOrWhiteSpace(e.Label) || _currentReader == null)
+            {
+                e.CancelEdit = true;
+                return;
+            }
+
+            string newName = e.Label.Trim();
+
+            // Valida caracteres proibidíssimos que quebrariam a indexação do PAK
+            if (newName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0 || newName.Contains("/") || newName.Contains("\\"))
+            {
+                MessageBox.Show(Strings.PakMaker_Error, Strings.PakMaker_Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                e.CancelEdit = true;
+                return;
+            }
+
+            TreeNode node = e.Node;
+
+            // Evita renomear o nó raiz principal caso ele esteja selecionado
+            if (node.Parent == null && (node.Tag?.ToString() == "" || node.FullPath == ""))
+            {
+                e.CancelEdit = true;
+                return;
+            }
+
+            // Cancela o comportamento visual padrão do WinForms porque nossa função 
+            // própria já reconstrói e recarrega toda a árvore de forma limpa direto do disco
+            e.CancelEdit = true;
+
+            // Dispara a nossa assinatura dedicada
+            await ExecuteItemRename(node, newName);
+        }
+
+        private void UpdateChildNodeTags(TreeNode parentNode, string newPrefix)
+        {
+            foreach (TreeNode child in parentNode.Nodes)
+            {
+                string currentPath = child.Tag?.ToString() ?? child.FullPath;
+                string fileName = Path.GetFileName(currentPath);
+                child.Tag = newPrefix + fileName;
+
+                if (child.Nodes.Count > 0)
+                {
+                    UpdateChildNodeTags(child, child.Tag.ToString() + "/");
+                }
+            }
+        } 
+
+        private void tvFolders_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.F2 && tvFolders.SelectedNode != null)
+            {
+                tvFolders.SelectedNode.BeginEdit();
+            }
         }
 
         /// <summary>
@@ -1889,5 +1958,54 @@ namespace PangYa_Suite_Tools
                 EndOperation(operation);
             }
         }
-    }
+
+
+        /// <summary>
+        /// Executa a rotina isolada de validação, alteração lógica e gravação física do item renomeado.
+        /// </summary>
+        private async Task ExecuteItemRename(TreeNode selectedNode, string newName)
+        {
+            if (_currentReader == null || string.IsNullOrEmpty(txtPakPath.Text)) return;
+
+            string pakPath = txtPakPath.Text;
+            string oldPath = selectedNode.Tag?.ToString() ?? selectedNode.FullPath;
+            var options = BuildRebuildOptionsForCurrentPak();
+
+            lblStatus.Text = Strings.PakMaker_RenameProcess; 
+
+            try
+            {
+                bool success = false;
+
+                // Executa a operação
+                await Task.Run(() =>
+                {
+                    success = PakManager.Rename(pakPath, _currentReader, oldPath, newName.Replace("📁 ", ""), options,
+                        onProgress: (done, total) => ReportProgress(done, total, Strings.PakMaker_RenameWriter));
+                });
+
+                if (!success)
+                {
+                    MessageBox.Show(Strings.PakMaker_RenameNotFound, Strings.Common_Error, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    LoadPak(pakPath, options.FileNameEncoding);
+                    return;
+                }
+
+                lblStatus.Text = Strings.PakMaker_RenameSuccess;
+
+                // Recarrega a UI com os novos ponteiros persistidos no arquivo final
+                LoadPak(pakPath, options.FileNameEncoding);
+            }
+            catch (Exception ex)
+            {
+                lblStatus.Text = Strings.PakMaker_RenameError;
+                MessageBox.Show($"{Strings.PakMaker_RenamePhysicalFailed} {ex.Message}", Strings.Common_Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                LoadPak(pakPath, options.FileNameEncoding);
+            }
+            finally
+            {
+                HideProgress();
+            }
+        }
+    } 
 }

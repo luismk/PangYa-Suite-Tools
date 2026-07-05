@@ -87,6 +87,30 @@
   <data name="PakMaker_RemoveThisFolderFromPAK" xml:space="preserve">
     <value>🗑️ Remover esta pasta do PAK...</value>
   </data>
+  <data name="PakMaker_RenameThisPAK" xml:space="preserve">
+    <value>✏️ Renomear Pasta/Arquivo (F2)</value>
+  </data>
+  <data name="PakMaker_RenameProcess" xml:space="preserve">
+    <value>Processando novos caminhos e atualizando arquivo PAK...</value>
+  </data>
+  <data name="PakMaker_RenameNotFound" xml:space="preserve">
+    <value>Nenhum item correspondente foi localizado na árvore do PAK.</value>
+  </data>
+  <data name="PakMaker_RenameWriter" xml:space="preserve">
+    <value>Gravando estrutura...</value>
+  </data>
+  <data name="PakMaker_RenameSuccess" xml:space="preserve">
+    <value>PAK renomeado e salvo com sucesso!</value>
+  </data>
+  <data name="PakMaker_RenameError" xml:space="preserve">
+    <value>Erro ao aplicar renomeação.</value>
+  </data>
+  <data name="PakMaker_RenamePhysicalFailed" xml:space="preserve">
+    <value>Falha na reestruturação física do arquivo PAK:</value>
+  </data>
+  <data name="PakMaker_InvalidCharacters" xml:space="preserve">
+    <value>O nome digitado contém caracteres inválidos ou divisores de pastas.</value>
+  </data>
   <data name="PakMaker_PreparingFilesForDragging" xml:space="preserve">
     <value>Preparando arquvivos para arrastar...</value>
   </data>
@@ -467,6 +491,9 @@
   </data>
   <data name="Common_Swedish" xml:space="preserve">
     <value>Sueco</value>
+  </data>
+<data name="Common_Japonese" xml:space="preserve">
+    <value>Japonês</value>
   </data>
   <data name="Common_Language" xml:space="preserve">
     <value>Idioma:</value>
