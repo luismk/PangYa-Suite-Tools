@@ -2,6 +2,7 @@ using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Xml;
 using PangyaAPI.IFF;
 
@@ -21,14 +22,14 @@ internal static class ShopLayoutParser
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         XmlDocument shop = LoadDocument(shopXmlPath);
         XmlDocument predefined = LoadDocument(predefinedXmlPath);
-        XmlElement form = (XmlElement?)shop.SelectSingleNode("/resource/element[@name='shopmain']")
-            ?? throw new InvalidDataException("shop.xml does not contain the shopmain form.");
-        Size size = ParsePair(form.GetAttribute("size"), "shopmain size");
+        XmlElement form = FindShopMainForm(shop)
+            ?? throw new InvalidDataException(CreateMissingShopMainMessage(shop));
+        Size size = ParseFormSize(form);
         if (size.Width <= 0 || size.Height <= 0 || size.Width > 4096 || size.Height > 4096)
             throw new InvalidDataException("The shop form dimensions are invalid.");
 
         var result = new List<ShopLayoutElement>();
-        AddItems(form, predefined, result);
+        AddItems(form, shop, predefined, result, []);
         if (result.Count > MaximumElements)
             throw new InvalidDataException("The expanded shop layout contains too many elements.");
         return new ShopLayout(size, result);
@@ -48,43 +49,184 @@ internal static class ShopLayoutParser
         return document;
     }
 
-    private static void AddItems(XmlElement owner, XmlDocument predefined, List<ShopLayoutElement> output)
+    private static void AddItems(XmlElement owner, XmlDocument shop, XmlDocument predefined,
+                                 List<ShopLayoutElement> output, HashSet<string> macroStack)
     {
-        foreach (XmlElement item in owner.SelectNodes("item")!.OfType<XmlElement>())
+        foreach (XmlElement item in ChildElements(owner, "item"))
         {
-            string type = item.GetAttribute("type");
+            string type = GetAttribute(item, "type");
             if (type.Equals("MACROITEM", StringComparison.OrdinalIgnoreCase))
             {
-                string resource = item.GetAttribute("resource");
-                XmlElement macro = (XmlElement?)predefined.SelectSingleNode($"/resource/element[@name={ToXPathLiteral(resource)}]")
-                    ?? throw new InvalidDataException($"The layout macro '{resource}' was not found.");
-                AddItems(macro, predefined, output);
+                string resource = GetAttribute(item, "resource");
+                if (string.IsNullOrWhiteSpace(resource))
+                    continue;
+
+                XmlElement? macro = FindMacro(predefined, shop, resource);
+                if (macro == null)
+                    continue;
+
+                if (!macroStack.Add(resource))
+                    throw new InvalidDataException($"The layout macro '{resource}' contains a recursive reference.");
+                AddItems(macro, shop, predefined, output, macroStack);
+                macroStack.Remove(resource);
                 continue;
             }
 
             Rectangle bounds = ParseBounds(item);
-            var parameters = item.SelectNodes("param")!.OfType<XmlElement>()
-                .Where(param => param.HasAttribute("name"))
-                .GroupBy(param => param.GetAttribute("name"), StringComparer.OrdinalIgnoreCase)
-                .ToDictionary(group => group.Key, group => group.Last().GetAttribute("var"), StringComparer.OrdinalIgnoreCase);
-            output.Add(new ShopLayoutElement(type, item.GetAttribute("name"), bounds, parameters));
+            var parameters = ChildElements(item, "param")
+                .Where(param => HasAttribute(param, "name"))
+                .GroupBy(param => GetAttribute(param, "name"), StringComparer.OrdinalIgnoreCase)
+                .ToDictionary(group => group.Key, group => GetAttribute(group.Last(), "var"), StringComparer.OrdinalIgnoreCase);
+            output.Add(new ShopLayoutElement(type, GetAttribute(item, "name"), bounds, parameters));
+        }
+    }
+
+    private static XmlElement? FindMacro(XmlDocument predefined, XmlDocument shop, string resource) =>
+        FindLayoutDefinition(predefined, resource) ?? FindLayoutDefinition(shop, resource);
+
+    private static XmlElement? FindShopMainForm(XmlDocument document)
+    {
+        XmlElement[] matches = DescendantElements(document.DocumentElement)
+            .Where(IsShopMainElement)
+            .ToArray();
+
+        return matches.FirstOrDefault(IsExplicitFormElement)
+            ?? matches.FirstOrDefault(element => !HasExplicitNonFormType(element))
+            ?? matches.FirstOrDefault();
+    }
+
+    private static XmlElement? FindElement(XmlDocument document, string name, string? type = null) =>
+        DescendantElements(document.DocumentElement)
+            .Where(element => element.LocalName.Equals("element", StringComparison.OrdinalIgnoreCase))
+            .FirstOrDefault(element =>
+                GetAttribute(element, "name").Equals(name, StringComparison.OrdinalIgnoreCase) &&
+                (type == null || GetAttribute(element, "type").Equals(type, StringComparison.OrdinalIgnoreCase)));
+
+    private static XmlElement? FindLayoutDefinition(XmlDocument document, string name) =>
+        DescendantElements(document.DocumentElement)
+            .FirstOrDefault(element =>
+                element.LocalName.Equals(name, StringComparison.OrdinalIgnoreCase) ||
+                GetAttribute(element, "name").Equals(name, StringComparison.OrdinalIgnoreCase) ||
+                GetAttribute(element, "id").Equals(name, StringComparison.OrdinalIgnoreCase));
+
+    private static bool IsShopMainElement(XmlElement element) =>
+        element.LocalName.Equals("shopmain", StringComparison.OrdinalIgnoreCase) ||
+        AttributeValueEquals(element, "name", "shopmain") ||
+        AttributeValueEquals(element, "id", "shopmain") ||
+        AttributeValueEquals(element, "form", "shopmain") ||
+        element.Attributes.OfType<XmlAttribute>()
+            .Any(attribute => attribute.Value.Equals("shopmain", StringComparison.OrdinalIgnoreCase));
+
+    private static bool IsExplicitFormElement(XmlElement element) =>
+        element.LocalName.Equals("form", StringComparison.OrdinalIgnoreCase) ||
+        GetAttribute(element, "type").Equals("FORM", StringComparison.OrdinalIgnoreCase);
+
+    private static bool HasExplicitNonFormType(XmlElement element) =>
+        HasAttribute(element, "type") &&
+        !GetAttribute(element, "type").Equals("FORM", StringComparison.OrdinalIgnoreCase);
+
+    private static bool AttributeValueEquals(XmlElement element, string attributeName, string expected) =>
+        GetAttribute(element, attributeName).Equals(expected, StringComparison.OrdinalIgnoreCase);
+
+    private static bool IsBaseElement(XmlElement element) =>
+        element.LocalName.Equals("base", StringComparison.OrdinalIgnoreCase) ||
+        AttributeValueEquals(element, "name", "base") ||
+        AttributeValueEquals(element, "id", "base") ||
+        AttributeValueEquals(element, "type", "base");
+
+    private static IEnumerable<XmlElement> ChildElements(XmlElement owner, string localName) =>
+        owner.ChildNodes
+            .OfType<XmlElement>()
+            .Where(element => element.LocalName.Equals(localName, StringComparison.OrdinalIgnoreCase));
+
+    private static IEnumerable<XmlElement> DescendantElements(XmlElement? root)
+    {
+        if (root == null) yield break;
+
+        yield return root;
+        foreach (XmlElement child in root.ChildNodes.OfType<XmlElement>())
+        {
+            foreach (XmlElement descendant in DescendantElements(child))
+                yield return descendant;
         }
     }
 
     private static Rectangle ParseBounds(XmlElement item)
     {
-        if (item.HasAttribute("rect"))
+        if (HasAttribute(item, "rect"))
         {
-            int[] values = ParseNumbers(item.GetAttribute("rect"), 4, $"{item.GetAttribute("name")} rect");
+            int[] values = ParseNumbers(GetAttribute(item, "rect"), 4, $"{GetAttribute(item, "name")} rect");
             if (values[2] < values[0] || values[3] < values[1]) throw new InvalidDataException("A shop rectangle is inverted.");
             return Rectangle.FromLTRB(values[0], values[1], values[2], values[3]);
         }
-        if (item.HasAttribute("pos"))
+        if (HasAttribute(item, "pos"))
         {
-            Size point = ParsePair(item.GetAttribute("pos"), $"{item.GetAttribute("name")} pos");
+            Size point = ParsePair(GetAttribute(item, "pos"), $"{GetAttribute(item, "name")} pos");
             return new Rectangle(point.Width, point.Height, 0, 0);
         }
         return Rectangle.Empty;
+    }
+
+    private static Size ParseFormSize(XmlElement form)
+    {
+        if (TryParseElementSize(form, "shopmain", out Size formSize))
+            return formSize;
+
+        foreach (XmlElement baseElement in DescendantElements(form).Skip(1).Where(IsBaseElement))
+        {
+            if (TryParseElementSize(baseElement, "shopmain base", out Size baseSize))
+                return baseSize;
+        }
+
+        string described = string.Join(", ", form.Attributes.OfType<XmlAttribute>()
+            .Select(attribute => $"{attribute.Name}='{attribute.Value}'"));
+        throw new InvalidDataException(
+            string.IsNullOrWhiteSpace(described)
+                ? "Invalid shopmain size: no size, width/height, rect, or inline base element was found."
+                : $"Invalid shopmain size: no usable size, width/height, rect, or inline base element was found on shopmain ({described}).");
+    }
+
+    private static bool TryParseElementSize(XmlElement element, string label, out Size size)
+    {
+        if (HasAttribute(element, "size"))
+        {
+            size = ParsePair(GetAttribute(element, "size"), $"{label} size");
+            return true;
+        }
+
+        string width = FirstAttribute(element, "width", "w", "cx");
+        string height = FirstAttribute(element, "height", "h", "cy");
+        if (!string.IsNullOrWhiteSpace(width) || !string.IsNullOrWhiteSpace(height))
+        {
+            if (int.TryParse(width, out int parsedWidth) &&
+                int.TryParse(height, out int parsedHeight))
+            {
+                size = new Size(parsedWidth, parsedHeight);
+                return true;
+            }
+
+            throw new InvalidDataException($"Invalid {label} size: width='{width}', height='{height}'.");
+        }
+
+        string rect = FirstAttribute(element, "rect", "bounds");
+        if (!string.IsNullOrWhiteSpace(rect))
+        {
+            int[] values = ParseNumbers(rect, 4, $"{label} rect");
+            if (values[2] < values[0] || values[3] < values[1])
+                throw new InvalidDataException($"The {label} rectangle is inverted.");
+            size = new Size(values[2] - values[0], values[3] - values[1]);
+            return true;
+        }
+
+        if (!string.IsNullOrWhiteSpace(element.InnerText) && !ChildElements(element, "item").Any())
+        {
+            int[] values = ParseNumbers(element.InnerText, 2, $"{label} text size");
+            size = new Size(values[0], values[1]);
+            return true;
+        }
+
+        size = Size.Empty;
+        return false;
     }
 
     private static Size ParsePair(string value, string label)
@@ -95,15 +237,59 @@ internal static class ShopLayoutParser
 
     private static int[] ParseNumbers(string value, int count, string label)
     {
-        string[] parts = value.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
-        if (parts.Length != count || parts.Any(part => !int.TryParse(part, out _)))
+        int[] numbers = Regex.Matches(value, @"-?\d+")
+            .Select(match => int.Parse(match.Value))
+            .ToArray();
+        if (numbers.Length != count)
             throw new InvalidDataException($"Invalid {label}: '{value}'.");
-        return parts.Select(int.Parse).ToArray();
+        return numbers;
     }
 
-    private static string ToXPathLiteral(string value) => value.Contains('\'')
-        ? $"concat('{value.Replace("'", "',\"'\",'")}')"
-        : $"'{value}'";
+    private static bool HasAttribute(XmlElement element, string name) =>
+        element.Attributes.OfType<XmlAttribute>()
+            .Any(attribute => attribute.LocalName.Equals(name, StringComparison.OrdinalIgnoreCase));
+
+    private static string GetAttribute(XmlElement element, string name) =>
+        element.Attributes.OfType<XmlAttribute>()
+            .FirstOrDefault(attribute => attribute.LocalName.Equals(name, StringComparison.OrdinalIgnoreCase))
+            ?.Value ?? string.Empty;
+
+    private static string FirstAttribute(XmlElement element, params string[] names)
+    {
+        foreach (string name in names)
+        {
+            string value = GetAttribute(element, name);
+            if (!string.IsNullOrWhiteSpace(value)) return value;
+        }
+
+        return string.Empty;
+    }
+
+    private static string CreateMissingShopMainMessage(XmlDocument document)
+    {
+        string[] candidates = DescendantElements(document.DocumentElement)
+            .Where(element => element.LocalName.Equals("form", StringComparison.OrdinalIgnoreCase) ||
+                              GetAttribute(element, "type").Equals("FORM", StringComparison.OrdinalIgnoreCase))
+            .Select(DescribeElement)
+            .Take(8)
+            .ToArray();
+
+        return candidates.Length == 0
+            ? "shop.xml does not contain the shopmain form. No FORM elements were found."
+            : $"shop.xml does not contain the shopmain form. FORM candidates found: {string.Join(", ", candidates)}.";
+    }
+
+    private static string DescribeElement(XmlElement element)
+    {
+        string name = GetAttribute(element, "name");
+        string id = GetAttribute(element, "id");
+        string type = GetAttribute(element, "type");
+        string identifier = string.IsNullOrWhiteSpace(name)
+            ? string.IsNullOrWhiteSpace(id) ? element.LocalName : $"id='{id}'"
+            : $"name='{name}'";
+        return string.IsNullOrWhiteSpace(type) ? $"<{element.LocalName} {identifier}>" : $"<{element.LocalName} type='{type}' {identifier}>";
+    }
+
 }
 
 internal sealed class ShopAssetResolver

@@ -39,6 +39,149 @@ public sealed class ShopTests : IDisposable
     }
 
     [Fact]
+    public void LayoutParser_FindsShopMainFormCaseInsensitivelyWhenNested()
+    {
+        string shop = Path.Combine(_directory, "shop.xml");
+        string predefined = Path.Combine(_directory, "predefined.xml");
+        File.WriteAllText(shop, """
+            <?xml version="1.0" encoding="utf-8"?>
+            <resource>
+              <group>
+                <ELEMENT type="form" name="ShopMain" size="1024 768">
+                  <ITEM type="AREA" name="nested_area" rect="5 6 25 36">
+                    <PARAM name="bgimg" var="panel"/>
+                  </ITEM>
+                </ELEMENT>
+              </group>
+            </resource>
+            """, Encoding.UTF8);
+        File.WriteAllText(predefined, """<?xml version="1.0" encoding="utf-8"?><resource/>""", Encoding.UTF8);
+
+        ShopLayout layout = ShopLayoutParser.Load(shop, predefined);
+
+        Assert.Equal(new Size(1024, 768), layout.Size);
+        ShopLayoutElement element = Assert.Single(layout.Elements);
+        Assert.Equal("nested_area", element.Name);
+        Assert.Equal(new Rectangle(5, 6, 20, 30), element.Bounds);
+        Assert.Equal("panel", element.Parameters["bgimg"]);
+    }
+
+    [Fact]
+    public void LayoutParser_AcceptsFormTagWithIdAndUppercaseAttributes()
+    {
+        string shop = Path.Combine(_directory, "shop.xml");
+        string predefined = Path.Combine(_directory, "predefined.xml");
+        File.WriteAllText(shop, """
+            <?xml version="1.0" encoding="utf-8"?>
+            <resource>
+              <FORM ID="shopmain" SIZE="640 480">
+                <ITEM TYPE="AREA" NAME="area_from_form_tag" RECT="1 2 21 32" />
+              </FORM>
+            </resource>
+            """, Encoding.UTF8);
+        File.WriteAllText(predefined, """<?xml version="1.0" encoding="utf-8"?><resource/>""", Encoding.UTF8);
+
+        ShopLayout layout = ShopLayoutParser.Load(shop, predefined);
+
+        Assert.Equal(new Size(640, 480), layout.Size);
+        ShopLayoutElement element = Assert.Single(layout.Elements);
+        Assert.Equal("AREA", element.Type);
+        Assert.Equal("area_from_form_tag", element.Name);
+        Assert.Equal(new Rectangle(1, 2, 20, 30), element.Bounds);
+    }
+
+    [Theory]
+    [InlineData("""<FORM ID="shopmain" WIDTH="640" HEIGHT="480" />""", 640, 480)]
+    [InlineData("""<FORM ID="shopmain" W="800" H="600" />""", 800, 600)]
+    [InlineData("""<FORM ID="shopmain" RECT="10,20,1034,788" />""", 1024, 768)]
+    [InlineData("""<FORM ID="shopmain" SIZE="width=1280 height=720" />""", 1280, 720)]
+    public void LayoutParser_AcceptsAlternateShopMainSizeFormats(string formXml, int width, int height)
+    {
+        string shop = Path.Combine(_directory, "shop.xml");
+        string predefined = Path.Combine(_directory, "predefined.xml");
+        File.WriteAllText(shop, $"""
+            <?xml version="1.0" encoding="utf-8"?>
+            <resource>{formXml}</resource>
+            """, Encoding.UTF8);
+        File.WriteAllText(predefined, """<?xml version="1.0" encoding="utf-8"?><resource/>""", Encoding.UTF8);
+
+        ShopLayout layout = ShopLayoutParser.Load(shop, predefined);
+
+        Assert.Equal(new Size(width, height), layout.Size);
+        Assert.Empty(layout.Elements);
+    }
+
+    [Theory]
+    [InlineData("""<base size="960 540" />""", 960, 540)]
+    [InlineData("""<item type="BASE" rect="0 0 1024 768" />""", 1024, 768)]
+    [InlineData("""<element name="base">1280 720</element>""", 1280, 720)]
+    public void LayoutParser_UsesInlineBaseElementWhenShopMainHasNoSize(string baseXml, int width, int height)
+    {
+        string shop = Path.Combine(_directory, "shop.xml");
+        string predefined = Path.Combine(_directory, "predefined.xml");
+        File.WriteAllText(shop, $"""
+            <?xml version="1.0" encoding="utf-8"?>
+            <resource>
+              <FORM ID="shopmain">
+                {baseXml}
+              </FORM>
+            </resource>
+            """, Encoding.UTF8);
+        File.WriteAllText(predefined, """<?xml version="1.0" encoding="utf-8"?><resource/>""", Encoding.UTF8);
+
+        ShopLayout layout = ShopLayoutParser.Load(shop, predefined);
+
+        Assert.Equal(new Size(width, height), layout.Size);
+    }
+
+    [Fact]
+    public void LayoutParser_SkipsMissingMacrosInsteadOfFailingWholeShop()
+    {
+        string shop = Path.Combine(_directory, "shop.xml");
+        string predefined = Path.Combine(_directory, "predefined.xml");
+        File.WriteAllText(shop, """
+            <?xml version="1.0" encoding="utf-8"?>
+            <resource>
+              <FORM ID="shopmain" SIZE="640 480">
+                <item type="MACROITEM" resource="under_tab_m" />
+                <item type="AREA" name="still_loaded" rect="1 2 21 32" />
+              </FORM>
+            </resource>
+            """, Encoding.UTF8);
+        File.WriteAllText(predefined, """<?xml version="1.0" encoding="utf-8"?><resource/>""", Encoding.UTF8);
+
+        ShopLayout layout = ShopLayoutParser.Load(shop, predefined);
+
+        ShopLayoutElement element = Assert.Single(layout.Elements);
+        Assert.Equal("still_loaded", element.Name);
+    }
+
+    [Fact]
+    public void LayoutParser_ExpandsInlineShopMacroDefinitions()
+    {
+        string shop = Path.Combine(_directory, "shop.xml");
+        string predefined = Path.Combine(_directory, "predefined.xml");
+        File.WriteAllText(shop, """
+            <?xml version="1.0" encoding="utf-8"?>
+            <resource>
+              <FORM ID="shopmain" SIZE="640 480">
+                <item type="MACROITEM" resource="under_tab_m" />
+              </FORM>
+              <under_tab_m>
+                <ITEM TYPE="BUTTON" NAME="inline_macro_button" RECT="10 20 30 45" />
+              </under_tab_m>
+            </resource>
+            """, Encoding.UTF8);
+        File.WriteAllText(predefined, """<?xml version="1.0" encoding="utf-8"?><resource/>""", Encoding.UTF8);
+
+        ShopLayout layout = ShopLayoutParser.Load(shop, predefined);
+
+        ShopLayoutElement element = Assert.Single(layout.Elements);
+        Assert.Equal("inline_macro_button", element.Name);
+        Assert.Equal(new Rectangle(10, 20, 20, 25), element.Bounds);
+    }
+
+    [Fact]
     public void TgaDecoder_DecodesBottomOriginBgraAndAlpha()
     {
         string path = Path.Combine(_directory, "test.tga");
