@@ -78,6 +78,15 @@
   <data name="PakMaker_ExtractSelectedItemS" xml:space="preserve">
     <value>📁 Extrair selecionado(s)...</value>
   </data>
+  <data name="PakMaker_RenameSelectedFile" xml:space="preserve">
+    <value>✏️ Renomear arquivo selecionado (F2)</value>
+  </data>
+  <data name="PakMaker_SelectSingleFileToRename" xml:space="preserve">
+    <value>Selecione exatamente um arquivo para renomear.</value>
+  </data>
+  <data name="PakMaker_InvalidRenameName" xml:space="preserve">
+    <value>Informe um nome de arquivo válido, sem separadores de caminho.</value>
+  </data>
   <data name="PakMaker_RemoveSelectedItemSFromPAK" xml:space="preserve">
     <value>🗑️ Remover selecionado(s) do PAK...</value>
   </data>
@@ -840,4 +849,55 @@
   <data name="IFFManager_ByteValue" xml:space="preserve"><value>Valor do byte</value></data>
   <data name="IFFManager_DefineColumn" xml:space="preserve"><value>Definir coluna</value></data>
   <data name="IFFManager_SelectContiguousBytes" xml:space="preserve"><value>Selecione um intervalo contínuo de bytes.</value></data>
+  <data name="PakMaker_BatchFolderStructureTitle" xml:space="preserve"><value>Estrutura de pastas da extração em lote</value></data>
+  <data name="PakMaker_BatchFolderStructureChoice" xml:space="preserve"><value>Criar uma pasta separada para cada PAK?
+
+Sim: Manter a estrutura atual (destino\nome do PAK\arquivos).
+Não: Gravar todos os arquivos diretamente no destino usando seus caminhos internos. Arquivos de PAKs posteriores podem substituir arquivos anteriores.
+Cancelar: Interromper a extração.</value></data>
+  <data name="Menu_Shop" xml:space="preserve"><value>Loja PangYa</value></data>
+  <data name="Shop_Title" xml:space="preserve"><value>Simulação da Loja PangYa</value></data>
+  <data name="Shop_SelectDataFolder" xml:space="preserve"><value>Selecione a pasta data extraída do PangYa.</value></data>
+  <data name="Shop_MissingRequiredFile" xml:space="preserve"><value>Um arquivo obrigatório da loja está ausente.</value></data>
+  <data name="Shop_LoadFailed" xml:space="preserve"><value>Não foi possível carregar a loja: {0}</value></data>
+  <data name="Shop_NoItems" xml:space="preserve"><value>Nenhum item vendável com ícone disponível foi encontrado.</value></data>
+  <data name="Shop_CartSummary" xml:space="preserve"><value>Carrinho: {0} item(ns)&#xA;Total Pang: {1:N0}   Total Cookie: {2:N0}</value></data>
+  <data name="Shop_Balances" xml:space="preserve"><value>Saldo — Pang: {0:N0}   Cookies: {1:N0}</value></data>
+  <data name="Shop_Filter" xml:space="preserve"><value>Pesquisa: {0}</value></data>
+  <data name="Shop_Search" xml:space="preserve"><value>Pesquisar itens</value></data>
+  <data name="Shop_EmptyCart" xml:space="preserve"><value>O carrinho está vazio.</value></data>
+  <data name="Shop_ConfirmPurchase" xml:space="preserve"><value>Concluir esta compra simulada?&#xA;&#xA;Pang: {0:N0}&#xA;Cookies: {1:N0}</value></data>
+  <data name="Shop_InsufficientFunds" xml:space="preserve"><value>O saldo simulado é insuficiente.</value></data>
+  <data name="Shop_PurchaseComplete" xml:space="preserve"><value>A compra simulada foi concluída.</value></data>
+  <data name="Shop_MissingIconsSkipped" xml:space="preserve"><value>{0} registro(s) do catálogo foram ignorados porque o ícone não pôde ser localizado.</value></data>
+  <data name="Shop_EditPrices" xml:space="preserve"><value>Editar preços do item</value></data>
+  <data name="Shop_Price" xml:space="preserve"><value>Preço</value></data>
+  <data name="Shop_DiscountPrice" xml:space="preserve"><value>Preço com desconto</value></data>
+  <data name="Shop_RentalPrice" xml:space="preserve"><value>Preço de aluguel</value></data>
+  <data name="Shop_EditSaved" xml:space="preserve"><value>O item IFF foi salvo com sucesso.</value></data>
+  <data name="Shop_EditFailed" xml:space="preserve"><value>Não foi possível salvar o item IFF: {0}</value></data>
+  <data name="Shop_IconFilter" xml:space="preserve"><value>Imagens compatíveis|*.tga;*.png;*.jpg;*.jpeg;*.bmp|Todos os arquivos|*.*</value></data>
+  <data name="Shop_SelectIcon" xml:space="preserve"><value>Selecione um ícone da pasta data extraída</value></data>
+  <data name="Shop_IconMustBeInData" xml:space="preserve"><value>O ícone selecionado deve estar dentro da pasta data extraída para que o jogo possa localizá-lo.</value></data>
+  <data name="Shop_EditHint" xml:space="preserve"><value>Clique no ícone para substituí-lo. Clique com o botão direito no item para editar os preços.</value></data>
+  <data name="Shop_ShopFlags" xml:space="preserve"><value>Flags da loja (hex)</value></data>
+  <data name="Shop_MoneyFlags" xml:space="preserve"><value>Flags monetárias (hex)</value></data>
+  <data name="Shop_TimeFlag" xml:space="preserve"><value>Flag de tempo (hex)</value></data>
+  <data name="Shop_Time" xml:space="preserve"><value>Valor de tempo (hex)</value></data>
+  <data name="Shop_StartDate" xml:space="preserve"><value>Data inicial</value></data>
+  <data name="Shop_EndDate" xml:space="preserve"><value>Data final</value></data>
+  <data name="Shop_FlagIsCash" xml:space="preserve"><value>Item de cash</value></data>
+  <data name="Shop_FlagCanSendMailAndPersonalShop" xml:space="preserve"><value>Correio / loja pessoal</value></data>
+  <data name="Shop_FlagCanDuplicate" xml:space="preserve"><value>Pode duplicar</value></data>
+  <data name="Shop_FlagShopSpecial" xml:space="preserve"><value>Especial da loja</value></data>
+  <data name="Shop_FlagBlockMailAndPersonalShop" xml:space="preserve"><value>Bloquear correio / loja</value></data>
+  <data name="Shop_FlagIsSaleable" xml:space="preserve"><value>Vendável</value></data>
+  <data name="Shop_FlagIsGift" xml:space="preserve"><value>Item de presente</value></data>
+  <data name="Shop_FlagOnlyDisplay" xml:space="preserve"><value>Somente exibir</value></data>
+  <data name="Shop_FlagInStock" xml:space="preserve"><value>Em estoque</value></data>
+  <data name="Shop_FlagShowNew" xml:space="preserve"><value>Mostrar Novo</value></data>
+  <data name="Shop_FlagDisplayOnly" xml:space="preserve"><value>Somente exibição</value></data>
+  <data name="Shop_FlagShowHot" xml:space="preserve"><value>Mostrar Hot</value></data>
+  <data name="Shop_FlagShowSpecial" xml:space="preserve"><value>Mostrar Especial</value></data>
+  <data name="Shop_FlagUnknown" xml:space="preserve"><value>Desconhecido (0x{0:X2})</value></data>
 </root>

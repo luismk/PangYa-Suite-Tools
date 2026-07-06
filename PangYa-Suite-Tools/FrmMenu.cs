@@ -2,6 +2,7 @@ using PangYa_Suite_Tools.Localization;
 using Microsoft.Win32;
 using System.ComponentModel;
 using System.Diagnostics;
+using PangYa_Suite_Tools.Shop;
 
 namespace PangYa_Suite_Tools
 {
@@ -70,6 +71,7 @@ namespace PangYa_Suite_Tools
             btnOpenOptions.Text = Strings.Menu_Options;
             btnOpenPakDiff.Text = Strings.Menu_PakDiff;
             btnOpenLog.Text = Strings.Menu_Log;
+            btnOpenShop.Text = Strings.Menu_Shop;
             lblLanguage.Text = Strings.Common_Language;
         }
 
@@ -148,6 +150,24 @@ namespace PangYa_Suite_Tools
             }
 
             _logWindow.Activate();
+        }
+
+        private async void btnOpenShop_Click(object? sender, EventArgs e)
+        {
+            using var dialog = new FolderBrowserDialog { Description = Strings.Shop_SelectDataFolder };
+            if (dialog.ShowDialog(this) != DialogResult.OK) return;
+            btnOpenShop.Enabled = false;
+            try
+            {
+                FrmShopMockup shop = await FrmShopMockup.CreateAsync(dialog.SelectedPath);
+                OpenToolWindow(shop, hideMenu: true);
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidDataException or ArgumentException)
+            {
+                MessageBox.Show(this, string.Format(LocalizationManager.CurrentCulture, Strings.Shop_LoadFailed, ex.Message),
+                    Strings.Common_Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally { btnOpenShop.Enabled = true; }
         }
 
         

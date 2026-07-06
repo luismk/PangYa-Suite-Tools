@@ -78,6 +78,15 @@
   <data name="PakMaker_ExtractSelectedItemS" xml:space="preserve">
     <value>📁 Extrahera markerat/markerade objekt...</value>
   </data>
+  <data name="PakMaker_RenameSelectedFile" xml:space="preserve">
+    <value>✏️ Byt namn på markerad fil (F2)</value>
+  </data>
+  <data name="PakMaker_SelectSingleFileToRename" xml:space="preserve">
+    <value>Markera exakt en fil att byta namn på.</value>
+  </data>
+  <data name="PakMaker_InvalidRenameName" xml:space="preserve">
+    <value>Ange ett giltigt filnamn utan sökvägsavgränsare.</value>
+  </data>
   <data name="PakMaker_RemoveSelectedItemSFromPAK" xml:space="preserve">
     <value>🗑️ Ta bort markerat/markerade objekt från PAK...</value>
   </data>
@@ -837,4 +846,55 @@
   <data name="IFFManager_ByteValue" xml:space="preserve"><value>Bytevärde</value></data>
   <data name="IFFManager_DefineColumn" xml:space="preserve"><value>Definiera kolumn</value></data>
   <data name="IFFManager_SelectContiguousBytes" xml:space="preserve"><value>Välj ett sammanhängande byteintervall.</value></data>
+  <data name="PakMaker_BatchFolderStructureTitle" xml:space="preserve"><value>Mappstruktur för batchextrahering</value></data>
+  <data name="PakMaker_BatchFolderStructureChoice" xml:space="preserve"><value>Skapa en separat mapp för varje PAK-fil?
+
+Ja: Behåll den nuvarande strukturen (mål\PAK-namn\filer).
+Nej: Skriv alla filer direkt under målmappen med deras interna sökvägar. Filer från senare PAK-filer kan skriva över tidigare filer.
+Avbryt: Stoppa extraheringen.</value></data>
+  <data name="Menu_Shop" xml:space="preserve"><value>PangYa-butik</value></data>
+  <data name="Shop_Title" xml:space="preserve"><value>PangYa-butikssimulering</value></data>
+  <data name="Shop_SelectDataFolder" xml:space="preserve"><value>Välj den extraherade PangYa-mappen data.</value></data>
+  <data name="Shop_MissingRequiredFile" xml:space="preserve"><value>En obligatorisk butiksfil saknas.</value></data>
+  <data name="Shop_LoadFailed" xml:space="preserve"><value>Butiken kunde inte läsas in: {0}</value></data>
+  <data name="Shop_NoItems" xml:space="preserve"><value>Inga säljbara objekt med tillgängliga ikoner hittades.</value></data>
+  <data name="Shop_CartSummary" xml:space="preserve"><value>Kundvagn: {0} objekt&#xA;Pang totalt: {1:N0}   Cookies totalt: {2:N0}</value></data>
+  <data name="Shop_Balances" xml:space="preserve"><value>Saldo — Pang: {0:N0}   Cookies: {1:N0}</value></data>
+  <data name="Shop_Filter" xml:space="preserve"><value>Sökning: {0}</value></data>
+  <data name="Shop_Search" xml:space="preserve"><value>Sök objekt</value></data>
+  <data name="Shop_EmptyCart" xml:space="preserve"><value>Kundvagnen är tom.</value></data>
+  <data name="Shop_ConfirmPurchase" xml:space="preserve"><value>Slutför det simulerade köpet?&#xA;&#xA;Pang: {0:N0}&#xA;Cookies: {1:N0}</value></data>
+  <data name="Shop_InsufficientFunds" xml:space="preserve"><value>Det simulerade saldot är otillräckligt.</value></data>
+  <data name="Shop_PurchaseComplete" xml:space="preserve"><value>Det simulerade köpet är klart.</value></data>
+  <data name="Shop_MissingIconsSkipped" xml:space="preserve"><value>{0} katalogpost(er) hoppades över eftersom ikonen inte kunde hittas.</value></data>
+  <data name="Shop_EditPrices" xml:space="preserve"><value>Redigera objektpriser</value></data>
+  <data name="Shop_Price" xml:space="preserve"><value>Pris</value></data>
+  <data name="Shop_DiscountPrice" xml:space="preserve"><value>Rabattpris</value></data>
+  <data name="Shop_RentalPrice" xml:space="preserve"><value>Hyrespris</value></data>
+  <data name="Shop_EditSaved" xml:space="preserve"><value>IFF-objektet sparades.</value></data>
+  <data name="Shop_EditFailed" xml:space="preserve"><value>IFF-objektet kunde inte sparas: {0}</value></data>
+  <data name="Shop_IconFilter" xml:space="preserve"><value>Bildfiler som stöds|*.tga;*.png;*.jpg;*.jpeg;*.bmp|Alla filer|*.*</value></data>
+  <data name="Shop_SelectIcon" xml:space="preserve"><value>Välj en ikon från den extraherade data-mappen</value></data>
+  <data name="Shop_IconMustBeInData" xml:space="preserve"><value>Den valda ikonen måste redan finnas i den extraherade data-mappen så att spelet kan hitta den.</value></data>
+  <data name="Shop_EditHint" xml:space="preserve"><value>Klicka på en ikon för att ersätta den. Högerklicka på ett objekt för att redigera priserna.</value></data>
+  <data name="Shop_ShopFlags" xml:space="preserve"><value>Butiksflaggor (hex)</value></data>
+  <data name="Shop_MoneyFlags" xml:space="preserve"><value>Pengaflaggor (hex)</value></data>
+  <data name="Shop_TimeFlag" xml:space="preserve"><value>Tidsflagga (hex)</value></data>
+  <data name="Shop_Time" xml:space="preserve"><value>Tidsvärde (hex)</value></data>
+  <data name="Shop_StartDate" xml:space="preserve"><value>Startdatum</value></data>
+  <data name="Shop_EndDate" xml:space="preserve"><value>Slutdatum</value></data>
+  <data name="Shop_FlagIsCash" xml:space="preserve"><value>Cash-objekt</value></data>
+  <data name="Shop_FlagCanSendMailAndPersonalShop" xml:space="preserve"><value>Post / personlig butik</value></data>
+  <data name="Shop_FlagCanDuplicate" xml:space="preserve"><value>Kan dupliceras</value></data>
+  <data name="Shop_FlagShopSpecial" xml:space="preserve"><value>Butiksspecial</value></data>
+  <data name="Shop_FlagBlockMailAndPersonalShop" xml:space="preserve"><value>Blockera post / butik</value></data>
+  <data name="Shop_FlagIsSaleable" xml:space="preserve"><value>Säljbar</value></data>
+  <data name="Shop_FlagIsGift" xml:space="preserve"><value>Presentobjekt</value></data>
+  <data name="Shop_FlagOnlyDisplay" xml:space="preserve"><value>Endast visning</value></data>
+  <data name="Shop_FlagInStock" xml:space="preserve"><value>I lager</value></data>
+  <data name="Shop_FlagShowNew" xml:space="preserve"><value>Visa Ny</value></data>
+  <data name="Shop_FlagDisplayOnly" xml:space="preserve"><value>Endast visning</value></data>
+  <data name="Shop_FlagShowHot" xml:space="preserve"><value>Visa Het</value></data>
+  <data name="Shop_FlagShowSpecial" xml:space="preserve"><value>Visa Special</value></data>
+  <data name="Shop_FlagUnknown" xml:space="preserve"><value>Okänd (0x{0:X2})</value></data>
 </root>

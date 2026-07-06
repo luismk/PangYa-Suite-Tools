@@ -96,6 +96,132 @@ public sealed class PakStreamingTests
         Assert.Contains(finalReader.Entries, entry => entry.Name.EndsWith("keep.txt"));
     }
 
+    [Theory]
+    [InlineData(PakFileEntryType.Raw)]
+    [InlineData(PakFileEntryType.LZ77)]
+    [InlineData(PakFileEntryType.LZ772)]
+    public void RenameFile_RebuildsArchiveWithoutChangingPayloadType(PakFileEntryType type)
+    {
+        using var temp = new TemporaryDirectory();
+        string source = CreateSource(temp);
+        string pak = temp.Combine($"{type}-rename.pak");
+        NewWriter(PakKeys.JP, type).CreateFromDirectoryContents(source, pak);
+
+        byte[] sourceBytes = File.ReadAllBytes(Path.Combine(source, "nested", "data.bin"));
+        byte[] unchangedBytes = File.ReadAllBytes(Path.Combine(source, "keep.txt"));
+        byte[] originalCompressed;
+        using (var reader = Open(pak, PakKeys.JP))
+        {
+            PakFileEntry original = FindEntry(reader, "nested/data.bin");
+            originalCompressed = reader.ReadCompressedEntryBytes(original);
+            Assert.True(PakManager.Rename(pak, reader, original.Name, "renamed.bin",
+                Options(PakKeys.JP, type), null, null, SaveBck: false, CancellationToken.None));
+        }
+
+        using var renamed = Open(pak, PakKeys.JP);
+        Assert.DoesNotContain(renamed.Entries, entry => Normalize(entry.Name) == "nested/data.bin");
+        PakFileEntry renamedEntry = FindEntry(renamed, "nested/renamed.bin");
+        Assert.Equal(type, renamedEntry.Type);
+        Assert.Equal(sourceBytes, renamed.ExtractEntryToBytes(renamedEntry));
+        Assert.Equal(originalCompressed, renamed.ReadCompressedEntryBytes(renamedEntry));
+
+        PakFileEntry unchanged = FindEntry(renamed, "keep.txt");
+        Assert.Equal(unchangedBytes, renamed.ExtractEntryToBytes(unchanged));
+    }
+
+    [Fact]
+    public void RenameMissingSource_ReturnsFalseAndLeavesArchiveUnchanged()
+    {
+        using var temp = new TemporaryDirectory();
+        string source = CreateSource(temp);
+        string pak = temp.Combine("missing-rename.pak");
+        NewWriter(PakKeys.JP).CreateFromDirectoryContents(source, pak);
+        byte[] original = File.ReadAllBytes(pak);
+
+        using var reader = Open(pak, PakKeys.JP);
+        Assert.False(PakManager.Rename(pak, reader, "missing.bin", "renamed.bin",
+            Options(PakKeys.JP), null, null, SaveBck: false, CancellationToken.None));
+
+        Assert.Equal(original, File.ReadAllBytes(pak));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData(" ")]
+    [InlineData("bad/name.bin")]
+    [InlineData("bad\\name.bin")]
+    [InlineData(".")]
+    [InlineData(" name.bin")]
+    public void RenameInvalidLeafName_ThrowsAndLeavesArchiveUnchanged(string newName)
+    {
+        using var temp = new TemporaryDirectory();
+        string source = CreateSource(temp);
+        string pak = temp.Combine("invalid-rename.pak");
+        NewWriter(PakKeys.JP).CreateFromDirectoryContents(source, pak);
+        byte[] original = File.ReadAllBytes(pak);
+
+        using var reader = Open(pak, PakKeys.JP);
+        Assert.Throws<ArgumentException>(() => PakManager.Rename(pak, reader, "nested/data.bin", newName,
+            Options(PakKeys.JP), null, null, SaveBck: false, CancellationToken.None));
+
+        Assert.Equal(original, File.ReadAllBytes(pak));
+    }
+
+    [Fact]
+    public void RenameConflict_ThrowsAndLeavesArchiveUnchanged()
+    {
+        using var temp = new TemporaryDirectory();
+        string source = CreateSource(temp);
+        File.WriteAllBytes(Path.Combine(source, "nested", "collision.bin"), [4, 5, 6]);
+        string pak = temp.Combine("collision-rename.pak");
+        NewWriter(PakKeys.JP).CreateFromDirectoryContents(source, pak);
+        byte[] original = File.ReadAllBytes(pak);
+
+        using var reader = Open(pak, PakKeys.JP);
+        Assert.Throws<InvalidDataException>(() => PakManager.Rename(pak, reader, "nested/data.bin", "COLLISION.bin",
+            Options(PakKeys.JP), null, null, SaveBck: false, CancellationToken.None));
+
+        Assert.Equal(original, File.ReadAllBytes(pak));
+    }
+
+    [Fact]
+    public void RenameOverlongName_ThrowsAndRemovesCandidate()
+    {
+        using var temp = new TemporaryDirectory();
+        string source = CreateSource(temp);
+        string pak = temp.Combine("overlong-rename.pak");
+        NewWriter(PakKeys.JP).CreateFromDirectoryContents(source, pak);
+        byte[] original = File.ReadAllBytes(pak);
+        string overlongName = new string('a', 300) + ".bin";
+
+        using var reader = Open(pak, PakKeys.JP);
+        Assert.Throws<InvalidDataException>(() => PakManager.Rename(pak, reader, "nested/data.bin", overlongName,
+            Options(PakKeys.JP), null, null, SaveBck: false, CancellationToken.None));
+
+        Assert.Equal(original, File.ReadAllBytes(pak));
+        Assert.Empty(Directory.GetFiles(temp.Path, "*.tmp"));
+    }
+
+    [Fact]
+    public void RenameCancellation_PreservesOriginalAndRemovesCandidate()
+    {
+        using var temp = new TemporaryDirectory();
+        string source = CreateSource(temp);
+        string pak = temp.Combine("cancel-rename.pak");
+        NewWriter(PakKeys.JP).CreateFromDirectoryContents(source, pak);
+        byte[] original = File.ReadAllBytes(pak);
+        using var reader = Open(pak, PakKeys.JP);
+        using var cancellation = new CancellationTokenSource();
+        cancellation.Cancel();
+
+        Assert.ThrowsAny<OperationCanceledException>(() => PakManager.Rename(
+            pak, reader, "nested/data.bin", "renamed.bin", Options(PakKeys.JP),
+            null, null, SaveBck: false, cancellation.Token));
+
+        Assert.Equal(original, File.ReadAllBytes(pak));
+        Assert.Empty(Directory.GetFiles(temp.Path, "*.tmp"));
+    }
+
     [Fact]
     public void KeyChange_ReusesCompressedPayloads()
     {
@@ -136,16 +262,16 @@ public sealed class PakStreamingTests
         Assert.Empty(Directory.GetFiles(temp.Path, "*.tmp"));
     }
 
-    private static PakWriter NewWriter(uint[] keys) => new()
+    private static PakWriter NewWriter(uint[] keys, PakFileEntryType type = PakFileEntryType.LZ772) => new()
     {
         EntryVersion = PakFileEntryVersion.V3,
-        EntryType = PakFileEntryType.LZ772,
+        EntryType = type,
         LocationKeys = keys,
         Author = "StreamingTests"
     };
 
-    private static PakRebuildOptions Options(uint[] keys) =>
-        new(PakFileEntryVersion.V3, PakFileEntryType.LZ772, 5, keys, "StreamingTests");
+    private static PakRebuildOptions Options(uint[] keys, PakFileEntryType type = PakFileEntryType.LZ772) =>
+        new(PakFileEntryVersion.V3, type, 5, keys, "StreamingTests");
 
     private static PakReader Open(string path, uint[] keys)
     {
@@ -165,4 +291,9 @@ public sealed class PakStreamingTests
         File.WriteAllBytes(Path.Combine(source, "sound.wav"), Enumerable.Range(0, 257).Select(index => (byte)index).ToArray());
         return source;
     }
+
+    private static PakFileEntry FindEntry(PakReader reader, string normalizedPath) =>
+        reader.Entries.Single(entry => Normalize(entry.Name) == normalizedPath);
+
+    private static string Normalize(string path) => path.Replace('\\', '/');
 }

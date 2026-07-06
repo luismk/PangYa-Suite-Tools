@@ -168,6 +168,7 @@ public sealed class LocalizationTests : IDisposable
 
                 LocalizationManager.SetCulture(LocalizationManager.PortugueseBrazil);
                 Assert.Equal(Strings.Menu_Title, menu.Text);
+                Assert.Equal(Strings.Menu_Shop, menu.Controls.Find("btnOpenShop", true).Single().Text);
                 Assert.Equal(Strings.Pak_Title, pak.Text);
                 Assert.Equal(Strings.Update_Title, update.Text);
                 Assert.Equal(Strings.Iff_Title, iff.Text);
@@ -203,12 +204,14 @@ public sealed class LocalizationTests : IDisposable
 
                 LocalizationManager.SetCulture(LocalizationManager.English);
                 Assert.Equal(Strings.Menu_Title, menu.Text);
+                Assert.Equal(Strings.Menu_Shop, menu.Controls.Find("btnOpenShop", true).Single().Text);
                 Assert.Equal(Strings.Pak_Title, pak.Text);
                 Assert.Equal(Strings.Common_OK, options.Controls.Find("btnOK", true).Single().Text);
                 Assert.Equal(Strings.Pak_SecurityPak, pak.Controls.Find("ckSecurityPak", true).Single().Text);
 
                 LocalizationManager.SetCulture(LocalizationManager.Swedish);
                 Assert.Equal(Strings.Menu_Title, menu.Text);
+                Assert.Equal(Strings.Menu_Shop, menu.Controls.Find("btnOpenShop", true).Single().Text);
                 Assert.Equal(Strings.Pak_Title, pak.Text);
                 Assert.Equal(Strings.Update_Title, update.Text);
                 Assert.Equal(Strings.Iff_Title, iff.Text);
@@ -220,6 +223,7 @@ public sealed class LocalizationTests : IDisposable
 
                 LocalizationManager.SetCulture(LocalizationManager.Japonese);
                 Assert.Equal(Strings.Menu_Title, menu.Text);
+                Assert.Equal(Strings.Menu_Shop, menu.Controls.Find("btnOpenShop", true).Single().Text);
                 Assert.Equal(Strings.Pak_Title, pak.Text);
                 Assert.Equal(Strings.Update_Title, update.Text);
                 Assert.Equal(Strings.Iff_Title, iff.Text);

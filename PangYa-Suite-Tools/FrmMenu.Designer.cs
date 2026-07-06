@@ -13,6 +13,7 @@
         private System.Windows.Forms.Button btnOpenOptions;
         private System.Windows.Forms.Button btnOpenPakDiff;
         private System.Windows.Forms.Button btnOpenLog;
+        private System.Windows.Forms.Button btnOpenShop;
         protected override void Dispose(bool disposing)
         {
             if (disposing && (components != null)) components.Dispose();
@@ -27,6 +28,7 @@
             btnOpenPakDiff = new Button();
             btnOpenOptions = new Button();
             btnOpenLog = new Button();
+            btnOpenShop = new Button();
             lblTitle = new Label();
             statusStrip1 = new StatusStrip();
             lblLanguage = new ToolStripStatusLabel();
@@ -93,6 +95,15 @@
             btnOpenLog.TabIndex = 6;
             btnOpenLog.UseVisualStyleBackColor = true;
             btnOpenLog.Click += btnOpenLog_Click;
+            //
+            // btnOpenShop
+            //
+            btnOpenShop.Location = new Point(103, 420);
+            btnOpenShop.Name = "btnOpenShop";
+            btnOpenShop.Size = new Size(180, 35);
+            btnOpenShop.TabIndex = 7;
+            btnOpenShop.UseVisualStyleBackColor = true;
+            btnOpenShop.Click += btnOpenShop_Click;
             // 
             // lblTitle
             // 
@@ -106,10 +117,10 @@
             // statusStrip1
             // 
             statusStrip1.Items.AddRange(new ToolStripItem[] { lblLanguage, cboLanguage });
-            statusStrip1.Location = new Point(0, 430);
+            statusStrip1.Location = new Point(0, 475);
             statusStrip1.Name = "statusStrip1";
             statusStrip1.Size = new Size(402, 23);
-            statusStrip1.TabIndex = 7;
+            statusStrip1.TabIndex = 8;
             // 
             // lblLanguage
             // 
@@ -127,7 +138,8 @@
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(402, 453);
+            ClientSize = new Size(402, 498);
+            Controls.Add(btnOpenShop);
             Controls.Add(btnOpenLog);
             Controls.Add(btnOpenOptions);
             Controls.Add(btnOpenPakDiff);

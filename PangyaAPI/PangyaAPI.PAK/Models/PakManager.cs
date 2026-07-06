@@ -127,24 +127,33 @@ public static class PakManager
                 continue;
             }
 
-            yield return new PakWriter.BuildItem(
-                false,
-                archivePath,
-                Math.Max(entry.Size, entry.CompressSize),
-                cancellationToken =>
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    return reader.ExtractEntryToBytes(entry)
-                        ?? throw new InvalidDataException($"Unable to decompress {entry.Name}.");
-                },
-                entry.Type,
-                entry.Size,
-                cancellationToken =>
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    return reader.ReadCompressedEntryBytes(entry);
-                });
+            yield return ExistingBuildItem(reader, entry, archivePath);
         }
+    }
+
+    private static PakWriter.BuildItem ExistingBuildItem(
+        PakReader reader, PakFileEntry entry, string archivePath)
+    {
+        if (entry.Type == PakFileEntryType.Directory)
+            return new PakWriter.BuildItem(true, archivePath, 0, null);
+
+        return new PakWriter.BuildItem(
+            false,
+            archivePath,
+            Math.Max(entry.Size, entry.CompressSize),
+            cancellationToken =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                return reader.ExtractEntryToBytes(entry)
+                    ?? throw new InvalidDataException($"Unable to decompress {entry.Name}.");
+            },
+            entry.Type,
+            entry.Size,
+            cancellationToken =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                return reader.ReadCompressedEntryBytes(entry);
+            });
     }
 
     private static PakWriter.BuildItem SourceItem(FileInfo source, string archivePath) =>
@@ -195,6 +204,7 @@ public static class PakManager
         string backup = destination + ".bak";
         var writer = new PakWriter
         {
+            PakVersion = reader.Header.Version,
             EntryVersion = options.EntryVersion,
             EntryType = options.EntryType,
             CompressLevel = options.CompressLevel,
@@ -229,81 +239,88 @@ public static class PakManager
     }
 
     /// <summary>
-    /// Renomeia um arquivo ou pasta na memória do Reader e reconstrói PAK.
+    /// Renames an entry, or a directory and its descendants, and rebuilds the PAK atomically.
     /// </summary>
-    public static bool Rename(string pakPath, PakReader reader, string oldPath, string newName, PakRebuildOptions options, Action<int, int>? onProgress = null)
+    public static bool Rename(string pakPath, PakReader reader, string oldPath, string newName,
+                              PakRebuildOptions options, Action<int, int>? onProgress = null) =>
+        Rename(pakPath, reader, oldPath, newName, options, null, onProgress,
+            SaveBck: true, CancellationToken.None);
+
+    /// <summary>
+    /// Renames an entry, or a directory and its descendants, and rebuilds the PAK atomically.
+    /// </summary>
+    public static bool Rename(string pakPath, PakReader reader, string oldPath, string newName,
+                              PakRebuildOptions options, Action<string>? log,
+                              Action<int, int>? onProgress, bool SaveBck,
+                              CancellationToken cancellationToken)
     {
-        oldPath = oldPath.Replace('/', '\\').Trim('\\');
-        string oldPrefix = oldPath + "\\";
+        ArgumentNullException.ThrowIfNull(reader);
+        ValidateNewEntryName(newName);
+        cancellationToken.ThrowIfCancellationRequested();
 
-        // Extrai o diretório pai mantendo o padrão correto de barras invertidas
-        string? parentDir = Path.GetDirectoryName(oldPath)?.Replace('/', '\\');
-        string newPath = string.IsNullOrEmpty(parentDir) ? newName : Path.Combine(parentDir, newName);
-        newPath = newPath.Replace('/', '\\');
-        string newPrefix = newPath + "\\";
+        string sourcePath = Normalize(oldPath).TrimEnd('/');
+        if (sourcePath.Length == 0)
+            throw new ArgumentException("The source entry path cannot be empty.", nameof(oldPath));
 
-        bool modified = false;
+        string? parent = Path.GetDirectoryName(sourcePath.Replace('/', '\\'));
+        string destinationPath = CombineArchivePath(parent ?? string.Empty, newName.Trim());
+        string sourcePrefix = sourcePath + "/";
+        string destinationPrefix = destinationPath + "/";
 
-        foreach (var entry in reader.Entries)
+        bool found = reader.Entries.Any(entry =>
         {
-            // Caso 1: É o arquivo exato ou a pasta exata mapeada (Comparando em formato Windows '\\')
-            if (entry.Name.Equals(oldPath, StringComparison.OrdinalIgnoreCase))
-            {
-                entry.Name = newPath; // O setter do entry.Name vai cuidar de converter para '/' internamente no NameRaw!
-                modified = true;
-            }
-            // Caso 2: É um arquivo contido dentro da pasta que está sendo renomeada
-            else if (entry.Name.StartsWith(oldPrefix, StringComparison.OrdinalIgnoreCase))
-            {
-                entry.Name = newPrefix + entry.Name.Substring(oldPrefix.Length);
-                modified = true;
-            }
-        }
-        // Se nada foi alterado, abortamos o processo antes de mexer no disco
-        if (!modified) return false;
+            string path = Normalize(entry.Name);
+            return path.Equals(sourcePath, StringComparison.OrdinalIgnoreCase) ||
+                   path.StartsWith(sourcePrefix, StringComparison.OrdinalIgnoreCase);
+        });
+        if (!found) return false;
 
-        // ── 2. RECONSTRUÇÃO ────────────────────────────────────
-        string directory = Path.GetDirectoryName(pakPath) ?? "";
-        string candidate = Path.Combine(directory, Path.GetFileName(pakPath) + ".rename_candidate");
-        string backup = Path.Combine(directory, Path.GetFileName(pakPath) + ".bak");
+        var resultingPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var items = new List<PakWriter.BuildItem>(reader.Entries.Count);
 
-        // criar a struct
-        var items = ExistingBuildItems(reader).ToList();
-
-        var writer = new PakWriter
+        foreach (PakFileEntry entry in reader.Entries)
         {
-            PakVersion = (byte)(reader.Header.Version),//estava fazendo errado, eu usei outra coisa
-            EntryVersion = options.EntryVersion,
-            EntryType = options.EntryType,
-            CompressLevel = options.CompressLevel,
-            LocationKeys = options.LocationKeys,
-            Author = options.Author,
-            FileNameEncoding = options.FileNameEncoding,
-            PreserveExistingPayloadTypes = true
-        };
+            cancellationToken.ThrowIfCancellationRequested();
+            string originalPath = Normalize(entry.Name);
+            string archivePath = originalPath.Equals(sourcePath, StringComparison.OrdinalIgnoreCase)
+                ? destinationPath
+                : originalPath.StartsWith(sourcePrefix, StringComparison.OrdinalIgnoreCase)
+                    ? destinationPrefix + originalPath[sourcePrefix.Length..]
+                    : originalPath;
 
-        try
-        {
-            // Escreve o novo arquivo PAK temporário
-            writer.WriteCandidate(items, candidate, null, CancellationToken.None,
-                (_, done, total) => onProgress?.Invoke(done, total));
+            ValidateArchivePathLength(archivePath, options);
+            if (!resultingPaths.Add(archivePath))
+                throw new InvalidDataException($"An entry already exists at the rename destination: {archivePath}");
 
-            // Fecha o leitor antigo para liberar o arquivo original do sistema operacional
-            reader.Dispose();
-
-            // Substituição segura com backup
-            if (File.Exists(backup)) File.Delete(backup);
-            File.Copy(pakPath, backup);
-
-            PakWriter.PromoteCandidate(candidate, pakPath);
-        }
-        finally
-        {
-            if (File.Exists(candidate)) File.Delete(candidate);
+            items.Add(ExistingBuildItem(reader, entry, archivePath));
         }
 
+        log?.Invoke($"Renaming '{sourcePath}' to '{destinationPath}'.");
+        Rebuild(pakPath, reader, items, options, log, onProgress, SaveBck,
+            cancellationToken, preserveExistingPayloadTypes: true);
         return true;
-    } 
+    }
+
+    private static void ValidateNewEntryName(string newName)
+    {
+        if (string.IsNullOrWhiteSpace(newName))
+            throw new ArgumentException("The new entry name cannot be empty.", nameof(newName));
+        if (!string.Equals(newName, newName.Trim(), StringComparison.Ordinal))
+            throw new ArgumentException("The new entry name cannot start or end with whitespace.", nameof(newName));
+        if (newName is "." or ".." ||
+            newName.Contains('/') ||
+            newName.Contains('\\') ||
+            newName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
+            throw new ArgumentException("The new entry name must be a valid leaf name.", nameof(newName));
+    }
+
+    private static void ValidateArchivePathLength(string archivePath, PakRebuildOptions options)
+    {
+        byte[] bytes = PakFileEntry.EncodeName(archivePath.Replace('\\', '/'), options.FileNameEncoding);
+        int length = options.EntryVersion == PakFileEntryVersion.V3 ? ((bytes.Length + 7) / 8) * 8 : bytes.Length + 1;
+        if (length > byte.MaxValue)
+            throw new InvalidDataException($"Entry name is too long for the PAK format: {archivePath}");
+    }
 
     private static string CombineArchivePath(string folder, string fileName) =>
         string.IsNullOrWhiteSpace(folder) ? Normalize(fileName) : Normalize(Path.Combine(folder, fileName));

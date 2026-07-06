@@ -78,6 +78,15 @@
   <data name="PakMaker_ExtractSelectedItemS" xml:space="preserve">
     <value>📁 Extract selected item(s)...</value>
   </data>
+  <data name="PakMaker_RenameSelectedFile" xml:space="preserve">
+    <value>✏️ Rename selected file (F2)</value>
+  </data>
+  <data name="PakMaker_SelectSingleFileToRename" xml:space="preserve">
+    <value>Select exactly one file to rename.</value>
+  </data>
+  <data name="PakMaker_InvalidRenameName" xml:space="preserve">
+    <value>Enter a valid file name without path separators.</value>
+  </data>
   <data name="PakMaker_RemoveSelectedItemSFromPAK" xml:space="preserve">
     <value>🗑️ Remove selected item(s) from PAK...</value>
   </data>
@@ -840,4 +849,55 @@
   <data name="IFFManager_ByteValue" xml:space="preserve"><value>Byte value</value></data>
   <data name="IFFManager_DefineColumn" xml:space="preserve"><value>Define column</value></data>
   <data name="IFFManager_SelectContiguousBytes" xml:space="preserve"><value>Select one contiguous range of bytes.</value></data>
+  <data name="PakMaker_BatchFolderStructureTitle" xml:space="preserve"><value>Batch extraction folder structure</value></data>
+  <data name="PakMaker_BatchFolderStructureChoice" xml:space="preserve"><value>Create a separate folder for each PAK?
+
+Yes: Keep the current structure (destination\PAK name\files).
+No: Write all files directly under the destination using their internal paths. Files from later PAKs may overwrite earlier files.
+Cancel: Stop the extraction.</value></data>
+  <data name="Menu_Shop" xml:space="preserve"><value>PangYa Shop</value></data>
+  <data name="Shop_Title" xml:space="preserve"><value>PangYa Shop Mockup</value></data>
+  <data name="Shop_SelectDataFolder" xml:space="preserve"><value>Select the extracted PangYa data folder.</value></data>
+  <data name="Shop_MissingRequiredFile" xml:space="preserve"><value>A required shop file is missing.</value></data>
+  <data name="Shop_LoadFailed" xml:space="preserve"><value>Could not load the shop: {0}</value></data>
+  <data name="Shop_NoItems" xml:space="preserve"><value>No saleable items with available icons were found.</value></data>
+  <data name="Shop_CartSummary" xml:space="preserve"><value>Cart: {0} item(s)&#xA;Pang total: {1:N0}   Cookie total: {2:N0}</value></data>
+  <data name="Shop_Balances" xml:space="preserve"><value>Balance — Pang: {0:N0}   Cookies: {1:N0}</value></data>
+  <data name="Shop_Filter" xml:space="preserve"><value>Search: {0}</value></data>
+  <data name="Shop_Search" xml:space="preserve"><value>Search items</value></data>
+  <data name="Shop_EmptyCart" xml:space="preserve"><value>The cart is empty.</value></data>
+  <data name="Shop_ConfirmPurchase" xml:space="preserve"><value>Complete this simulated purchase?&#xA;&#xA;Pang: {0:N0}&#xA;Cookies: {1:N0}</value></data>
+  <data name="Shop_InsufficientFunds" xml:space="preserve"><value>The simulated balance is insufficient.</value></data>
+  <data name="Shop_PurchaseComplete" xml:space="preserve"><value>The simulated purchase is complete.</value></data>
+  <data name="Shop_MissingIconsSkipped" xml:space="preserve"><value>Skipped {0} catalog record(s) whose icon could not be resolved.</value></data>
+  <data name="Shop_EditPrices" xml:space="preserve"><value>Edit item prices</value></data>
+  <data name="Shop_Price" xml:space="preserve"><value>Price</value></data>
+  <data name="Shop_DiscountPrice" xml:space="preserve"><value>Discount price</value></data>
+  <data name="Shop_RentalPrice" xml:space="preserve"><value>Rental price</value></data>
+  <data name="Shop_EditSaved" xml:space="preserve"><value>The IFF item was saved successfully.</value></data>
+  <data name="Shop_EditFailed" xml:space="preserve"><value>Could not save the IFF item: {0}</value></data>
+  <data name="Shop_IconFilter" xml:space="preserve"><value>Supported images|*.tga;*.png;*.jpg;*.jpeg;*.bmp|All files|*.*</value></data>
+  <data name="Shop_SelectIcon" xml:space="preserve"><value>Select an icon from the extracted data folder</value></data>
+  <data name="Shop_IconMustBeInData" xml:space="preserve"><value>The selected icon must already be inside the extracted data folder so the game can resolve it.</value></data>
+  <data name="Shop_EditHint" xml:space="preserve"><value>Click an icon to replace it. Right-click an item to edit its prices.</value></data>
+  <data name="Shop_ShopFlags" xml:space="preserve"><value>Shop flags (hex)</value></data>
+  <data name="Shop_MoneyFlags" xml:space="preserve"><value>Money flags (hex)</value></data>
+  <data name="Shop_TimeFlag" xml:space="preserve"><value>Time flag (hex)</value></data>
+  <data name="Shop_Time" xml:space="preserve"><value>Time value (hex)</value></data>
+  <data name="Shop_StartDate" xml:space="preserve"><value>Start date</value></data>
+  <data name="Shop_EndDate" xml:space="preserve"><value>End date</value></data>
+  <data name="Shop_FlagIsCash" xml:space="preserve"><value>Cash item</value></data>
+  <data name="Shop_FlagCanSendMailAndPersonalShop" xml:space="preserve"><value>Mail / personal shop</value></data>
+  <data name="Shop_FlagCanDuplicate" xml:space="preserve"><value>Can duplicate</value></data>
+  <data name="Shop_FlagShopSpecial" xml:space="preserve"><value>Shop special</value></data>
+  <data name="Shop_FlagBlockMailAndPersonalShop" xml:space="preserve"><value>Block mail / shop</value></data>
+  <data name="Shop_FlagIsSaleable" xml:space="preserve"><value>Saleable</value></data>
+  <data name="Shop_FlagIsGift" xml:space="preserve"><value>Gift item</value></data>
+  <data name="Shop_FlagOnlyDisplay" xml:space="preserve"><value>Only display</value></data>
+  <data name="Shop_FlagInStock" xml:space="preserve"><value>In stock</value></data>
+  <data name="Shop_FlagShowNew" xml:space="preserve"><value>Show New</value></data>
+  <data name="Shop_FlagDisplayOnly" xml:space="preserve"><value>Display only</value></data>
+  <data name="Shop_FlagShowHot" xml:space="preserve"><value>Show Hot</value></data>
+  <data name="Shop_FlagShowSpecial" xml:space="preserve"><value>Show Special</value></data>
+  <data name="Shop_FlagUnknown" xml:space="preserve"><value>Unknown (0x{0:X2})</value></data>
 </root>

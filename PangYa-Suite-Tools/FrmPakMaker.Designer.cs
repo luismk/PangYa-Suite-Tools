@@ -63,6 +63,7 @@ namespace PangYa_Suite_Tools
         private System.Windows.Forms.ToolStripStatusLabel lblLanguage;
         private System.Windows.Forms.ToolStripComboBox cboLanguage;
         private ToolStripMenuItem _menuExtractSingle;
+        private ToolStripMenuItem _menuRenameSingle;
         private ToolStripMenuItem _menuRemoveSingle;
         private ToolStripMenuItem _menuExtractFolder;
         private ToolStripMenuItem _menuRemoveFolder;

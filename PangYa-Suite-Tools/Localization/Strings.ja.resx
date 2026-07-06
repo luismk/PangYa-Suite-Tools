@@ -79,6 +79,15 @@ IFFファイルのディレクトリを選択してください。</value>
   <data name="PakMaker_ExtractSelectedItemS" xml:space="preserve">
     <value>📁 選択した項目を抽出...</value>
   </data>
+  <data name="PakMaker_RenameSelectedFile" xml:space="preserve">
+    <value>✏️ 選択したファイルの名前を変更 (F2)</value>
+  </data>
+  <data name="PakMaker_SelectSingleFileToRename" xml:space="preserve">
+    <value>名前を変更するファイルを1つだけ選択してください。</value>
+  </data>
+  <data name="PakMaker_InvalidRenameName" xml:space="preserve">
+    <value>パス区切り文字を含まない有効なファイル名を入力してください。</value>
+  </data>
   <data name="PakMaker_RemoveSelectedItemSFromPAK" xml:space="preserve">
     <value>🗑️ PAK から選択した項目を削除...</value>
   </data>
@@ -774,6 +783,59 @@ IFFファイルのディレクトリを選択してください。</value>
   <data name="PakDiff_IdenticalFiles" xml:space="preserve"><value>一致するファイル (等価)</value></data>
   <data name="PakDiff_Compare" xml:space="preserve"><value>🔍 比較</value></data>
   <data name="PakDiff_ColumnFilePath" xml:space="preserve"><value>ファイルパス</value></data>
+  <data name="PakDiff_ColumnSourcePak" xml:space="preserve"><value>ソースPAK</value></data>
+  <data name="PakDiff_ExtractSelected" xml:space="preserve"><value>📦 選択したアイテムを抽出</value></data>
+  <data name="PakMaker_BatchFolderStructureTitle" xml:space="preserve"><value>一括展開のフォルダー構成</value></data>
+  <data name="PakMaker_BatchFolderStructureChoice" xml:space="preserve"><value>PAK ごとに個別のフォルダーを作成しますか？
+
+はい: 現在の構成を維持します（出力先\PAK 名\ファイル）。
+いいえ: 内部パスを使用して、すべてのファイルを出力先へ直接書き込みます。後の PAK のファイルが先のファイルを上書きする場合があります。
+キャンセル: 展開を中止します。</value></data>
+  <data name="Menu_Shop" xml:space="preserve"><value>PangYa ショップ</value></data>
+  <data name="Shop_Title" xml:space="preserve"><value>PangYa ショップ・モックアップ</value></data>
+  <data name="Shop_SelectDataFolder" xml:space="preserve"><value>展開済み PangYa の data フォルダーを選択してください。</value></data>
+  <data name="Shop_MissingRequiredFile" xml:space="preserve"><value>必要なショップファイルが見つかりません。</value></data>
+  <data name="Shop_LoadFailed" xml:space="preserve"><value>ショップを読み込めませんでした: {0}</value></data>
+  <data name="Shop_NoItems" xml:space="preserve"><value>利用可能なアイコンを持つ販売可能なアイテムがありません。</value></data>
+  <data name="Shop_CartSummary" xml:space="preserve"><value>カート: {0} 個&#xA;Pang 合計: {1:N0}   Cookie 合計: {2:N0}</value></data>
+  <data name="Shop_Balances" xml:space="preserve"><value>残高 — Pang: {0:N0}   Cookies: {1:N0}</value></data>
+  <data name="Shop_Filter" xml:space="preserve"><value>検索: {0}</value></data>
+  <data name="Shop_Search" xml:space="preserve"><value>アイテム検索</value></data>
+  <data name="Shop_EmptyCart" xml:space="preserve"><value>カートは空です。</value></data>
+  <data name="Shop_ConfirmPurchase" xml:space="preserve"><value>この購入シミュレーションを完了しますか？&#xA;&#xA;Pang: {0:N0}&#xA;Cookies: {1:N0}</value></data>
+  <data name="Shop_InsufficientFunds" xml:space="preserve"><value>シミュレーション残高が不足しています。</value></data>
+  <data name="Shop_PurchaseComplete" xml:space="preserve"><value>購入シミュレーションが完了しました。</value></data>
+  <data name="Shop_MissingIconsSkipped" xml:space="preserve"><value>アイコンを解決できなかったため、{0} 件のカタログレコードをスキップしました。</value></data>
+  <data name="Shop_EditPrices" xml:space="preserve"><value>アイテム価格の編集</value></data>
+  <data name="Shop_Price" xml:space="preserve"><value>価格</value></data>
+  <data name="Shop_DiscountPrice" xml:space="preserve"><value>割引価格</value></data>
+  <data name="Shop_RentalPrice" xml:space="preserve"><value>レンタル価格</value></data>
+  <data name="Shop_EditSaved" xml:space="preserve"><value>IFF アイテムを保存しました。</value></data>
+  <data name="Shop_EditFailed" xml:space="preserve"><value>IFF アイテムを保存できませんでした: {0}</value></data>
+  <data name="Shop_IconFilter" xml:space="preserve"><value>対応画像|*.tga;*.png;*.jpg;*.jpeg;*.bmp|すべてのファイル|*.*</value></data>
+  <data name="Shop_SelectIcon" xml:space="preserve"><value>展開済み data フォルダーからアイコンを選択</value></data>
+  <data name="Shop_IconMustBeInData" xml:space="preserve"><value>ゲームが参照できるように、選択するアイコンは展開済み data フォルダー内に置いてください。</value></data>
+  <data name="Shop_EditHint" xml:space="preserve"><value>アイコンをクリックすると変更できます。アイテムを右クリックすると価格を編集できます。</value></data>
+  <data name="Shop_ShopFlags" xml:space="preserve"><value>ショップフラグ（16進）</value></data>
+  <data name="Shop_MoneyFlags" xml:space="preserve"><value>通貨フラグ（16進）</value></data>
+  <data name="Shop_TimeFlag" xml:space="preserve"><value>時間フラグ（16進）</value></data>
+  <data name="Shop_Time" xml:space="preserve"><value>時間値（16進）</value></data>
+  <data name="Shop_StartDate" xml:space="preserve"><value>開始日時</value></data>
+  <data name="Shop_EndDate" xml:space="preserve"><value>終了日時</value></data>
+  <data name="Shop_FlagIsCash" xml:space="preserve"><value>Cash アイテム</value></data>
+  <data name="Shop_FlagCanSendMailAndPersonalShop" xml:space="preserve"><value>メール / 個人ショップ</value></data>
+  <data name="Shop_FlagCanDuplicate" xml:space="preserve"><value>複製可能</value></data>
+  <data name="Shop_FlagShopSpecial" xml:space="preserve"><value>ショップ特別</value></data>
+  <data name="Shop_FlagBlockMailAndPersonalShop" xml:space="preserve"><value>メール / ショップ禁止</value></data>
+  <data name="Shop_FlagIsSaleable" xml:space="preserve"><value>販売可能</value></data>
+  <data name="Shop_FlagIsGift" xml:space="preserve"><value>ギフトアイテム</value></data>
+  <data name="Shop_FlagOnlyDisplay" xml:space="preserve"><value>表示のみ</value></data>
+  <data name="Shop_FlagInStock" xml:space="preserve"><value>在庫あり</value></data>
+  <data name="Shop_FlagShowNew" xml:space="preserve"><value>New を表示</value></data>
+  <data name="Shop_FlagDisplayOnly" xml:space="preserve"><value>表示専用</value></data>
+  <data name="Shop_FlagShowHot" xml:space="preserve"><value>Hot を表示</value></data>
+  <data name="Shop_FlagShowSpecial" xml:space="preserve"><value>Special を表示</value></data>
+  <data name="Shop_FlagUnknown" xml:space="preserve"><value>不明 (0x{0:X2})</value></data>
   <data name="PakDiff_ColumnSourcePak" xml:space="preserve"><value>ソース PAK</value></data>
   <data name="PakDiff_ExtractSelected" xml:space="preserve"><value>📦 選択した項目を抽出</value></data>
   <data name="IFFManager_OpenArchive" xml:space="preserve"><value>アーカイブを開く</value></data>

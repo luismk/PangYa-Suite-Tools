@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace PangyaAPI.Utilities.Cryptography
 { 
@@ -18,17 +16,18 @@ namespace PangyaAPI.Utilities.Cryptography
 
             byte[] dest = new byte[uncompressedSize];
 
+            uint effectiveCompressSize = Math.Min(compressSize, (uint)source.Length);
             uint sIdx = 0, dIdx = 0;
 
-            while (sIdx < compressSize && dIdx < uncompressedSize)
+            while (sIdx < effectiveCompressSize && dIdx < uncompressedSize)
             {
                 byte mask = source[sIdx++];
 
-                for (int bits = 0; bits < 8 && dIdx < uncompressedSize && sIdx < compressSize; bits++)
+                for (int bits = 0; bits < 8 && dIdx < uncompressedSize && sIdx < effectiveCompressSize; bits++)
                 {
                     if ((mask & 1) != 0)
                     {
-                        if ((sIdx + 2) > compressSize) return null;
+                        if ((sIdx + 2) > effectiveCompressSize) return null;
 
                         ushort head = (ushort)(source[sIdx] | (source[sIdx + 1] << 8));
                         sIdx += 2;
@@ -48,7 +47,7 @@ namespace PangyaAPI.Utilities.Cryptography
                     }
 
                     mask >>= 1;
-                    logProgress?.Invoke((int)sIdx, (int)compressSize);
+                    logProgress?.Invoke((int)sIdx, (int)effectiveCompressSize);
                 }
             }
 
@@ -65,7 +64,8 @@ namespace PangyaAPI.Utilities.Cryptography
                 0 => 0x5,
                 1 => 0xF,
                 2 => 0x5F,
-                3 => 0xFF,
+                // The reference implementation falls through from case 3 to case 4.
+                3 => 0x5FF,
                 4 => 0x5FF,
                 _ => 0xFFF,
             };
@@ -75,12 +75,6 @@ namespace PangyaAPI.Utilities.Cryptography
             byte[] dest = new byte[size + (size / 8) + 1];
 
             int dIdx = 0, sIdx = 0;
-
-            // Índice local por chamada (thread-safe entre arquivos paralelos): mapeia
-            // hash de 3 bytes -> lista de posições onde já apareceu, mais recente primeiro.
-            // Isso troca a busca de força bruta O(janela) por O(candidatos), evitando
-            // varrer até 4095 posições byte a byte para cada posição do arquivo.
-            var hashChain = new Dictionary<int, List<int>>();
 
             while (sIdx < size)
             {
@@ -93,11 +87,10 @@ namespace PangyaAPI.Utilities.Cryptography
                 {
                     if (dIdx >= dest.Length) return null;
 
-                    var (matchLen, matchPos) = FindBestMatch(source, sIdx, maxDicWindow, maxMatch, hashChain);
+                    var (matchLen, matchPos) = FindBestMatch(source, sIdx, maxDicWindow, maxMatch);
 
                     if (matchPos < 0)
                     {
-                        IndexPosition(hashChain, source, sIdx, size);
                         dest[dIdx++] = source[sIdx++];
                     }
                     else
@@ -108,11 +101,6 @@ namespace PangyaAPI.Utilities.Cryptography
                         dest[dIdx] = (byte)(head & 0xFF);
                         dest[dIdx + 1] = (byte)(head >> 8);
                         dIdx += 2;
-
-                        // Indexa TODAS as posições consumidas pelo match, não só a primeira —
-                        // senão o índice fica incompleto e perde futuras oportunidades de match.
-                        for (int p = sIdx; p < sIdx + matchLen; p++)
-                            IndexPosition(hashChain, source, p, size);
 
                         sIdx += matchLen;
 
@@ -127,56 +115,18 @@ namespace PangyaAPI.Utilities.Cryptography
             return dest;
         }
 
-        private const int MaxCandidatesToCheck = 32;
-        private const int MaxChainLength = 64;
-
-        private static int HashKey(byte[] src, int pos)
-        {
-            // Hash simples de 3 bytes — suficiente para boa dispersão sem custo relevante.
-            return (src[pos] << 16) | (src[pos + 1] << 8) | src[pos + 2];
-        }
-
-        private static void IndexPosition(Dictionary<int, List<int>> hashChain, byte[] src, int pos, int size)
-        {
-            if (pos + 3 > size) return;
-
-            int key = HashKey(src, pos);
-            if (!hashChain.TryGetValue(key, out var list))
-            {
-                list = new List<int>();
-                hashChain[key] = list;
-            }
-
-            list.Insert(0, pos); // mantém ordem decrescente (mais recente primeiro)
-
-            // Evita listas crescerem sem limite em arquivos com muita repetição
-            // (ex.: texturas sólidas, áreas com bytes repetidos).
-            if (list.Count > MaxChainLength)
-                list.RemoveAt(list.Count - 1);
-        }
-
         private static (int matchLen, int matchPos) FindBestMatch(byte[] src, int sIdx,
-                                                                   ushort maxDicWindow, ushort maxMatch,
-                                                                   Dictionary<int, List<int>> hashChain)
+                                                                   ushort maxDicWindow, ushort maxMatch)
         {
             if (sIdx <= 2 || (sIdx + 3) > src.Length)
                 return (0, -1);
 
-            int dicStart = sIdx - Math.Min(sIdx, maxDicWindow);
+            int dicWindow = sIdx - Math.Min(sIdx, maxDicWindow);
             int bestLen = 0;
             int bestPos = -1;
 
-            int key = HashKey(src, sIdx);
-            if (!hashChain.TryGetValue(key, out var candidates))
-                return (0, -1);
-
-            int checkedCount = 0;
-
-            foreach (int dicWindow in candidates)
+            while (dicWindow < sIdx - 3)
             {
-                if (dicWindow < dicStart) break; // lista ordenada decrescente: o resto está fora da janela
-                if (++checkedCount > MaxCandidatesToCheck) break;
-
                 int ts = sIdx;
                 int dw2 = dicWindow;
 
@@ -185,15 +135,18 @@ namespace PangyaAPI.Utilities.Cryptography
 
                 int len = ts - sIdx;
 
-                if (len > bestLen)
+                if (len > 2 && bestLen <= len)
                 {
                     bestLen = len;
                     bestPos = dw2 - len;
-                    if (bestLen == maxMatch) break;
+                    if (bestLen == maxMatch || ts == src.Length || dw2 == sIdx)
+                        break;
                 }
+
+                dicWindow = (dw2 - len) + 1;
             }
 
-            return bestLen > 2 ? (bestLen, bestPos) : (0, -1);
+            return (bestLen, bestPos);
         }
     }
 
@@ -201,15 +154,11 @@ namespace PangyaAPI.Utilities.Cryptography
     {
         /// <summary>
         /// Exposto para uso pelo Lz772, que reimplementa seu próprio loop de compressão
-        /// (precisa ofuscar máscara/pares) mas reaproveita a mesma busca de match indexada.
+        /// (precisa ofuscar máscara/pares) mas reaproveita a busca de match de referência.
         /// </summary>
         internal static (int matchLen, int matchPos) FindBestMatchInternal(byte[] src, int sIdx,
-                                                                            ushort maxDicWindow, ushort maxMatch,
-                                                                            Dictionary<int, List<int>> hashChain)
-            => FindBestMatch(src, sIdx, maxDicWindow, maxMatch, hashChain);
-
-        internal static void IndexPositionInternal(Dictionary<int, List<int>> hashChain, byte[] src, int pos, int size)
-            => IndexPosition(hashChain, src, pos, size);
+                                                                            ushort maxDicWindow, ushort maxMatch)
+            => FindBestMatch(src, sIdx, maxDicWindow, maxMatch);
     }
 
 }

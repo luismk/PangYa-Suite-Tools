@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
 namespace PangyaAPI.Utilities.Cryptography
 {
 
@@ -20,23 +18,24 @@ namespace PangyaAPI.Utilities.Cryptography
                 return null;
 
             byte[] dest = new byte[uncompressedSize];
+            uint effectiveCompressSize = Math.Min(compressSize, (uint)source.Length);
             uint sIdx = 0, dIdx = 0;
             try
             {
 
 
-                while (sIdx < compressSize && dIdx < uncompressedSize)
+                while (sIdx < effectiveCompressSize && dIdx < uncompressedSize)
                 {
                     try
                     {
                         byte origMask = source[sIdx++];
                         byte tmpMask = (byte)(origMask ^ 0xC8);
 
-                        for (int bits = 0; bits < 8 && dIdx < uncompressedSize && sIdx < compressSize; bits++)
+                        for (int bits = 0; bits < 8 && dIdx < uncompressedSize && sIdx < effectiveCompressSize; bits++)
                         {
                             if ((tmpMask & 1) != 0)
                             {
-                                if ((sIdx + 2) > compressSize)
+                                if ((sIdx + 2) > effectiveCompressSize)
                                     return null;
 
                                 ushort head = (ushort)(source[sIdx] | (source[sIdx + 1] << 8));
@@ -60,7 +59,7 @@ namespace PangyaAPI.Utilities.Cryptography
                             }
 
                             tmpMask >>= 1;
-                            logProgress?.Invoke((int)sIdx, (int)compressSize);
+                            logProgress?.Invoke((int)sIdx, (int)effectiveCompressSize);
                         }
                     }
                     catch (Exception)
@@ -88,7 +87,8 @@ namespace PangyaAPI.Utilities.Cryptography
                 0 => 0x5,
                 1 => 0xF,
                 2 => 0x5F,
-                3 => 0xFF,
+                // The reference implementation falls through from case 3 to case 4.
+                3 => 0x5FF,
                 4 => 0x5FF,
                 _ => 0xFFF,
             };
@@ -99,10 +99,6 @@ namespace PangyaAPI.Utilities.Cryptography
 
             int dIdx = 0, sIdx = 0;
             int[] maskPtrPositions = new int[8]; // posições das ushorts de cada bit
-
-            // Índice local por chamada (thread-safe entre arquivos paralelos), igual ao
-            // usado pelo Lz77 — troca a busca de força bruta O(janela) por O(candidatos).
-            var hashChain = new Dictionary<int, List<int>>();
 
             while (sIdx < size)
             {
@@ -116,11 +112,10 @@ namespace PangyaAPI.Utilities.Cryptography
                 {
                     if (dIdx >= dest.Length) return null;
 
-                    var (matchLen, matchPos) = Lz77.FindBestMatchInternal(source, sIdx, maxDicWindow, maxMatch, hashChain);
+                    var (matchLen, matchPos) = Lz77.FindBestMatchInternal(source, sIdx, maxDicWindow, maxMatch);
 
                     if (matchPos < 0)
                     {
-                        Lz77.IndexPositionInternal(hashChain, source, sIdx, size);
                         dest[dIdx++] = source[sIdx++];
                     }
                     else
@@ -134,11 +129,6 @@ namespace PangyaAPI.Utilities.Cryptography
                         maskPtrPositions[bits] = dIdx;
 
                         dIdx += 2;
-
-                        // Indexa TODAS as posições consumidas pelo match, não só a primeira —
-                        // senão o índice fica incompleto e perde futuras oportunidades de match.
-                        for (int p = sIdx; p < sIdx + matchLen; p++)
-                            Lz77.IndexPositionInternal(hashChain, source, p, size);
 
                         sIdx += matchLen;
 

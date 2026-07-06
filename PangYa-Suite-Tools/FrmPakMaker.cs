@@ -158,12 +158,16 @@ namespace PangYa_Suite_Tools
             // Menu de contexto (criado dinamicamente em código, não pelo Designer)
             if (_menuExtractSingle != null)
                 _menuExtractSingle.Text = Strings.PakMaker_ExtractSelectedItemS;
+            if (_menuRenameSingle != null)
+                _menuRenameSingle.Text = Strings.PakMaker_RenameSelectedFile;
             if (_menuRemoveSingle != null)
                 _menuRemoveSingle.Text = Strings.PakMaker_RemoveSelectedItemSFromPAK;
             if (_menuExtractFolder != null)
                 _menuExtractFolder.Text = Strings.PakMaker_ExtractThisFolder;
             if (_menuRemoveFolder != null)
                 _menuRemoveFolder.Text = Strings.PakMaker_RemoveThisFolderFromPAK;
+            if (_menuRename != null)
+                _menuRename.Text = Strings.PakMaker_RenameThisPAK;
         }
 
         private void SetupCustomComponents()
@@ -176,7 +180,10 @@ namespace PangYa_Suite_Tools
             tvFolders.CheckBoxes = true;
             tvFolders.CheckBoxes = true;
             lstEntries.MultiSelect = true;
+            lstEntries.LabelEdit = true;
             lstEntries.DoubleClick += LstEntries_DoubleClick;
+            lstEntries.AfterLabelEdit += LstEntries_AfterLabelEdit;
+            lstEntries.KeyDown += LstEntries_KeyDown;
             tvFolders.AfterSelect += TvFolders_AfterSelect;
             txtSearch.TextChanged += (s, e) => ApplyDisplayFilter();
 
@@ -407,13 +414,73 @@ namespace PangYa_Suite_Tools
             _menuExtractSingle = new ToolStripMenuItem(Strings.PakMaker_ExtractSelectedItemS);
             _menuExtractSingle.Click += async (s, e) => await ExtractSelectedAsync();
 
+            _menuRenameSingle = new ToolStripMenuItem(Strings.PakMaker_RenameSelectedFile);
+            _menuRenameSingle.Click += (s, e) => BeginSelectedFileRename();
+
             _menuRemoveSingle = new ToolStripMenuItem(Strings.PakMaker_RemoveSelectedItemSFromPAK);
             _menuRemoveSingle.Click += async (s, e) => await RemoveSelectedAsync();
 
             contextMenu.Items.Add(_menuExtractSingle);
+            contextMenu.Items.Add(_menuRenameSingle);
             contextMenu.Items.Add(_menuRemoveSingle);
             lstEntries.ContextMenuStrip = contextMenu; // Vincula o menu à ListView
         }
+
+        private void BeginSelectedFileRename()
+        {
+            if (lstEntries.SelectedItems.Count != 1)
+            {
+                MessageBox.Show(Strings.PakMaker_SelectSingleFileToRename, Strings.Common_Error, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            ListViewItem item = lstEntries.SelectedItems[0];
+            if (item.Tag is not PakFileEntry entry || entry.Type == PakFileEntryType.Directory)
+            {
+                MessageBox.Show(Strings.PakMaker_SelectSingleFileToRename, Strings.Common_Error, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            item.BeginEdit();
+        }
+
+        private void LstEntries_KeyDown(object? sender, KeyEventArgs e)
+        {
+            if (e.KeyCode != Keys.F2) return;
+
+            e.Handled = true;
+            BeginSelectedFileRename();
+        }
+
+        private async void LstEntries_AfterLabelEdit(object? sender, LabelEditEventArgs e)
+        {
+            if (e.Label == null) return;
+            e.CancelEdit = true;
+
+            if (e.Item < 0 || e.Item >= lstEntries.Items.Count) return;
+            ListViewItem item = lstEntries.Items[e.Item];
+            if (item.Tag is not PakFileEntry entry || entry.Type == PakFileEntryType.Directory) return;
+
+            string newName = e.Label.Trim();
+            string oldName = Path.GetFileName(entry.Name.Replace('/', '\\'));
+            if (string.Equals(oldName, newName, StringComparison.Ordinal)) return;
+
+            if (!IsValidLeafFileName(newName))
+            {
+                MessageBox.Show(Strings.PakMaker_InvalidRenameName, Strings.Common_Error, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            await ExecuteFileRename(entry, newName);
+        }
+
+        private static bool IsValidLeafFileName(string fileName) =>
+            !string.IsNullOrWhiteSpace(fileName) &&
+            string.Equals(fileName, fileName.Trim(), StringComparison.Ordinal) &&
+            fileName is not "." and not ".." &&
+            !fileName.Contains('/') &&
+            !fileName.Contains('\\') &&
+            fileName.IndexOfAny(Path.GetInvalidFileNameChars()) < 0;
 
         private void LoadSetupOptions()
         {
@@ -735,7 +802,7 @@ namespace PangYa_Suite_Tools
                 $"Selected folder '{(string.IsNullOrEmpty(folderTag) ? "/" : folderTag)}' and {_scopedEntries.Count} files below it.");
         }
 
-        private async void TvFolders_AfterLabelEdit(object sender, NodeLabelEditEventArgs e)
+        private async void TvFolders_AfterLabelEdit(object? sender, NodeLabelEditEventArgs e)
         {
             // Se o usuário cancelou a digitação ou enviou vazio, ignora
             if (string.IsNullOrWhiteSpace(e.Label) || _currentReader == null)
@@ -754,7 +821,12 @@ namespace PangYa_Suite_Tools
                 return;
             }
 
-            TreeNode node = e.Node;
+            TreeNode? node = e.Node;
+            if (node == null)
+            {
+                e.CancelEdit = true;
+                return;
+            }
 
             // Evita renomear o nó raiz principal caso ele esteja selecionado
             if (node.Parent == null && (node.Tag?.ToString() == "" || node.FullPath == ""))
@@ -1347,6 +1419,15 @@ namespace PangYa_Suite_Tools
             if (destFolderDialog.ShowDialog() != DialogResult.OK) return;
 
             string targetBaseDir = destFolderDialog.SelectedPath;
+            DialogResult structureChoice = MessageBox.Show(
+                Strings.PakMaker_BatchFolderStructureChoice,
+                Strings.PakMaker_BatchFolderStructureTitle,
+                MessageBoxButtons.YesNoCancel,
+                MessageBoxIcon.Question,
+                MessageBoxDefaultButton.Button1);
+            if (structureChoice == DialogResult.Cancel) return;
+
+            bool createPakFolders = structureChoice == DialogResult.Yes;
             using CancellationTokenSource operation = BeginOperation();
 
             // Mesma região/chave do PAK atualmente carregado (se houver), evita ficar perguntando por console.
@@ -1364,7 +1445,9 @@ namespace PangYa_Suite_Tools
             {
                 if (operation.IsCancellationRequested) break;
                 string pakName = Path.GetFileNameWithoutExtension(pakPath);
-                string specificDestFolder = Path.Combine(targetBaseDir, pakName);
+                string specificDestFolder = createPakFolders
+                    ? Path.Combine(targetBaseDir, pakName)
+                    : targetBaseDir;
 
                 lblStatus.Text = $"{Strings.PakMaker_Processing} ({paksProcessados + 1}/{pakFiles.Length}): {pakName}.pak...";
 
@@ -1963,25 +2046,98 @@ namespace PangYa_Suite_Tools
         /// <summary>
         /// Executa a rotina isolada de validação, alteração lógica e gravação física do item renomeado.
         /// </summary>
+        private async Task ExecuteFileRename(PakFileEntry entry, string newName)
+        {
+            if (_currentReader == null || string.IsNullOrEmpty(txtPakPath.Text)) return;
+
+            string pakPath = txtPakPath.Text;
+            var reader = _currentReader;
+            var options = BuildRebuildOptionsForCurrentPak();
+
+            lblStatus.Text = Strings.PakMaker_RenameProcess;
+            using CancellationTokenSource operation = BeginOperation();
+
+            try
+            {
+                bool success = false;
+                string oldPath = entry.Name;
+                AppLogger.Instance.Log("PAK Manager", $"File rename requested: '{oldPath}' -> '{newName}'.");
+
+                await Task.Run(() =>
+                {
+                    success = PakManager.Rename(pakPath, reader, oldPath, newName, options,
+                        log: msg => AppLogger.Instance.Log("PAK Manager", msg),
+                        onProgress: (done, total) => ReportProgress(done, total, Strings.PakMaker_RenameWriter),
+                        SaveBck: false, cancellationToken: operation.Token);
+                });
+
+                if (!success)
+                {
+                    MessageBox.Show(Strings.PakMaker_RenameNotFound, Strings.Common_Error, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    LoadPak(pakPath, options.FileNameEncoding);
+                    return;
+                }
+
+                lblStatus.Text = Strings.PakMaker_RenameSuccess;
+                LoadPak(pakPath, options.FileNameEncoding);
+            }
+            catch (OperationCanceledException)
+            {
+                lblStatus.Text = Strings.Pak_OperationCancelled;
+                LoadPak(pakPath, options.FileNameEncoding);
+            }
+            catch (ArgumentException ex)
+            {
+                AppLogger.Instance.Log("PAK Manager", $"File rename validation failed: {ex}", AppLogLevel.Warning);
+                lblStatus.Text = Strings.PakMaker_RenameError;
+                MessageBox.Show($"{Strings.PakMaker_InvalidRenameName} {ex.Message}", Strings.Common_Error, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                LoadPak(pakPath, options.FileNameEncoding);
+            }
+            catch (InvalidDataException ex)
+            {
+                AppLogger.Instance.Log("PAK Manager", $"File rename failed validation: {ex}", AppLogLevel.Warning);
+                lblStatus.Text = Strings.PakMaker_RenameError;
+                MessageBox.Show($"{Strings.PakMaker_RenamePhysicalFailed} {ex.Message}", Strings.Common_Error, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                LoadPak(pakPath, options.FileNameEncoding);
+            }
+            catch (Exception ex)
+            {
+                AppLogger.Instance.Log("PAK Manager", $"File rename failed: {ex}", AppLogLevel.Error);
+                lblStatus.Text = Strings.PakMaker_RenameError;
+                MessageBox.Show($"{Strings.PakMaker_RenamePhysicalFailed} {ex.Message}", Strings.Common_Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                LoadPak(pakPath, options.FileNameEncoding);
+            }
+            finally
+            {
+                HideProgress();
+                EndOperation(operation);
+            }
+        }
+
         private async Task ExecuteItemRename(TreeNode selectedNode, string newName)
         {
             if (_currentReader == null || string.IsNullOrEmpty(txtPakPath.Text)) return;
 
             string pakPath = txtPakPath.Text;
+            var reader = _currentReader;
             string oldPath = selectedNode.Tag?.ToString() ?? selectedNode.FullPath;
             var options = BuildRebuildOptionsForCurrentPak();
 
             lblStatus.Text = Strings.PakMaker_RenameProcess; 
+            using CancellationTokenSource operation = BeginOperation();
 
             try
             {
                 bool success = false;
+                AppLogger.Instance.Log("PAK Manager", $"Folder rename requested: '{oldPath}' -> '{newName}'.");
 
                 // Executa a operação
                 await Task.Run(() =>
                 {
-                    success = PakManager.Rename(pakPath, _currentReader, oldPath, newName.Replace("📁 ", ""), options,
-                        onProgress: (done, total) => ReportProgress(done, total, Strings.PakMaker_RenameWriter));
+                    success = PakManager.Rename(pakPath, reader, oldPath, newName.Replace("📁 ", ""), options,
+                        log: msg => AppLogger.Instance.Log("PAK Manager", msg),
+                        onProgress: (done, total) => ReportProgress(done, total, Strings.PakMaker_RenameWriter),
+                        SaveBck: false, cancellationToken: operation.Token);
                 });
 
                 if (!success)
@@ -1996,8 +2152,14 @@ namespace PangYa_Suite_Tools
                 // Recarrega a UI com os novos ponteiros persistidos no arquivo final
                 LoadPak(pakPath, options.FileNameEncoding);
             }
+            catch (OperationCanceledException)
+            {
+                lblStatus.Text = Strings.Pak_OperationCancelled;
+                LoadPak(pakPath, options.FileNameEncoding);
+            }
             catch (Exception ex)
             {
+                AppLogger.Instance.Log("PAK Manager", $"Folder rename failed: {ex}", AppLogLevel.Error);
                 lblStatus.Text = Strings.PakMaker_RenameError;
                 MessageBox.Show($"{Strings.PakMaker_RenamePhysicalFailed} {ex.Message}", Strings.Common_Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 LoadPak(pakPath, options.FileNameEncoding);
@@ -2005,6 +2167,7 @@ namespace PangYa_Suite_Tools
             finally
             {
                 HideProgress();
+                EndOperation(operation);
             }
         }
     } 
