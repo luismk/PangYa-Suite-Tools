@@ -13,28 +13,29 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms</value>
   </resheader>
   <data name="IFFManager_ReadySelectTheIFFFilesDirectory" xml:space="preserve">
-    <value>準備完了。&#xA;IFFファイルが格納されているディレクトリを選択してください。</value>
+    <value>準備完了。
+IFFファイルのディレクトリを選択してください。</value>
   </data>
   <data name="IFFManager_SelectAnIffFileFromThe" xml:space="preserve">
-    <value>リストから.iffファイルを選択して、編集テーブルをロードしてください。</value>
+    <value>リストから .iff ファイルを選択して、編集テーブルをロードしてください。</value>
   </data>
   <data name="IFFManager_SelectTheExtractedFolderContainingThe" xml:space="preserve">
-    <value>.iffファイルが含まれる展開済みのフォルダを選択してください (例: Character.iff, Item.iff)</value>
+    <value>.iff ファイル（例: Character.iff、Item.iff）が含まれている解凍済みのフォルダを選択してください。</value>
   </data>
   <data name="IFFManager_ScanComplete" xml:space="preserve">
     <value>スキャンが完了しました。</value>
   </data>
   <data name="IFFManager_IffFileSFound" xml:space="preserve">
-    <value>個の '.iff' ファイルが見つかりました。</value>
+    <value>'.iff' ファイルが見つかりました。</value>
   </data>
   <data name="IFFManager_NoFileWithTheIffExtension" xml:space="preserve">
-    <value>このフォルダ内に '.iff' 拡張子のファイルが見つかりませんでした。</value>
+    <value>このフォルダ内に '.iff' 拡張子のファイルは見つかりませんでした。</value>
   </data>
   <data name="IFFManager_Warning" xml:space="preserve">
     <value>警告</value>
   </data>
   <data name="IFFManager_ErrorListingDirectory" xml:space="preserve">
-    <value>ディレクトリのリスト作成中にエラーが発生しました:</value>
+    <value>ディレクトリの一覧取得エラー:</value>
   </data>
   <data name="IFFManager_Error" xml:space="preserve">
     <value>エラー</value>
@@ -43,40 +44,40 @@
     <value>次の構造を編集しています:</value>
   </data>
   <data name="IFFManager_TheEditorLayoutStructureForThe" xml:space="preserve">
-    <value>⚠️ ファイルのエディタレイアウト/構造</value>
+    <value>⚠️ 次のファイルのディターレイアウト/構造</value>
   </data>
   <data name="IFFManager_HasNotYetBeenImplementedOr" xml:space="preserve">
-    <value>は、まだ実装またはマッピングされていません。</value>
+    <value>はまだ実装されていないか、マッピングされていません。</value>
   </data>
   <data name="IFFManager_EditorNotAvailableFor" xml:space="preserve">
-    <value>次のエディタは利用できません:</value>
+    <value>次のエディターは利用できません:</value>
   </data>
   <data name="Options_Options" xml:space="preserve">
     <value>オプション</value>
   </data>
   <data name="Options_RegisterPakFiles" xml:space="preserve">
-    <value>.pakファイルを関連付ける</value>
+    <value>.pak ファイルを関連付ける</value>
   </data>
   <data name="Options_Cancel" xml:space="preserve">
     <value>キャンセル</value>
   </data>
   <data name="Options_RegisterSuiteToolsToOpenPakFiles" xml:space="preserve">
-    <value>SuiteToolsを登録して.pakファイルを開くようにする</value>
+    <value>.pak ファイルを開くために SuiteTools を登録する</value>
   </data>
   <data name="Options_AddSuiteToolsShellContextToWindows" xml:space="preserve">
-    <value>Windowsエクスプローラーの右クリックメニューにSuiteToolsを追加する</value>
+    <value>Windows エクスプローラーのコンテキストメニューに SuiteTools を追加する</value>
   </data>
   <data name="Options_SuiteToolsHasToBeStartedAs" xml:space="preserve">
-    <value>レジストリエントリを変更するには、SuiteToolsを「管理者として実行」する必要があります！</value>
+    <value>シェルエントリを変更するには、SuiteTools を「管理者として実行」する必要があります！</value>
   </data>
   <data name="Options_OpenWithPakMaker" xml:space="preserve">
-    <value>PakMakerで開く</value>
+    <value>PakMaker で開く</value>
   </data>
   <data name="Options_FailedToApplyChanges" xml:space="preserve">
     <value>変更の適用に失敗しました:</value>
   </data>
   <data name="PakMaker_ExtractSelectedItemS" xml:space="preserve">
-    <value>📁 選択したアイテムを抽出...</value>
+    <value>📁 選択した項目を抽出...</value>
   </data>
   <data name="PakMaker_RenameSelectedFile" xml:space="preserve">
     <value>✏️ 選択したファイルの名前を変更 (F2)</value>
@@ -88,58 +89,58 @@
     <value>パス区切り文字を含まない有効なファイル名を入力してください。</value>
   </data>
   <data name="PakMaker_RemoveSelectedItemSFromPAK" xml:space="preserve">
-    <value>🗑️ 選択したアイテムをPAKから削除...</value>
+    <value>🗑️ PAK から選択した項目を削除...</value>
   </data>
   <data name="PakMaker_ExtractThisFolder" xml:space="preserve">
     <value>📁 このフォルダを抽出...</value>
   </data>
   <data name="PakMaker_RemoveThisFolderFromPAK" xml:space="preserve">
-    <value>🗑️ このフォルダをPAKから削除...</value>
+    <value>🗑️ このフォルダを PAK から削除...</value>
   </data>
   <data name="PakMaker_RenameThisPAK" xml:space="preserve">
-    <value>✏️ フォルダ/ファイルの名前変更 (F2)</value>
+    <value>✏️ フォルダ/ファイル名を変更 (F2)</value>
   </data>
   <data name="PakMaker_RenameProcess" xml:space="preserve">
-    <value>新しいパスを処理し、PAKファイルを更新しています...</value>
+    <value>新しいパスを処理し、PAK ファイルを更新しています...</value>
   </data>
   <data name="PakMaker_RenameNotFound" xml:space="preserve">
-    <value>PAKツリー内に一致するアイテムが見つかりませんでした。</value>
+    <value>PAK ツリー内に一致する項目が見つかりませんでした。</value>
   </data>
   <data name="PakMaker_RenameWriter" xml:space="preserve">
-    <value>構造を書き込んでいます...</value>
+    <value>構造を書き込み中...</value>
   </data>
   <data name="PakMaker_RenameSuccess" xml:space="preserve">
-    <value>PAKファイルの名前変更と保存が正常に完了しました！</value>
+    <value>PAK の名前変更と保存が正常に完了しました！</value>
   </data>
   <data name="PakMaker_RenameError" xml:space="preserve">
     <value>名前変更の適用中にエラーが発生しました。</value>
   </data>
   <data name="PakMaker_RenamePhysicalFailed" xml:space="preserve">
-    <value>PAKファイルの物理的な再構築中に失敗しました:</value>
+    <value>PAK ファイルの物理的な再構築中に失敗しました:</value>
   </data>
   <data name="PakMaker_InvalidCharacters" xml:space="preserve">
     <value>入力された名前には、無効な文字またはフォルダ区切り文字が含まれています。</value>
   </data>
   <data name="PakMaker_PreparingFilesForDragging" xml:space="preserve">
-    <value>ドラッグ＆ドロップ用のファイルを準備しています...</value>
+    <value>ドラッグするファイルを準備しています...</value>
   </data>
   <data name="PakMaker_Ready" xml:space="preserve">
     <value>準備完了</value>
   </data>
   <data name="PakMaker_PreparingFolderStructureForDragging" xml:space="preserve">
-    <value>ドラッグ＆ドロップ用のフォルダ構造を準備しています...</value>
+    <value>ドラッグするフォルダ構造を準備しています</value>
   </data>
   <data name="PakMaker_PleaseDragAValidPakFile" xml:space="preserve">
-    <value>開くには、有効な拡張子を持つ.pakファイルをドラッグしてください。</value>
+    <value>開くには、有効な .pak 拡張子のファイルをドラッグしてください。</value>
   </data>
   <data name="PakMaker_Warning" xml:space="preserve">
     <value>警告</value>
   </data>
   <data name="PakMaker_NoValidFilesOrFoldersWere" xml:space="preserve">
-    <value>インポート（インジェクション）用の有効なファイルまたはフォルダが見つかりませんでした。</value>
+    <value>インジェクション用の有効なファイルまたはフォルダが見つかりませんでした。</value>
   </data>
   <data name="PakMaker_PleaseDragAValidFolderTo" xml:space="preserve">
-    <value>新しいPAKをビルドするには、有効なフォルダをドラッグしてください。</value>
+    <value>新しい PAK をコンパイルするには、有効なフォルダをドラッグしてください。</value>
   </data>
   <data name="PakMaker_Author" xml:space="preserve">
     <value>作成者:</value>
@@ -151,7 +152,7 @@
     <value>エントリ数:</value>
   </data>
   <data name="PakMaker_ErrorOpeningPAKFile" xml:space="preserve">
-    <value>PAKファイルのオープン中にエラーが発生しました:</value>
+    <value>PAK ファイルのオープンエラー:</value>
   </data>
   <data name="PakMaker_Error" xml:space="preserve">
     <value>エラー</value>
@@ -166,25 +167,26 @@
     <value>📂 パス:</value>
   </data>
   <data name="PakMaker_SelectAnActivePakFileFirst" xml:space="preserve">
-    <value>最初にアクティブな.pakファイルを選択してください。</value>
+    <value>最初にアクティブな .pak ファイルを選択してください。</value>
   </data>
   <data name="PakMaker_YouCannotDeleteTheRootFolder" xml:space="preserve">
-    <value>ルートフォルダは削除できません。特定のフォルダを選択してください。</value>
+    <value>ルートフォルダは削除できません。
+特定のフォルダを選択してください。</value>
   </data>
   <data name="PakMaker_NoFilesFoundInsideThisFolder" xml:space="preserve">
-    <value>このフォルダ内に対象となるファイルが見つかりませんでした。</value>
+    <value>このフォルダ内を削除するためのファイルが見つかりませんでした。</value>
   </data>
   <data name="PakMaker_ThePAKWillBeRebuiltAnd" xml:space="preserve">
-    <value>PAKファイルが再構築され、バックアップファイル（.bak）が自動的に生成されます。</value>
+    <value>PAK が再構築され、バックアップ (.bak) が自動的に作成されます。</value>
   </data>
   <data name="PakMaker_ConfirmRemoval" xml:space="preserve">
     <value>削除の確認</value>
   </data>
   <data name="PakMaker_RemovingAndRebuildingPAK" xml:space="preserve">
-    <value>削除およびPAKの再構築を行っています...</value>
+    <value>PAK を削除および再構築中...</value>
   </data>
   <data name="PakMaker_RebuildingPAK" xml:space="preserve">
-    <value>PAKを再構築中</value>
+    <value>PAK を再構築中</value>
   </data>
   <data name="PakMaker_RemovalCompleted" xml:space="preserve">
     <value>削除が完了しました</value>
@@ -205,10 +207,10 @@
     <value>すべてのファイル</value>
   </data>
   <data name="PakMaker_PleaseLoadAPakFileFirst" xml:space="preserve">
-    <value>最初に.pakファイルをロードしてください。</value>
+    <value>最初に .pak ファイルをロードしてください。</value>
   </data>
   <data name="PakMaker_ExtractingFiles" xml:space="preserve">
-    <value>ファイルを抽出しています...</value>
+    <value>ファイルを抽出中...</value>
   </data>
   <data name="PakMaker_Extracting" xml:space="preserve">
     <value>抽出中</value>
@@ -220,13 +222,13 @@
     <value>抽出エラー</value>
   </data>
   <data name="PakMaker_ErrorExtracting" xml:space="preserve">
-    <value>抽出中にエラーが発生しました:</value>
+    <value>抽出エラー:</value>
   </data>
   <data name="PakMaker_SelectFilesFromTheListOr" xml:space="preserve">
-    <value>リストからファイルを選択するか、ツリービューからフォルダを選択して抽出してください。</value>
+    <value>抽出するには、リストからファイルを選択するか、ツリービューからフォルダを選択してください。</value>
   </data>
   <data name="PakMaker_EntirePAK" xml:space="preserve">
-    <value>PAK全体</value>
+    <value>PAK 全体</value>
   </data>
   <data name="PakMaker_Folder" xml:space="preserve">
     <value>フォルダ:</value>
@@ -235,13 +237,13 @@
     <value>次のパスのファイルが見つかりません:</value>
   </data>
   <data name="PakMaker_SelectTheDestinationToExtract" xml:space="preserve">
-    <value>抽出先の選択</value>
+    <value>抽出先の候補を選択してください</value>
   </data>
   <data name="PakMaker_ExtractingSelectedItemS" xml:space="preserve">
-    <value>選択したアイテムを抽出しています...</value>
+    <value>選択した項目を抽出中...</value>
   </data>
   <data name="PakMaker_ExtractingSelectedItemS_2" xml:space="preserve">
-    <value>選択したアイテムを抽出中</value>
+    <value>選択した項目を抽出中</value>
   </data>
   <data name="PakMaker_FolderExtractedRespectingTheSelectedLevel" xml:space="preserve">
     <value>選択された階層を維持してフォルダが抽出されました！</value>
@@ -256,13 +258,13 @@
     <value>ファイルが正常に抽出されました！</value>
   </data>
   <data name="PakMaker_SelectTheFolderThatCONTAINSThe" xml:space="preserve">
-    <value>.pakファイルが含まれているフォルダを選択してください</value>
+    <value>.pak ファイルが「含まれている」フォルダを選択してください</value>
   </data>
   <data name="PakMaker_NoPakFilesWereFoundIn" xml:space="preserve">
-    <value>選択したフォルダ内に.pakファイルが見つかりませんでした。</value>
+    <value>選択したフォルダ内に .pak ファイルが見つかりませんでした。</value>
   </data>
   <data name="PakMaker_SelectTheDESTINATIONFolderForExtraction" xml:space="preserve">
-    <value>抽出先のフォルダを選択してください</value>
+    <value>抽出先の「保存先」フォルダを選択してください</value>
   </data>
   <data name="PakMaker_Processing" xml:space="preserve">
     <value>処理中</value>
@@ -277,7 +279,7 @@
     <value>一括抽出が完了しました！</value>
   </data>
   <data name="PakMaker_PAKPackagesExtractedSuccessfullyTo" xml:space="preserve">
-    <value>PAKパッケージが正常に抽出されました。宛先:</value>
+    <value>PAK パッケージが正常に抽出されました。抽出先:</value>
   </data>
   <data name="PakMaker_ProcessingComplete" xml:space="preserve">
     <value>処理完了</value>
@@ -292,52 +294,52 @@
     <value>作成者変更の確認</value>
   </data>
   <data name="PakMaker_SelectTheFilesToUpdateInject" xml:space="preserve">
-    <value>更新/インポートするファイルを選択してください</value>
+    <value>更新/インジェクションするファイルを選択してください</value>
   </data>
   <data name="PakMaker_MergingAndRebuildingPAK" xml:space="preserve">
-    <value>マージおよびPAKの再構築を行っています...</value>
+    <value>PAK を結合および再構築中...</value>
   </data>
   <data name="PakMaker_PAKUpdatedSuccessfully" xml:space="preserve">
-    <value>PAKが正常に更新されました！</value>
+    <value>PAK が正常に更新されました！</value>
   </data>
   <data name="PakMaker_FileSInjectedAndThePAK" xml:space="preserve">
-    <value>個のファイルがインポートされ、PAKファイルが再構築されました！</value>
+    <value>ファイルがインジェクションされ、PAK が再構築されました！</value>
   </data>
   <data name="PakMaker_ErrorInjecting" xml:space="preserve">
-    <value>インポートエラー</value>
+    <value>インジェクションエラー</value>
   </data>
   <data name="PakMaker_InjectionFailed" xml:space="preserve">
-    <value>インポートに失敗しました:</value>
+    <value>インジェクションに失敗しました:</value>
   </data>
   <data name="PakMaker_ErrorReadingFolder" xml:space="preserve">
     <value>フォルダの読み込みエラー</value>
   </data>
   <data name="PakMaker_NoValidFileWasFoundTo" xml:space="preserve">
-    <value>インポート対象の有効なファイルが見つかりませんでした。</value>
+    <value>インジェクション用の有効なファイルが見つかりませんでした。</value>
   </data>
   <data name="PakMaker_SelectFilesFromTheListOr_2" xml:space="preserve">
-    <value>リストからファイルを選択するか、ツリービューのチェックボックスをオンにして削除してください。</value>
+    <value>削除するには、リストからファイルを選択するか、ツリービューからフォルダのチェックボックスをオンにしてください。</value>
   </data>
   <data name="PakMaker_TheSelectedItemsWereRemovedSuccessfully" xml:space="preserve">
-    <value>選択したアイテムが正常に削除され、PAKファイルが再構築されました！</value>
+    <value>選択した項目が正常に削除され、PAK ファイルが再構築されました！</value>
   </data>
   <data name="PakMaker_SelectAValidSourceDirectory" xml:space="preserve">
     <value>有効なソースディレクトリを選択してください。</value>
   </data>
   <data name="PakMaker_SaveNewPAK" xml:space="preserve">
-    <value>新しいPAKを保存</value>
+    <value>新しい PAK を保存</value>
   </data>
   <data name="PakMaker_CompilingPAK" xml:space="preserve">
-    <value>PAKをコンパイルしています...</value>
+    <value>PAK をコンパイル中...</value>
   </data>
   <data name="PakMaker_PakFileGeneratedSuccessfully" xml:space="preserve">
-    <value>.pakファイルが正常に生成されました！</value>
+    <value>.pak ファイルが正常に生成されました！</value>
   </data>
   <data name="PakMaker_PleaseSelectAValidRegionBefore" xml:space="preserve">
     <value>続行する前に、有効なリージョンを選択してください。</value>
   </data>
   <data name="PakMaker_ErrorCreatingPAK" xml:space="preserve">
-    <value>PAK作成エラー</value>
+    <value>PAK 作成エラー</value>
   </data>
   <data name="PakMaker_CompilationError" xml:space="preserve">
     <value>コンパイルエラー:</value>
@@ -346,28 +348,28 @@
     <value>対象のリージョン/キーを選択してください。</value>
   </data>
   <data name="PakMaker_ThePAKIsAlreadyUsingThat" xml:space="preserve">
-    <value>PAKはすでにそのキーを使用しています。</value>
+    <value>PAK はすでにそのキーを使用しています。</value>
   </data>
   <data name="PakMaker_Information" xml:space="preserve">
     <value>情報</value>
   </data>
   <data name="PakMaker_ChangeThePAKKeyTo" xml:space="preserve">
-    <value>PAKキーを次へ変更:</value>
+    <value>PAK キーを次に変更する:</value>
   </data>
   <data name="PakMaker_ThePAKWillBeRebuiltAnd_2" xml:space="preserve">
-    <value>PAKファイルが再構築され、バックアップ（.bak）が作成されます。</value>
+    <value>PAK が再構築され、バックアップ (.bak) が作成されます。</value>
   </data>
   <data name="PakMaker_ConfirmKeyChange" xml:space="preserve">
     <value>キー変更の確認</value>
   </data>
   <data name="PakMaker_ChangingKeyAndRebuildingPAK" xml:space="preserve">
-    <value>キーを変更し、PAKを再構築しています...</value>
+    <value>キーを変更し、PAK を再構築中...</value>
   </data>
   <data name="PakMaker_KeyChangedSuccessfully" xml:space="preserve">
     <value>キーが正常に変更されました！</value>
   </data>
   <data name="PakMaker_ThePAKWasRebuiltWithThe" xml:space="preserve">
-    <value>PAKファイルは次のキーで再構築されました:</value>
+    <value>PAK は次のキーで再構築されました:</value>
   </data>
   <data name="PakMaker_ErrorChangingKey" xml:space="preserve">
     <value>キー変更エラー</value>
@@ -376,28 +378,30 @@
     <value>再構築に失敗しました:</value>
   </data>
   <data name="UpdateList_StartMonitoring" xml:space="preserve">
-    <value>▶️ 監視開始</value>
+    <value>▶️ 監視を開始</value>
   </data>
   <data name="UpdateList_INACTIVE" xml:space="preserve">
     <value>停止中</value>
   </data>
   <data name="UpdateList_StopMonitoring" xml:space="preserve">
-    <value>🛑 監視停止</value>
+    <value>🛑 監視を停止</value>
   </data>
   <data name="UpdateList_ACTIVELYMONITORING" xml:space="preserve">
-    <value>現在監視中</value>
+    <value>監視中</value>
   </data>
   <data name="UpdateList_DragAndDropAnEncryptedUpdatelist" xml:space="preserve">
-    <value>🪂 暗号化された 'updatelist' ファイルをここにドラッグ＆ドロップすると、デコードされたXML内容がリアルタイムで表示されます。</value>
+    <value>🪂 暗号化された 'updatelist' ファイルをここにドラッグ＆ドロップすると、デコードされた XML をリアルタイムで表示します。</value>
   </data>
   <data name="UpdateList_InterfaceInitializedInMultiTabMode" xml:space="preserve">
-    <value>マルチタブモード (PakMakerスタイル) でインターフェースが初期化されました。準備完了。</value>
+    <value>インターフェースがマルチタブモード（PakMaker スタイル）で初期化されました。
+準備完了。</value>
   </data>
   <data name="UpdateList_Processing" xml:space="preserve">
     <value>処理中:</value>
   </data>
   <data name="UpdateList_ProtectedFileDetectedTestingKey" xml:space="preserve">
-    <value>保護されたファイルを検出しました。キーをテスト中</value>
+    <value>保護されたファイルを検出しました。
+キーをテスト中</value>
   </data>
   <data name="UpdateList_SUCCESS" xml:space="preserve">
     <value>成功</value>
@@ -415,37 +419,38 @@
     <value>総当たり成功</value>
   </data>
   <data name="UpdateList_KeyIdentifiedSuccessfully" xml:space="preserve">
-    <value>キーが正常に特定されました！</value>
+    <value>キーが正常に識別されました！</value>
   </data>
   <data name="UpdateList_ErrorNoKeyDecodedTheStructure" xml:space="preserve">
-    <value>❌ エラー: 構造をデコードできるキーが見つかりませんでした。</value>
+    <value>❌ エラー: 構造をデコードできるキーがありませんでした。</value>
   </data>
   <data name="UpdateList_TOTALFAILURE" xml:space="preserve">
-    <value>致命的失敗</value>
+    <value>完全な失敗</value>
   </data>
   <data name="UpdateList_NoKeyFromTheKnownDatabase" xml:space="preserve">
-    <value>既知のデータベース内にあるキーでは、このファイルの構造を開くことができませんでした。</value>
+    <value>既知のデータベース内のキーでは、このファイルの構造を開くことができませんでした。</value>
   </data>
   <data name="UpdateList_TheDroppedFileIsAlreadyIn" xml:space="preserve">
-    <value>ドロップされたファイルはすでにプレーンテキスト/XML形式です。パネルに整形して表示します。</value>
+    <value>ドロップされたファイルはすでにプレーンテキスト/XML モードです。
+パネルに整形して表示されました。</value>
   </data>
   <data name="UpdateList_InvalidOrCorruptedFile" xml:space="preserve">
-    <value>⚠️ 無効または破損したファイル。</value>
+    <value>⚠️ 無効または破損したファイルです。</value>
   </data>
   <data name="UpdateList_CriticalFailureWhileParsingFile" xml:space="preserve">
-    <value>❌ ファイルの解析（パース）中に深刻なエラーが発生しました。</value>
+    <value>❌ ファイルの解析中に致命的なエラーが発生しました。</value>
   </data>
   <data name="UpdateList_PARSEERROR" xml:space="preserve">
     <value>解析エラー</value>
   </data>
   <data name="UpdateList_SelectTheRootPangyaFolderWhere" xml:space="preserve">
-    <value>Pangyaのルートフォルダ (実行ファイルや.pakファイルが存在する場所) を選択してください</value>
+    <value>Pangya のルートフォルダ（実行ファイルや .pak ファイルがある場所）を選択してください</value>
   </data>
   <data name="UpdateList_SelectTheDestinationWebServerFolderFor" xml:space="preserve">
-    <value>アップデート先のウェブサーバーフォルダを選択してください</value>
+    <value>アップデート先の WebServer フォルダを選択してください</value>
   </data>
   <data name="UpdateList_CheckWhetherTheSourceAndWebServer" xml:space="preserve">
-    <value>ソースフォルダとウェブサーバーの保存先フォルダのパスが有効であることを確認してください。</value>
+    <value>ソースフォルダと WebServer の保存先フォルダが有効なディレクトリパスであるか確認してください。</value>
   </data>
   <data name="UpdateList_Warning" xml:space="preserve">
     <value>警告</value>
@@ -454,13 +459,13 @@
     <value>初期化中...</value>
   </data>
   <data name="UpdateList_ScanningDirectoryTreeAndGeneratingInitial" xml:space="preserve">
-    <value>ディレクトリツリーをスキャンし、初期のクライアントマッピングを生成しています...</value>
+    <value>ディレクトリツリーをスキャンし、初期クライアントマッピングを生成しています...</value>
   </data>
   <data name="UpdateList_SERVICE" xml:space="preserve">
     <value>サービス</value>
   </data>
   <data name="UpdateList_FileSystemWatcherActiveOnFolder" xml:space="preserve">
-    <value>次のフォルダでFileSystemWatcherが動作しています:</value>
+    <value>次のフォルダで FileSystemWatcher がアクティブです:</value>
   </data>
   <data name="UpdateList_INITERROR" xml:space="preserve">
     <value>初期化エラー</value>
@@ -478,37 +483,42 @@
     <value>コンパイル完了</value>
   </data>
   <data name="UpdateList_UpdatelistSignedSuccessfullyTrigger" xml:space="preserve">
-    <value>updatelistの署名に成功しました！ トリガー:</value>
+    <value>updatelist の署名に成功しました！
+トリガー:</value>
   </data>
   <data name="UpdateList_IOERROR" xml:space="preserve">
-    <value>I/Oエラー</value>
+    <value>I/O エラー</value>
   </data>
   <data name="UpdateList_CouldNotManageTheFile" xml:space="preserve">
     <value>ファイルを管理できませんでした</value>
   </data>
   <data name="Program_ThisApplicationRequiresAdministrativePrivilegesTo" xml:space="preserve">
-    <value>このアプリケーションを正常に動作させるには管理者権限が必要です。再起動して「はい」をクリックしてください。</value>
+    <value>このアプリケーションを正しく実行するには管理者権限が必要です。
+再起動して「はい」をクリックしてください。</value>
   </data>
   <data name="Program_AdminPrivilegesRequired" xml:space="preserve">
     <value>管理者権限が必要です</value>
   </data>
   <data name="Common_PortugueseBrazil" xml:space="preserve">
-    <value>Português (BR)</value>
+    <value>ポルトガル語 (ブラジル)</value>
   </data>
   <data name="Common_EnglishUS" xml:space="preserve">
-    <value>English (US)</value>
+    <value>英語 (米国)</value>
   </data>
   <data name="Common_Swedish" xml:space="preserve">
-    <value>Swedish</value>
+    <value>スウェーデン語</value>
   </data>
   <data name="Common_Japonese" xml:space="preserve">
-    <value>Japonese</value>
+    <value>日本語</value>
+  </data>
+  <data name="Common_French" xml:space="preserve">
+    <value>フランス語</value>
   </data>
   <data name="Common_Language" xml:space="preserve">
     <value>言語 (Language):</value>
   </data>
   <data name="Menu_Title" xml:space="preserve">
-    <value>PangYa Studio Suite - 開発者ツール</value>
+    <value>PangYa Studio Suite - デベレーターツール</value>
   </data>
   <data name="Menu_PakManager" xml:space="preserve">
     <value>📦 PAK ファイルマネージャー</value>
@@ -517,13 +527,13 @@
     <value>🌐 パッチ / UpdateList マネージャー</value>
   </data>
   <data name="Menu_IffManager" xml:space="preserve">
-    <value>📝 IFF マネージャー / エディタ</value>
+    <value>📝 IFF エディター / マネージャー</value>
   </data>
   <data name="Menu_Options" xml:space="preserve">
     <value>オプション</value>
   </data>
   <data name="Menu_PakDiff" xml:space="preserve">
-    <value>🔍 PAK 比較 (Diff)</value>
+    <value>🔍 PAK 比較ツール (Diff)</value>
   </data>
   <data name="Pak_Title" xml:space="preserve">
     <value>PangYa Studio - PAK マネージャー</value>
@@ -535,7 +545,7 @@
     <value>参照...</value>
   </data>
   <data name="Pak_PathHint" xml:space="preserve">
-    <value>.pakファイルをここにドラッグするか、「参照...」をクリックしてください</value>
+    <value>ここに .pak ファイルをドラッグするか、「参照...」をクリックしてください</value>
   </data>
   <data name="Pak_Header" xml:space="preserve">
     <value>ヘッダー情報</value>
@@ -553,22 +563,22 @@
     <value>🔎 検索:</value>
   </data>
   <data name="Pak_SearchHint" xml:space="preserve">
-    <value>アイテム名またはファイル名でフィルター...</value>
+    <value>オブジェクト/ファイル名でフィルター...</value>
   </data>
   <data name="Pak_CurrentPath" xml:space="preserve">
     <value>📂 パス: (すべてのファイル)</value>
   </data>
   <data name="Pak_ExtractSelected" xml:space="preserve">
-    <value>📤 選択したアイテムを抽出</value>
+    <value>📤 選択した項目を抽出</value>
   </data>
   <data name="Pak_RemoveSelected" xml:space="preserve">
-    <value>🗑️ 選択したアイテムを削除</value>
+    <value>🗑️ 選択した項目を削除</value>
   </data>
   <data name="Pak_BatchExtract" xml:space="preserve">
     <value>📂 フォルダを抽出</value>
   </data>
   <data name="Pak_Update" xml:space="preserve">
-    <value>🔄 インポート / 更新</value>
+    <value>🔄 インジェクション / 更新</value>
   </data>
   <data name="Pak_ExtractAll" xml:space="preserve">
     <value>💥 すべて抽出</value>
@@ -577,7 +587,7 @@
     <value>ファイル名</value>
   </data>
   <data name="Pak_ColumnType" xml:space="preserve">
-    <value>タイプ</value>
+    <value>種類</value>
   </data>
   <data name="Pak_ColumnSize" xml:space="preserve">
     <value>実際のサイズ</value>
@@ -589,13 +599,13 @@
     <value>🔑 新しいキー (XTEA):</value>
   </data>
   <data name="Pak_ChangeKey" xml:space="preserve">
-    <value>🔐 PAKキーを変更</value>
+    <value>🔐 PAK キーの変更</value>
   </data>
   <data name="Pak_TabCreate" xml:space="preserve">
-    <value>新しいPAKを作成</value>
+    <value>新しい PAK を作成</value>
   </data>
   <data name="Pak_SourceHint" xml:space="preserve">
-    <value>ここにフォルダをドラッグ...</value>
+    <value>ここにフォルダをドラッグしてください...</value>
   </data>
   <data name="Pak_SelectFolder" xml:space="preserve">
     <value>選択...</value>
@@ -604,7 +614,7 @@
     <value>エントリバージョン:</value>
   </data>
   <data name="Pak_Compression" xml:space="preserve">
-    <value>圧縮タイプ:</value>
+    <value>圧縮の種類:</value>
   </data>
   <data name="Pak_CompressionLevel" xml:space="preserve">
     <value>圧縮レベル (0-9):</value>
@@ -622,19 +632,19 @@
     <value>PangYa Studio - UpdateList マネージャー</value>
   </data>
   <data name="Update_DecryptTab" xml:space="preserve">
-    <value> 🔍 ビューア / 復号化 </value>
+    <value> 🔍 ビューアー / 復号化 </value>
   </data>
   <data name="Update_GeneratorTab" xml:space="preserve">
-    <value> 🛠️ ジェネレーター ＆ 監視 </value>
+    <value> 🛠️ 生成 ＆ 監視 </value>
   </data>
   <data name="Update_Config" xml:space="preserve">
     <value> アップデートサーバー設定 </value>
   </data>
   <data name="Update_Source" xml:space="preserve">
-    <value>Pangyaフォルダ (ソース):</value>
+    <value>PangYa フォルダ (ソース):</value>
   </data>
   <data name="Update_Destination" xml:space="preserve">
-    <value>ウェブサーバーフォルダ (宛先):</value>
+    <value>WebServer フォルダ (保存先):</value>
   </data>
   <data name="Update_Key" xml:space="preserve">
     <value>リージョン / キー:</value>
@@ -643,19 +653,19 @@
     <value>パッチバージョン:</value>
   </data>
   <data name="Update_ListVersion" xml:space="preserve">
-    <value>UpdateListバージョン:</value>
+    <value>UpdateList バージョン:</value>
   </data>
   <data name="Update_PatchNumber" xml:space="preserve">
     <value>パッチ番号:</value>
   </data>
   <data name="Update_Log" xml:space="preserve">
-    <value>ログ履歴 / ターミナルログ:</value>
+    <value>履歴 / ターミナルログ:</value>
   </data>
   <data name="Iff_Title" xml:space="preserve">
     <value>PangYa Studio - 高度な IFF マネージャー</value>
   </data>
   <data name="Iff_Directory" xml:space="preserve">
-    <value>IFF フォルダ (パス):</value>
+    <value>IFF ディレクトリ (フォルダ):</value>
   </data>
   <data name="Iff_Browse" xml:space="preserve">
     <value>参照...</value>
@@ -667,21 +677,21 @@
     <value>オプション</value>
   </data>
   <data name="Options_Group" xml:space="preserve">
-    <value>.pakファイルを関連付ける</value>
+    <value>.pak ファイルを関連付ける</value>
   </data>
   <data name="Options_Register" xml:space="preserve">
-    <value>SuiteToolsを登録して.pakファイルを開くようにする</value>
+    <value>.pak ファイルを開くために SuiteTools を登録する</value>
   </data>
   <data name="Options_Shell" xml:space="preserve">
-    <value>Windowsエクスプローラーの右クリックメニューにSuiteToolsを追加する</value>
+    <value>Windows エクスプローラーのコンテキストメニューに SuiteTools を追加する</value>
   </data>
   <data name="Options_Admin" xml:space="preserve">
-    <value>レジストリエントリを変更するには、SuiteToolsを「管理者として実行」する必要があります！</value>
+    <value>シェルエントリを変更するには、SuiteTools を「管理者として実行」する必要があります！</value>
   </data>
-  <data name="Pak_RemoveFolderConfirmation" xml:space="preserve"><value>フォルダ '{0}' とそのすべての内容を削除してもよろしいですか？&#xA;削除されるファイルの総数: {1}。</value></data>
+  <data name="Pak_RemoveFolderConfirmation" xml:space="preserve"><value>フォルダ '{0}' とそのすべての内容を削除してもよろしいですか？&#xA;削除するファイルの総数: {1}。</value></data>
   <data name="Pak_ChangeAuthorConfirmation" xml:space="preserve"><value>作成者名を '{0}' に変更しますか？</value></data>
-  <data name="Pak_RemoveFoldersConfirmation" xml:space="preserve"><value>選択したフォルダ: '{0}' および/または選択したファイルを削除しようとしています。&#xA;削除されるファイルの総数: {1}。&#xA;&#xA;続行しますか？</value></data>
-  <data name="Pak_RemoveFilesConfirmation" xml:space="preserve"><value>選択した {0} 個のファイルをPAKから削除しますか？</value></data>
+  <data name="Pak_RemoveFoldersConfirmation" xml:space="preserve"><value>チェックされたフォルダ: '{0}' および/または選択されたファイルを削除しようとしています。&#xA;削除するファイルの総数: {1}。&#xA;&#xA;続行しますか？</value></data>
+  <data name="Pak_RemoveFilesConfirmation" xml:space="preserve"><value>選択した {0} 個のファイルを PAK から削除しますか？</value></data>
   <data name="Common_Error" xml:space="preserve"><value>エラー</value></data>
   <data name="Options_ArchiveDescription" xml:space="preserve"><value>PangYa PAK アーカイブファイル</value></data>
   <data name="Common_OK" xml:space="preserve">
@@ -697,49 +707,52 @@
     <value>セキュリティ PAK</value>
   </data>
   <data name="Pak_FilenameEncoding" xml:space="preserve">
-    <value>エンコーディング:</value>
+    <value>ファイル名:</value>
   </data>
   <data name="Pak_FilenameEncodingTooltip" xml:space="preserve">
-    <value>PAKアーカイブ内のファイル名を読み書きするために使用される文字エンコーディング。</value>
+    <value>PAK アーカイブ内のファイル名を読み書きするために使用されるエンコーディング。</value>
   </data>
   <data name="Pak_EncodingAppliesNextLoad" xml:space="preserve">
-    <value>ファイル名のエンコーディングは、次回PAKファイルがロードされたときに適用されます。</value>
+    <value>ファイル名のエンコーディングは、次回 PAK がロードされるときに適用されます。</value>
   </data>
-  <data name="PakDiff_SelectBaseFolder" xml:space="preserve"><value>ベース / 変更前のPAKフォルダを選択してください:</value></data>
-  <data name="PakDiff_SelectAfterFolder" xml:space="preserve"><value>変更後 / 新しいPAKフォルダを選択してください:</value></data>
+  <data name="PakDiff_SelectBaseFolder" xml:space="preserve"><value>変更前/ベースの PAK フォルダを選択してください:</value></data>
+  <data name="PakDiff_SelectAfterFolder" xml:space="preserve"><value>変更後/新しい PAK フォルダを選択してください:</value></data>
   <data name="PakDiff_SelectValidFolder" xml:space="preserve"><value>有効なフォルダを選択してください。</value></data>
-  <data name="PakDiff_ReadingPaks" xml:space="preserve"><value>⏳ PAKファイルを読み込んでいます...</value></data>
-  <data name="PakDiff_Files" xml:space="preserve"><value>ファイル</value></data>
+  <data name="PakDiff_ReadingPaks" xml:space="preserve"><value>⏳ PAK を読み込み中...</value></data>
+  <data name="PakDiff_Files" xml:space="preserve"><value>個のファイル</value></data>
   <data name="PakDiff_AddedUpper" xml:space="preserve"><value>追加</value></data>
   <data name="PakDiff_RemovedUpper" xml:space="preserve"><value>削除</value></data>
   <data name="PakDiff_ModifiedUpper" xml:space="preserve"><value>変更</value></data>
-  <data name="PakDiff_Added" xml:space="preserve"><value>追加済み</value></data>
-  <data name="PakDiff_Removed" xml:space="preserve"><value>削除済み</value></data>
-  <data name="PakDiff_Modified" xml:space="preserve"><value>変更済み</value></data>
-  <data name="PakDiff_ComparisonComplete" xml:space="preserve"><value>比較が完了しました</value></data>
-  <data name="PakDiff_NoLogToSave" xml:space="preserve"><value>保存するログがありません。最初に比較を実行してください。</value></data>
+  <data name="PakDiff_Added" xml:space="preserve"><value>追加された</value></data>
+  <data name="PakDiff_Removed" xml:space="preserve"><value>削除された</value></data>
+  <data name="PakDiff_Modified" xml:space="preserve"><value>変更された</value></data>
+  <data name="PakDiff_ComparisonComplete" xml:space="preserve"><value>比較完了</value></data>
+  <data name="PakDiff_NoLogToSave" xml:space="preserve"><value>保存するログがありません。
+最初に比較を実行してください。</value></data>
   <data name="PakDiff_SaveChangeLog" xml:space="preserve"><value>変更ログを保存</value></data>
-  <data name="PakDiff_LogSavedTo" xml:space="preserve"><value>ログが正常に保存されました:&#xA;{0}</value></data>
+  <data name="PakDiff_LogSavedTo" xml:space="preserve"><value>ログが保存されました:&#xA;{0}</value></data>
   <data name="PakDiff_Saved" xml:space="preserve"><value>保存完了</value></data>
-  <data name="PakDiff_SelectTargetClient" xml:space="preserve"><value>対象のクライアントフォルダ (抽出元) を選択してください:</value></data>
-  <data name="PakDiff_SelectBaseClient" xml:space="preserve"><value>ベースとなるクライアントフォルダ (比較対象) を選択してください:</value></data>
-  <data name="PakDiff_SelectValidClientFolders" xml:space="preserve"><value>両方のクライアントに対して有効なフォルダを選択してください。</value></data>
+  <data name="PakDiff_SelectTargetClient" xml:space="preserve"><value>対象のクライアントフォルダ（抽出元）を選択してください:</value></data>
+  <data name="PakDiff_SelectBaseClient" xml:space="preserve"><value>ベースのクライアントフォルダ（比較対象）を選択してください:</value></data>
+  <data name="PakDiff_SelectValidClientFolders" xml:space="preserve"><value>両方のクライアントに有効なディレクトリを選択してください。</value></data>
   <data name="PakDiff_New" xml:space="preserve"><value>新規</value></data>
   <data name="PakDiff_ModifiedLabel" xml:space="preserve"><value>変更あり</value></data>
   <data name="PakDiff_Identical" xml:space="preserve"><value>一致</value></data>
-  <data name="PakDiff_ComparisonFound" xml:space="preserve"><value>比較完了！ {0} 個のファイルが見つかりました。</value></data>
+  <data name="PakDiff_ComparisonFound" xml:space="preserve"><value>比較が完了しました！
+{0} 個のファイルが見つかりました。</value></data>
   <data name="PakDiff_Done" xml:space="preserve"><value>完了</value></data>
   <data name="PakDiff_ComparisonError" xml:space="preserve"><value>比較中にエラーが発生しました:</value></data>
-  <data name="PakDiff_SelectAtLeastOne" xml:space="preserve"><value>抽出するファイルを少なくとも1つ選択してください。</value></data>
-  <data name="PakDiff_SelectOutputFolder" xml:space="preserve"><value>出力先フォルダを選択してください:</value></data>
-  <data name="PakDiff_ExtractionComplete" xml:space="preserve"><value>抽出完了！ {0} 個のファイルが次の場所に抽出されました:&#xA;{1}</value></data>
+  <data name="PakDiff_SelectAtLeastOne" xml:space="preserve"><value>抽出するファイルを少なくとも1つチェックしてください。</value></data>
+  <data name="PakDiff_SelectOutputFolder" xml:space="preserve"><value>出力フォルダを選択してください:</value></data>
+  <data name="PakDiff_ExtractionComplete" xml:space="preserve"><value>抽出完了！
+{0} 個のファイルが次へ抽出されました:&#xA;{1}</value></data>
   <data name="PakDiff_ExtractionFailed" xml:space="preserve"><value>抽出に失敗しました:</value></data>
   <data name="PakDiff_Warning" xml:space="preserve"><value>警告</value></data>
   <data name="PakDiff_Error" xml:space="preserve"><value>エラー</value></data>
   <data name="PakDiff_TextLogFilter" xml:space="preserve"><value>テキストログ (*.txt)|*.txt</value></data>
   <data name="PakDiff_LoadSnapshot" xml:space="preserve"><value>スナップショットをロード</value></data>
   <data name="PakDiff_SnapshotFilter" xml:space="preserve"><value>スナップショット JSON (*.paksnap)|*.paksnap</value></data>
-  <data name="PakDiff_SnapshotNotTaken" xml:space="preserve"><value>スナップショット {0} はまだ作成されていません。</value></data>
+  <data name="PakDiff_SnapshotNotTaken" xml:space="preserve"><value>スナップショット {0} はまだ取得されていません。</value></data>
   <data name="PakDiff_SaveSnapshot" xml:space="preserve"><value>スナップショット {0} を保存</value></data>
   <data name="PakDiff_SnapshotSaved" xml:space="preserve"><value>スナップショットが保存されました: {0}</value></data>
   <data name="PakDiff_LoadSnapshotFailed" xml:space="preserve"><value>スナップショットのロードに失敗しました:</value></data>
@@ -747,27 +760,27 @@
   <data name="PakDiff_TabLog" xml:space="preserve"><value>📋 変更履歴 / ログ</value></data>
   <data name="PakDiff_SnapshotABefore" xml:space="preserve"><value>📸 スナップショット A — 変更前 / ベース</value></data>
   <data name="PakDiff_SnapshotBAfter" xml:space="preserve"><value>📸 スナップショット B — 変更後 / 新規</value></data>
-  <data name="PakDiff_PakFolder" xml:space="preserve"><value>PAKフォルダ:</value></data>
+  <data name="PakDiff_PakFolder" xml:space="preserve"><value>PAK フォルダ:</value></data>
   <data name="PakDiff_Browse" xml:space="preserve"><value>📁...</value></data>
-  <data name="PakDiff_TakeSnapshot" xml:space="preserve"><value>📸 スナップショット作成</value></data>
+  <data name="PakDiff_TakeSnapshot" xml:space="preserve"><value>📸 スナップショットを取得</value></data>
   <data name="PakDiff_Save" xml:space="preserve"><value>💾 保存</value></data>
   <data name="PakDiff_Load" xml:space="preserve"><value>📂 ロード</value></data>
-  <data name="PakDiff_NotTaken" xml:space="preserve"><value>(未作成)</value></data>
+  <data name="PakDiff_NotTaken" xml:space="preserve"><value>(未取得)</value></data>
   <data name="PakDiff_CompareSnapshots" xml:space="preserve"><value>🔍 スナップショットを比較</value></data>
   <data name="PakDiff_SelectAll" xml:space="preserve"><value>すべて選択</value></data>
-  <data name="PakDiff_ColumnPakFile" xml:space="preserve"><value>PAKファイル</value></data>
+  <data name="PakDiff_ColumnPakFile" xml:space="preserve"><value>PAK ファイル</value></data>
   <data name="PakDiff_ColumnInternalFile" xml:space="preserve"><value>内部ファイル</value></data>
-  <data name="PakDiff_ColumnStatus" xml:space="preserve"><value>状態</value></data>
-  <data name="PakDiff_ColumnOldSize" xml:space="preserve"><value>元のサイズ</value></data>
-  <data name="PakDiff_ColumnNewSize" xml:space="preserve"><value>新しいサイズ</value></data>
+  <data name="PakDiff_ColumnStatus" xml:space="preserve"><value>ステータス</value></data>
+  <data name="PakDiff_ColumnOldSize" xml:space="preserve"><value>旧サイズ</value></data>
+  <data name="PakDiff_ColumnNewSize" xml:space="preserve"><value>新サイズ</value></data>
   <data name="PakDiff_SaveLog" xml:space="preserve"><value>💾 ログを保存 .txt</value></data>
   <data name="PakDiff_TabClientCompare" xml:space="preserve"><value>🔍 クライアント比較 ＆ 抽出</value></data>
   <data name="PakDiff_ClientDirectories" xml:space="preserve"><value>クライアントディレクトリ</value></data>
   <data name="PakDiff_TargetSource" xml:space="preserve"><value>対象 / ソース (抽出元):</value></data>
   <data name="PakDiff_CompareClient" xml:space="preserve"><value>マイクライアント (比較対象):</value></data>
   <data name="PakDiff_ComparisonMode" xml:space="preserve"><value>比較モード</value></data>
-  <data name="PakDiff_Differences" xml:space="preserve"><value>差分 / 新規ファイル</value></data>
-  <data name="PakDiff_IdenticalFiles" xml:space="preserve"><value>一致するファイル (同等)</value></data>
+  <data name="PakDiff_Differences" xml:space="preserve"><value>差異 / 新規ファイル</value></data>
+  <data name="PakDiff_IdenticalFiles" xml:space="preserve"><value>一致するファイル (等価)</value></data>
   <data name="PakDiff_Compare" xml:space="preserve"><value>🔍 比較</value></data>
   <data name="PakDiff_ColumnFilePath" xml:space="preserve"><value>ファイルパス</value></data>
   <data name="PakDiff_ColumnSourcePak" xml:space="preserve"><value>ソースPAK</value></data>
@@ -823,4 +836,80 @@
   <data name="Shop_FlagShowHot" xml:space="preserve"><value>Hot を表示</value></data>
   <data name="Shop_FlagShowSpecial" xml:space="preserve"><value>Special を表示</value></data>
   <data name="Shop_FlagUnknown" xml:space="preserve"><value>不明 (0x{0:X2})</value></data>
+  <data name="PakDiff_ColumnSourcePak" xml:space="preserve"><value>ソース PAK</value></data>
+  <data name="PakDiff_ExtractSelected" xml:space="preserve"><value>📦 選択した項目を抽出</value></data>
+  <data name="IFFManager_OpenArchive" xml:space="preserve"><value>アーカイブを開く</value></data>
+  <data name="IFFManager_Save" xml:space="preserve"><value>保存</value></data>
+  <data name="IFFManager_Saved" xml:space="preserve"><value>IFF が正常に保存されました。バックアップが作成されました。</value></data>
+  <data name="IFFManager_InvalidValue" xml:space="preserve"><value>このフィールドに対して値が無効です。</value></data>
+  <data name="IFFManager_ConfirmOverwrite" xml:space="preserve"><value>選択した IFF を上書きしますか？元のファイルは .bak ファイルとして保持されます。</value></data>
+  <data name="IFFManager_DiscardChanges" xml:space="preserve"><value>未保存の IFF の変更を破棄しますか？</value></data>
+  <data name="IFFManager_NoChanges" xml:space="preserve"><value>保存する IFF の変更はありません。</value></data>
+  <data name="Menu_Log" xml:space="preserve"><value>ログを表示</value></data>
+  <data name="Log_Title" xml:space="preserve"><value>アプリケーションログ</value></data>
+  <data name="Log_Clear" xml:space="preserve"><value>表示をクリア</value></data>
+  <data name="IFFManager_NoEditableEntryLoaded" xml:space="preserve"><value>編集可能な IFF エントリがロードされていないため、保存を開始できません。</value></data>
+  <data name="IFFManager_StringEncoding" xml:space="preserve"><value>文字列エンコーディング:</value></data>
+  <data name="IFFManager_EncodingAppliesNextLoad" xml:space="preserve"><value>選択された文字列エンコーディングは、次回 IFF がロードされるときに適用されます。</value></data>
+  <data name="IFFManager_AddRow" xml:space="preserve"><value>行を追加</value></data>
+  <data name="IFFManager_DeleteRows" xml:space="preserve"><value>選択した項目を削除</value></data>
+  <data name="IFFManager_MaximumRows" xml:space="preserve"><value>IFF ファイルに含めることができるのは最大 65,535 行までです。</value></data>
+  <data name="Log_ToFile" xml:space="preserve"><value>ファイルにログ出力</value></data>
+  <data name="Pak_CancelOperation" xml:space="preserve"><value>キャンセル</value></data>
+  <data name="Pak_OperationCancelled" xml:space="preserve"><value>操作がキャンセルされました。</value></data>
+  <data name="PakMaker_SSKeyNotSupported" xml:space="preserve"><value>この PAK は pakkeys.ss を使用しています。このキーを使用するファイルは現在解凍できません。</value></data>
+  <data name="Pak_KeyUsed" xml:space="preserve"><value>PAK キー:</value></data>
+  <data name="Pak_CustomKey" xml:space="preserve"><value>カスタム</value></data>
+  <data name="IFFManager_AddColumn" xml:space="preserve"><value>列を追加</value></data>
+  <data name="IFFManager_AddColumnTitle" xml:space="preserve"><value>IFF 列を追加</value></data>
+  <data name="IFFManager_ColumnName" xml:space="preserve"><value>列名:</value></data>
+  <data name="IFFManager_ByteOffset" xml:space="preserve"><value>バイトオフセット (16進数):</value></data>
+  <data name="IFFManager_ByteWidth" xml:space="preserve"><value>読み込みバイト数:</value></data>
+  <data name="IFFManager_RenderAs" xml:space="preserve"><value>表示形式:</value></data>
+  <data name="IFFManager_TextBox" xml:space="preserve"><value>テキストボックス (16進数)</value></data>
+  <data name="IFFManager_CheckBox" xml:space="preserve"><value>チェックボックス</value></data>
+  <data name="IFFManager_ColumnNameRequired" xml:space="preserve"><value>列の名前を入力してください。</value></data>
+  <data name="IFFManager_DuplicateColumnName" xml:space="preserve"><value>その名前の列はすでに存在します。</value></data>
+  <data name="IFFManager_ManageColumns" xml:space="preserve"><value>スキーマ列</value></data>
+  <data name="IFFManager_ManageColumnsTitle" xml:space="preserve"><value>IFF スキーマ列の管理</value></data>
+  <data name="IFFManager_EditColumn" xml:space="preserve"><value>列を編集</value></data>
+  <data name="IFFManager_EditColumnTitle" xml:space="preserve"><value>IFF 列を編集</value></data>
+  <data name="IFFManager_RemoveColumn" xml:space="preserve"><value>列を削除</value></data>
+  <data name="IFFManager_SaveSchema" xml:space="preserve"><value>スキーマを保存</value></data>
+  <data name="IFFManager_OnlyCustomColumnsEditable" xml:space="preserve"><value>このダイアログでは、16進数列とチェックボックス列のみを編集できます。</value></data>
+  <data name="IFFManager_SchemaRequiresColumn" xml:space="preserve"><value>IFF スキーマには少なくとも1つの列が含まれている必要があります。</value></data>
+  <data name="IFFManager_SchemaWarning" xml:space="preserve"><value>JSON スキーマをロードできなかったため、IFF は読み取り専用の生データとして開かれました。</value></data>
+  <data name="IFFManager_Region" xml:space="preserve"><value>リージョン:</value></data>
+  <data name="IFFManager_RegionAuto" xml:space="preserve"><value>自動検出</value></data>
+  <data name="IFFManager_RegionThailand" xml:space="preserve"><value>タイ</value></data>
+  <data name="IFFManager_RegionJapan" xml:space="preserve"><value>日本</value></data>
+  <data name="IFFManager_RegionAppliesNextLoad" xml:space="preserve"><value>選択されたリージョンは、次回 IFF がロードされるときに使用されます。</value></data>
+  <data name="IFFManager_FieldType" xml:space="preserve"><value>フィールドの種類:</value></data>
+  <data name="IFFManager_FieldEditable" xml:space="preserve"><value>フィールドは編集可能です</value></data>
+  <data name="IFFManager_EncodingCodePage" xml:space="preserve"><value>エンコーディングコードページ:</value></data>
+  <data name="IFFManager_EncodingDocumentDefault" xml:space="preserve"><value>ドキュメント/デフォルトエンコーディング</value></data>
+  <data name="IFFManager_MinimumValue" xml:space="preserve"><value>最小値:</value></data>
+  <data name="IFFManager_MaximumValue" xml:space="preserve"><value>最大値:</value></data>
+  <data name="IFFManager_BitMask" xml:space="preserve"><value>ビットマスク:</value></data>
+  <data name="IFFManager_BitShift" xml:space="preserve"><value>ビットシフト:</value></data>
+  <data name="IFFManager_ShowRawRecord" xml:space="preserve"><value>生レコードを表示</value></data>
+  <data name="IFFManager_UnrepresentedBytes" xml:space="preserve"><value>未表現バイト: {0} / {1}</value></data>
+  <data name="IFFManager_FieldVisible" xml:space="preserve"><value>フィールドを表示</value></data>
+  <data name="IFFManager_CloneColumn" xml:space="preserve"><value>列をクローン</value></data>
+  <data name="IFFManager_MoveUp" xml:space="preserve"><value>上へ</value></data>
+  <data name="IFFManager_MoveDown" xml:space="preserve"><value>下へ</value></data>
+  <data name="IFFManager_DefaultStringSize" xml:space="preserve"><value>デフォルトの文字列サイズ:</value></data>
+  <data name="IFFManager_ContainerKey" xml:space="preserve"><value>IFF キー:</value></data>
+  <data name="IFFManager_KeyNone" xml:space="preserve"><value>なし</value></data>
+  <data name="IFFManager_KeyPlainZip" xml:space="preserve"><value>プレーン ZIP</value></data>
+  <data name="IFFManager_SelectTemplate" xml:space="preserve"><value>フィールドテンプレートを選択</value></data>
+  <data name="IFFManager_TemplateSchema" xml:space="preserve"><value>スキーマ:</value></data>
+  <data name="IFFManager_Select" xml:space="preserve"><value>選択</value></data>
+  <data name="IFFManager_CurrentSchema" xml:space="preserve"><value>現在のスキーマ</value></data>
+  <data name="IFFManager_SortByOffset" xml:space="preserve"><value>オフセット順で並べ替え</value></data>
+  <data name="IFFManager_AfterPreviousField" xml:space="preserve"><value>前のフィールドの後ろ</value></data>
+  <data name="IFFManager_DefineRawColumnTitle" xml:space="preserve"><value>生バイトから列を定義</value></data>
+  <data name="IFFManager_ByteValue" xml:space="preserve"><value>バイト値</value></data>
+  <data name="IFFManager_DefineColumn" xml:space="preserve"><value>列を定義</value></data>
+  <data name="IFFManager_SelectContiguousBytes" xml:space="preserve"><value>連続した1つのバイト範囲を選択してください。</value></data>
 </root>

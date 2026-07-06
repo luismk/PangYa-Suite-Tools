@@ -11,3 +11,4 @@ bld/
 *.suo
 *.sln.docstates
 /.vs
+PangYa-Suite-Tools/PangYa-Suite-Tools.csproj.user

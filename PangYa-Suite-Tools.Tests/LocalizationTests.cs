@@ -40,12 +40,15 @@ public sealed class LocalizationTests : IDisposable
 
         LocalizationManager.SetCulture(LocalizationManager.Japonese);
         Assert.Equal("言語 (Language):", Strings.Common_Language);
+
+        LocalizationManager.SetCulture(LocalizationManager.French);
+        Assert.Equal("Langue :", Strings.Common_Language);
     }
 
     [Fact]
     public void CompositeResource_FormatsInBothCultures()
     {
-        foreach (string cultureName in new[] { LocalizationManager.English, LocalizationManager.PortugueseBrazil, LocalizationManager.Swedish, LocalizationManager.Japonese })
+        foreach (string cultureName in new[] { LocalizationManager.English, LocalizationManager.PortugueseBrazil, LocalizationManager.Swedish, LocalizationManager.Japonese, LocalizationManager.French })
         {
             LocalizationManager.SetCulture(cultureName);
             string result = string.Format(LocalizationManager.CurrentCulture, Strings.Pak_RemoveFilesConfirmation, 3);
@@ -227,6 +230,16 @@ public sealed class LocalizationTests : IDisposable
                 Assert.Equal(Strings.Options_Title, options.Text);
                 Assert.Equal(Strings.PakDiff_Title, diff.Text);
                 Assert.Equal(LocalizationManager.Japonese,
+                    ((KeyValuePair<string, string>)PrivateField<ToolStripComboBox>(diff, "cboLanguage").SelectedItem!).Value);
+
+                LocalizationManager.SetCulture(LocalizationManager.French);
+                Assert.Equal(Strings.Menu_Title, menu.Text);
+                Assert.Equal(Strings.Pak_Title, pak.Text);
+                Assert.Equal(Strings.Update_Title, update.Text);
+                Assert.Equal(Strings.Iff_Title, iff.Text);
+                Assert.Equal(Strings.Options_Title, options.Text);
+                Assert.Equal(Strings.PakDiff_Title, diff.Text);
+                Assert.Equal(LocalizationManager.French,
                     ((KeyValuePair<string, string>)PrivateField<ToolStripComboBox>(diff, "cboLanguage").SelectedItem!).Value);
             }
             catch (Exception ex) { failure = ex; }

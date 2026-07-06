@@ -1,0 +1,849 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms</value>
+  </resheader>
+  <data name="IFFManager_ReadySelectTheIFFFilesDirectory" xml:space="preserve">
+    <value>Prêt.
+Sélectionnez le répertoire des fichiers IFF.</value>
+  </data>
+  <data name="IFFManager_SelectAnIffFileFromThe" xml:space="preserve">
+    <value>Sélectionnez un fichier .iff dans la liste para charger la table d'édition.</value>
+  </data>
+  <data name="IFFManager_SelectTheExtractedFolderContainingThe" xml:space="preserve">
+    <value>Sélectionnez le dossier extrait contenant les fichiers .iff (ex. : Character.iff, Item.iff)</value>
+  </data>
+  <data name="IFFManager_ScanComplete" xml:space="preserve">
+    <value>Analyse terminée.</value>
+  </data>
+  <data name="IFFManager_IffFileSFound" xml:space="preserve">
+    <value>Fichier(s) '.iff' trouvé(s).</value>
+  </data>
+  <data name="IFFManager_NoFileWithTheIffExtension" xml:space="preserve">
+    <value>Aucun fichier avec l'extension '.iff' n'a été trouvé dans ce dossier.</value>
+  </data>
+  <data name="IFFManager_Warning" xml:space="preserve">
+    <value>Avertissement</value>
+  </data>
+  <data name="IFFManager_ErrorListingDirectory" xml:space="preserve">
+    <value>Erreur lors du listage du répertoire :</value>
+  </data>
+  <data name="IFFManager_Error" xml:space="preserve">
+    <value>Erreur</value>
+  </data>
+  <data name="IFFManager_EditingStructureOf" xml:space="preserve">
+    <value>Édition de la structure de :</value>
+  </data>
+  <data name="IFFManager_TheEditorLayoutStructureForThe" xml:space="preserve">
+    <value>⚠️ La disposition/structure de l'éditeur pour le fichier</value>
+  </data>
+  <data name="IFFManager_HasNotYetBeenImplementedOr" xml:space="preserve">
+    <value>n'a pas encore été implémentée ou cartographiée.</value>
+  </data>
+  <data name="IFFManager_EditorNotAvailableFor" xml:space="preserve">
+    <value>Éditeur non disponible pour :</value>
+  </data>
+  <data name="Options_Options" xml:space="preserve">
+    <value>Options</value>
+  </data>
+  <data name="Options_RegisterPakFiles" xml:space="preserve">
+    <value>Associer les fichiers .pak</value>
+  </data>
+  <data name="Options_Cancel" xml:space="preserve">
+    <value>Annuler</value>
+  </data>
+  <data name="Options_RegisterSuiteToolsToOpenPakFiles" xml:space="preserve">
+    <value>Enregistrer SuiteTools pour ouvrir les fichiers .pak</value>
+  </data>
+  <data name="Options_AddSuiteToolsShellContextToWindows" xml:space="preserve">
+    <value>Ajouter le menu contextuel SuiteTools à l'Explorateur Windows</value>
+  </data>
+  <data name="Options_SuiteToolsHasToBeStartedAs" xml:space="preserve">
+    <value>SuiteTools doit être démarré "En tant qu'administrateur" pour pouvoir modifier les entrées du menu contextuel !</value>
+  </data>
+  <data name="Options_OpenWithPakMaker" xml:space="preserve">
+    <value>Ouvrir avec PakMaker</value>
+  </data>
+  <data name="Options_FailedToApplyChanges" xml:space="preserve">
+    <value>Échec de l'application des modifications :</value>
+  </data>
+  <data name="PakMaker_ExtractSelectedItemS" xml:space="preserve">
+    <value>📁 Extraire l'élément / les éléments sélectionné(s)...</value>
+  </data>
+  <data name="PakMaker_RemoveSelectedItemSFromPAK" xml:space="preserve">
+    <value>🗑️ Supprimer l'élément / les éléments sélectionné(s) du PAK...</value>
+  </data>
+  <data name="PakMaker_ExtractThisFolder" xml:space="preserve">
+    <value>📁 Extraire ce dossier...</value>
+  </data>
+  <data name="PakMaker_RemoveThisFolderFromPAK" xml:space="preserve">
+    <value>🗑️ Supprimer ce dossier du PAK...</value>
+  </data>
+  <data name="PakMaker_RenameThisPAK" xml:space="preserve">
+    <value>✏️ Renommer le dossier/fichier (F2)</value>
+  </data>
+  <data name="PakMaker_RenameProcess" xml:space="preserve">
+    <value>Traitement des nouveaux chemins et mise à jour du fichier PAK...</value>
+  </data>
+  <data name="PakMaker_RenameNotFound" xml:space="preserve">
+    <value>Aucun élément correspondant n'a été trouvé dans l'arborescence du PAK.</value>
+  </data>
+  <data name="PakMaker_RenameWriter" xml:space="preserve">
+    <value>Écriture de la structure...</value>
+  </data>
+  <data name="PakMaker_RenameSuccess" xml:space="preserve">
+    <value>PAK renommé et enregistré avec succès !</value>
+  </data>
+  <data name="PakMaker_RenameError" xml:space="preserve">
+    <value>Erreur lors de l'application du renommage.</value>
+  </data>
+  <data name="PakMaker_RenamePhysicalFailed" xml:space="preserve">
+    <value>Échec lors de la restructuration physique du fichier PAK :</value>
+  </data>
+  <data name="PakMaker_InvalidCharacters" xml:space="preserve">
+    <value>Le nom saisi contient des caractères invalides ou des séparateurs de dossier.</value>
+  </data>
+  <data name="PakMaker_PreparingFilesForDragging" xml:space="preserve">
+    <value>Préparation des fichiers pour le glisser-déposer...</value>
+  </data>
+  <data name="PakMaker_Ready" xml:space="preserve">
+    <value>Prêt</value>
+  </data>
+  <data name="PakMaker_PreparingFolderStructureForDragging" xml:space="preserve">
+    <value>Préparation de la structure des dossiers pour le glisser-déposer</value>
+  </data>
+  <data name="PakMaker_PleaseDragAValidPakFile" xml:space="preserve">
+    <value>Veuillez glisser un fichier avec une extension .pak valide pour l'ouvrir.</value>
+  </data>
+  <data name="PakMaker_Warning" xml:space="preserve">
+    <value>Avertissement</value>
+  </data>
+  <data name="PakMaker_NoValidFilesOrFoldersWere" xml:space="preserve">
+    <value>Aucun fichier ou dossier valide n'a été trouvé pour l'injection.</value>
+  </data>
+  <data name="PakMaker_PleaseDragAValidFolderTo" xml:space="preserve">
+    <value>Veuillez glisser un dossier valide pour compiler un nouveau PAK.</value>
+  </data>
+  <data name="PakMaker_Author" xml:space="preserve">
+    <value>Auteur :</value>
+  </data>
+  <data name="PakMaker_Version" xml:space="preserve">
+    <value>Version :</value>
+  </data>
+  <data name="PakMaker_Entries" xml:space="preserve">
+    <value>Entrées :</value>
+  </data>
+  <data name="PakMaker_ErrorOpeningPAKFile" xml:space="preserve">
+    <value>Erreur lors de l'ouverture du fichier PAK :</value>
+  </data>
+  <data name="PakMaker_Error" xml:space="preserve">
+    <value>Erreur</value>
+  </data>
+  <data name="PakMaker_AllFiles" xml:space="preserve">
+    <value>🗂 Tous les fichiers</value>
+  </data>
+  <data name="PakMaker_PathAllFiles" xml:space="preserve">
+    <value>📂 Chemin : (tous les fichiers)</value>
+  </data>
+  <data name="PakMaker_Path" xml:space="preserve">
+    <value>📂 Chemin :</value>
+  </data>
+  <data name="PakMaker_SelectAnActivePakFileFirst" xml:space="preserve">
+    <value>Sélectionnez d'abord un fichier .pak actif.</value>
+  </data>
+  <data name="PakMaker_YouCannotDeleteTheRootFolder" xml:space="preserve">
+    <value>Vous ne pouvez pas supprimer le dossier racine.
+Sélectionnez un dossier spécifique.</value>
+  </data>
+  <data name="PakMaker_NoFilesFoundInsideThisFolder" xml:space="preserve">
+    <value>Aucun fichier trouvé à l'intérieur de ce dossier pour suppression.</value>
+  </data>
+  <data name="PakMaker_ThePAKWillBeRebuiltAnd" xml:space="preserve">
+    <value>Le PAK sera reconstruit et une sauvegarde (.bak) sera créée automatiquement.</value>
+  </data>
+  <data name="PakMaker_ConfirmRemoval" xml:space="preserve">
+    <value>Confirmer la suppression</value>
+  </data>
+  <data name="PakMaker_RemovingAndRebuildingPAK" xml:space="preserve">
+    <value>Suppression et reconstruction du PAK...</value>
+  </data>
+  <data name="PakMaker_RebuildingPAK" xml:space="preserve">
+    <value>Reconstruction du PAK</value>
+  </data>
+  <data name="PakMaker_RemovalCompleted" xml:space="preserve">
+    <value>Suppression terminée</value>
+  </data>
+  <data name="PakMaker_TheFolderAndItsItemsWere" xml:space="preserve">
+    <value>Le dossier et ses éléments ont été supprimés avec succès !</value>
+  </data>
+  <data name="PakMaker_Success" xml:space="preserve">
+    <value>Succès</value>
+  </data>
+  <data name="PakMaker_ErrorRemoving" xml:space="preserve">
+    <value>Erreur lors de la suppression</value>
+  </data>
+  <data name="PakMaker_Failure" xml:space="preserve">
+    <value>Échec :</value>
+  </data>
+  <data name="PakMaker_AllFiles_2" xml:space="preserve">
+    <value>Tous les fichiers</value>
+  </data>
+  <data name="PakMaker_PleaseLoadAPakFileFirst" xml:space="preserve">
+    <value>Veuillez charger un fichier .pak d'abord.</value>
+  </data>
+  <data name="PakMaker_ExtractingFiles" xml:space="preserve">
+    <value>Extraction des fichiers...</value>
+  </data>
+  <data name="PakMaker_Extracting" xml:space="preserve">
+    <value>Extraction</value>
+  </data>
+  <data name="PakMaker_AllFilesWereExtractedSuccessfully" xml:space="preserve">
+    <value>Tous les fichiers ont été extraits avec succès !</value>
+  </data>
+  <data name="PakMaker_ExtractionError" xml:space="preserve">
+    <value>Erreur d'extraction</value>
+  </data>
+  <data name="PakMaker_ErrorExtracting" xml:space="preserve">
+    <value>Erreur lors de l'extraction :</value>
+  </data>
+  <data name="PakMaker_SelectFilesFromTheListOr" xml:space="preserve">
+    <value>Sélectionnez des fichiers dans la liste ou un dossier dans l'arborescence pour les extraire.</value>
+  </data>
+  <data name="PakMaker_EntirePAK" xml:space="preserve">
+    <value>PAK entier</value>
+  </data>
+  <data name="PakMaker_Folder" xml:space="preserve">
+    <value>Dossier :</value>
+  </data>
+  <data name="PakMaker_NoFileFoundForPath" xml:space="preserve">
+    <value>Aucun fichier trouvé pour le chemin :</value>
+  </data>
+  <data name="PakMaker_SelectTheDestinationToExtract" xml:space="preserve">
+    <value>Sélectionnez la destination pour l'extraction</value>
+  </data>
+  <data name="PakMaker_ExtractingSelectedItemS" xml:space="preserve">
+    <value>Extraction de l'élément / des éléments sélectionné(s)...</value>
+  </data>
+  <data name="PakMaker_ExtractingSelectedItemS_2" xml:space="preserve">
+    <value>Extraction de l'élément / des éléments sélectionné(s)</value>
+  </data>
+  <data name="PakMaker_FolderExtractedRespectingTheSelectedLevel" xml:space="preserve">
+    <value>Dossier extrait en respectant le niveau sélectionné !</value>
+  </data>
+  <data name="PakMaker_Extract" xml:space="preserve">
+    <value>Extraire</value>
+  </data>
+  <data name="PakMaker_SelectTheDestinationFolderForThe" xml:space="preserve">
+    <value>Sélectionnez le dossier de destination pour les fichiers sélectionnés</value>
+  </data>
+  <data name="PakMaker_FileSExtractedSuccessfully" xml:space="preserve">
+    <value>Fichier(s) extrait(s) avec succès !</value>
+  </data>
+  <data name="PakMaker_SelectTheFolderThatCONTAINSThe" xml:space="preserve">
+    <value>Sélectionnez le dossier qui CONTIENT les fichiers .pak</value>
+  </data>
+  <data name="PakMaker_NoPakFilesWereFoundIn" xml:space="preserve">
+    <value>Aucun fichier .pak n'a été trouvé dans le dossier sélectionné.</value>
+  </data>
+  <data name="PakMaker_SelectTheDESTINATIONFolderForExtraction" xml:space="preserve">
+    <value>Sélectionnez le dossier de DESTINATION pour l'extraction</value>
+  </data>
+  <data name="PakMaker_Processing" xml:space="preserve">
+    <value>Traitement</value>
+  </data>
+  <data name="PakMaker_FailedToExtract" xml:space="preserve">
+    <value>Échec de l'extraction</value>
+  </data>
+  <data name="PakMaker_BatchError" xml:space="preserve">
+    <value>Erreur de lot</value>
+  </data>
+  <data name="PakMaker_BatchExtractionCompleted" xml:space="preserve">
+    <value>Extraction par lot terminée !</value>
+  </data>
+  <data name="PakMaker_PAKPackagesExtractedSuccessfullyTo" xml:space="preserve">
+    <value>Packages PAK extraits avec succès vers :</value>
+  </data>
+  <data name="PakMaker_ProcessingComplete" xml:space="preserve">
+    <value>Traitement terminé</value>
+  </data>
+  <data name="PakMaker_TheAuthorFieldIsEmptyDo" xml:space="preserve">
+    <value>Le champ Auteur est vide. Voulez-vous réinitialiser le nom de l'auteur à 'PakMaker' ?</value>
+  </data>
+  <data name="PakMaker_ConfirmAuthorReset" xml:space="preserve">
+    <value>Confirmer la réinitialisation de l'auteur</value>
+  </data>
+  <data name="PakMaker_ConfirmAuthorChange" xml:space="preserve">
+    <value>Confirmer le changement d'auteur</value>
+  </data>
+  <data name="PakMaker_SelectTheFilesToUpdateInject" xml:space="preserve">
+    <value>Sélectionnez les fichiers à mettre à jour/injecter</value>
+  </data>
+  <data name="PakMaker_MergingAndRebuildingPAK" xml:space="preserve">
+    <value>Fusion et reconstruction du PAK...</value>
+  </data>
+  <data name="PakMaker_PAKUpdatedSuccessfully" xml:space="preserve">
+    <value>PAK mis à jour avec succès !</value>
+  </data>
+  <data name="PakMaker_FileSInjectedAndThePAK" xml:space="preserve">
+    <value>fichier(s) injecté(s) et le PAK a été reconstruit !</value>
+  </data>
+  <data name="PakMaker_ErrorInjecting" xml:space="preserve">
+    <value>Erreur lors de l'injection</value>
+  </data>
+  <data name="PakMaker_InjectionFailed" xml:space="preserve">
+    <value>L'injection a échoué :</value>
+  </data>
+  <data name="PakMaker_ErrorReadingFolder" xml:space="preserve">
+    <value>Erreur lors de la lecture du dossier</value>
+  </data>
+  <data name="PakMaker_NoValidFileWasFoundTo" xml:space="preserve">
+    <value>Aucun fichier valide n'a été trouvé pour l'injection.</value>
+  </data>
+  <data name="PakMaker_SelectFilesFromTheListOr_2" xml:space="preserve">
+    <value>Sélectionnez des fichiers dans la liste ou cochez des cases de dossiers dans l'arborescence pour les supprimer.</value>
+  </data>
+  <data name="PakMaker_TheSelectedItemsWereRemovedSuccessfully" xml:space="preserve">
+    <value>Les éléments sélectionnés ont été supprimés avec succès et le fichier PAK a été reconstruit !</value>
+  </data>
+  <data name="PakMaker_SelectAValidSourceDirectory" xml:space="preserve">
+    <value>Sélectionnez un répertoire source valide.</value>
+  </data>
+  <data name="PakMaker_SaveNewPAK" xml:space="preserve">
+    <value>Enregistrer le nouveau PAK</value>
+  </data>
+  <data name="PakMaker_CompilingPAK" xml:space="preserve">
+    <value>Compilation du PAK...</value>
+  </data>
+  <data name="PakMaker_PakFileGeneratedSuccessfully" xml:space="preserve">
+    <value>Fichier .pak généré avec succès !</value>
+  </data>
+  <data name="PakMaker_PleaseSelectAValidRegionBefore" xml:space="preserve">
+    <value>Veuillez sélectionner une région valide avant de continuer.</value>
+  </data>
+  <data name="PakMaker_ErrorCreatingPAK" xml:space="preserve">
+    <value>Erreur lors de la création du PAK</value>
+  </data>
+  <data name="PakMaker_CompilationError" xml:space="preserve">
+    <value>Erreur de compilation :</value>
+  </data>
+  <data name="PakMaker_SelectTheTargetRegionKey" xml:space="preserve">
+    <value>Sélectionnez la région/clé cible.</value>
+  </data>
+  <data name="PakMaker_ThePAKIsAlreadyUsingThat" xml:space="preserve">
+    <value>Le PAK utilise déjà cette clé.</value>
+  </data>
+  <data name="PakMaker_Information" xml:space="preserve">
+    <value>Information</value>
+  </data>
+  <data name="PakMaker_ChangeThePAKKeyTo" xml:space="preserve">
+    <value>Changer la clé du PAK pour</value>
+  </data>
+  <data name="PakMaker_ThePAKWillBeRebuiltAnd_2" xml:space="preserve">
+    <value>Le PAK sera reconstruit et une sauvegarde (.bak) sera créée.</value>
+  </data>
+  <data name="PakMaker_ConfirmKeyChange" xml:space="preserve">
+    <value>Confirmer le changement de clé</value>
+  </data>
+  <data name="PakMaker_ChangingKeyAndRebuildingPAK" xml:space="preserve">
+    <value>Changement de clé et reconstruction du PAK...</value>
+  </data>
+  <data name="PakMaker_KeyChangedSuccessfully" xml:space="preserve">
+    <value>Clé changée avec succès !</value>
+  </data>
+  <data name="PakMaker_ThePAKWasRebuiltWithThe" xml:space="preserve">
+    <value>Le PAK a été reconstruit avec la clé de</value>
+  </data>
+  <data name="PakMaker_ErrorChangingKey" xml:space="preserve">
+    <value>Erreur lors du changement de clé</value>
+  </data>
+  <data name="PakMaker_RebuildFailed" xml:space="preserve">
+    <value>Échec de la reconstruction :</value>
+  </data>
+  <data name="UpdateList_StartMonitoring" xml:space="preserve">
+    <value>▶️ Démarrer la surveillance</value>
+  </data>
+  <data name="UpdateList_INACTIVE" xml:space="preserve">
+    <value>INACTIF</value>
+  </data>
+  <data name="UpdateList_StopMonitoring" xml:space="preserve">
+    <value>🛑 Arrêter la surveillance</value>
+  </data>
+  <data name="UpdateList_ACTIVELYMONITORING" xml:space="preserve">
+    <value>SURVEILLANCE ACTIVE</value>
+  </data>
+  <data name="UpdateList_DragAndDropAnEncryptedUpdatelist" xml:space="preserve">
+    <value>🪂 Glissez-déposez un fichier 'updatelist' chiffré ici pour afficher le XML décodé en temps réel.</value>
+  </data>
+  <data name="UpdateList_InterfaceInitializedInMultiTabMode" xml:space="preserve">
+    <value>Interface initialisée en mode multi-onglets (style PakMaker).
+Prêt à l'emploi.</value>
+  </data>
+  <data name="UpdateList_Processing" xml:space="preserve">
+    <value>Traitement :</value>
+  </data>
+  <data name="UpdateList_ProtectedFileDetectedTestingKey" xml:space="preserve">
+    <value>Fichier protégé détecté.
+Test de la clé</value>
+  </data>
+  <data name="UpdateList_SUCCESS" xml:space="preserve">
+    <value>SUCCÈS</value>
+  </data>
+  <data name="UpdateList_DecryptedWithKey" xml:space="preserve">
+    <value>Déchiffré avec la clé</value>
+  </data>
+  <data name="UpdateList_FailedWithKey" xml:space="preserve">
+    <value>Échec avec la clé</value>
+  </data>
+  <data name="UpdateList_StartingAutomaticBruteForceScanner" xml:space="preserve">
+    <value>Démarrage du scanner de force brute automatique...</value>
+  </data>
+  <data name="UpdateList_BRUTEFORCESUCCESS" xml:space="preserve">
+    <value>SUCCÈS DE FORCE BRUTE</value>
+  </data>
+  <data name="UpdateList_KeyIdentifiedSuccessfully" xml:space="preserve">
+    <value>Clé identifiée avec succès !</value>
+  </data>
+  <data name="UpdateList_ErrorNoKeyDecodedTheStructure" xml:space="preserve">
+    <value>❌ Erreur : Aucune clé n'a décodé la structure.</value>
+  </data>
+  <data name="UpdateList_TOTALFAILURE" xml:space="preserve">
+    <value>ÉCHEC TOTAL</value>
+  </data>
+  <data name="UpdateList_NoKeyFromTheKnownDatabase" xml:space="preserve">
+    <value>Aucune clé de la base de données connue n'a pu ouvrir la structure de ce fichier.</value>
+  </data>
+  <data name="UpdateList_TheDroppedFileIsAlreadyIn" xml:space="preserve">
+    <value>Le fichier déposé est déjà en mode texte brut/XML.
+Affiché formaté dans le panneau.</value>
+  </data>
+  <data name="UpdateList_InvalidOrCorruptedFile" xml:space="preserve">
+    <value>⚠️ Fichier invalide ou corrompu.</value>
+  </data>
+  <data name="UpdateList_CriticalFailureWhileParsingFile" xml:space="preserve">
+    <value>❌ Échec critique lors de l'analyse du fichier.</value>
+  </data>
+  <data name="UpdateList_PARSEERROR" xml:space="preserve">
+    <value>ERREUR D'ANALYSE</value>
+  </data>
+  <data name="UpdateList_SelectTheRootPangyaFolderWhere" xml:space="preserve">
+    <value>Sélectionnez le dossier racine de Pangya (où se trouvent les exécutables et les fichiers .pak)</value>
+  </data>
+  <data name="UpdateList_SelectTheDestinationWebServerFolderFor" xml:space="preserve">
+    <value>Sélectionnez le dossier de destination WebServer pour la mise à jour</value>
+  </data>
+  <data name="UpdateList_CheckWhetherTheSourceAndWebServer" xml:space="preserve">
+    <value>Vérifiez si les dossiers Source et Destination WebServer sont des chemins de répertoire valides.</value>
+  </data>
+  <data name="UpdateList_Warning" xml:space="preserve">
+    <value>Avertissement</value>
+  </data>
+  <data name="UpdateList_Initializing" xml:space="preserve">
+    <value>Initialisation...</value>
+  </data>
+  <data name="UpdateList_ScanningDirectoryTreeAndGeneratingInitial" xml:space="preserve">
+    <value>Analyse de l'arborescence des répertoires et génération de la cartographie initiale du client...</value>
+  </data>
+  <data name="UpdateList_SERVICE" xml:space="preserve">
+    <value>SERVICE</value>
+  </data>
+  <data name="UpdateList_FileSystemWatcherActiveOnFolder" xml:space="preserve">
+    <value>FileSystemWatcher actif sur le dossier :</value>
+  </data>
+  <data name="UpdateList_INITERROR" xml:space="preserve">
+    <value>ERREUR D'INIT</value>
+  </data>
+  <data name="UpdateList_BackgroundMonitoringHasBeenStopped" xml:space="preserve">
+    <value>La surveillance en arrière-plan a été arrêtée.</value>
+  </data>
+  <data name="UpdateList_DETECTED" xml:space="preserve">
+    <value>DÉTECTÉ</value>
+  </data>
+  <data name="UpdateList_FileModification" xml:space="preserve">
+    <value>Modification de fichier :</value>
+  </data>
+  <data name="UpdateList_COMPILED" xml:space="preserve">
+    <value>COMPILÉ</value>
+  </data>
+  <data name="UpdateList_UpdatelistSignedSuccessfullyTrigger" xml:space="preserve">
+    <value>updatelist signé avec succès !
+Déclencheur :</value>
+  </data>
+  <data name="UpdateList_IOERROR" xml:space="preserve">
+    <value>ERREUR E/S</value>
+  </data>
+  <data name="UpdateList_CouldNotManageTheFile" xml:space="preserve">
+    <value>Impossible de gérer le fichier</value>
+  </data>
+  <data name="Program_ThisApplicationRequiresAdministrativePrivilegesTo" xml:space="preserve">
+    <value>Cette application nécessite des privilèges administratifs pour fonctionner correctement. Veuillez redémarrer et cliquer sur 'Oui'.</value>
+  </data>
+  <data name="Program_AdminPrivilegesRequired" xml:space="preserve">
+    <value>Privilèges d'administrateur requis</value>
+  </data>
+  <data name="Common_PortugueseBrazil" xml:space="preserve">
+    <value>Portugais (Brésil)</value>
+  </data>
+  <data name="Common_EnglishUS" xml:space="preserve">
+    <value>Anglais (États-Unis)</value>
+  </data>
+  <data name="Common_Swedish" xml:space="preserve">
+    <value>Suédois</value>
+  </data>
+  <data name="Common_Japonese" xml:space="preserve">
+    <value>Japonais</value>
+  </data>
+  <data name="Common_French" xml:space="preserve">
+    <value>Français</value>
+  </data>
+  <data name="Common_Language" xml:space="preserve">
+    <value>Langue :</value>
+  </data>
+  <data name="Menu_Title" xml:space="preserve">
+    <value>PangYa Studio Suite - Outil de développement</value>
+  </data>
+  <data name="Menu_PakManager" xml:space="preserve">
+    <value>📦 Gestionnaire de fichiers PAK</value>
+  </data>
+  <data name="Menu_UpdateList" xml:space="preserve">
+    <value>🌐 Gestionnaire de correctifs / UpdateList</value>
+  </data>
+  <data name="Menu_IffManager" xml:space="preserve">
+    <value>📝 Éditeur / Gestionnaire IFF</value>
+  </data>
+  <data name="Menu_Options" xml:space="preserve">
+    <value>Options</value>
+  </data>
+  <data name="Menu_PakDiff" xml:space="preserve">
+    <value>🔍 Comparateur PAK (Diff)</value>
+  </data>
+  <data name="Pak_Title" xml:space="preserve">
+    <value>PangYa Studio - Gestionnaire PAK</value>
+  </data>
+  <data name="Pak_TabExtract" xml:space="preserve">
+    <value>Lecteur &amp; Modifications</value>
+  </data>
+  <data name="Pak_Browse" xml:space="preserve">
+    <value>Parcourir...</value>
+  </data>
+  <data name="Pak_PathHint" xml:space="preserve">
+    <value>Glissez un fichier .pak ici ou cliquez sur Parcourir...</value>
+  </data>
+  <data name="Pak_Header" xml:space="preserve">
+    <value>Informations d'en-tête</value>
+  </data>
+  <data name="Pak_Author" xml:space="preserve">
+    <value>Auteur : ---</value>
+  </data>
+  <data name="Pak_Version" xml:space="preserve">
+    <value>Version : ---</value>
+  </data>
+  <data name="Pak_Entries" xml:space="preserve">
+    <value>Entrées : ---</value>
+  </data>
+  <data name="Pak_Search" xml:space="preserve">
+    <value>🔎 Rechercher :</value>
+  </data>
+  <data name="Pak_SearchHint" xml:space="preserve">
+    <value>Filtrer par nom d'objet/fichier...</value>
+  </data>
+  <data name="Pak_CurrentPath" xml:space="preserve">
+    <value>📂 Chemin : (tous les fichiers)</value>
+  </data>
+  <data name="Pak_ExtractSelected" xml:space="preserve">
+    <value>📤 EXTRAIRE LA SÉLECTION</value>
+  </data>
+  <data name="Pak_RemoveSelected" xml:space="preserve">
+    <value>🗑️ SUPPRIMER LA SÉLECTION</value>
+  </data>
+  <data name="Pak_BatchExtract" xml:space="preserve">
+    <value>📂 EXTRAIRE LE DOSSIER</value>
+  </data>
+  <data name="Pak_Update" xml:space="preserve">
+    <value>🔄 INJECTER / METTRE À JOUR</value>
+  </data>
+  <data name="Pak_ExtractAll" xml:space="preserve">
+    <value>💥 TOUT EXTRAIRE</value>
+  </data>
+  <data name="Pak_ColumnName" xml:space="preserve">
+    <value>Nom du fichier</value>
+  </data>
+  <data name="Pak_ColumnType" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="Pak_ColumnSize" xml:space="preserve">
+    <value>Taille réelle</value>
+  </data>
+  <data name="Pak_ColumnCompressed" xml:space="preserve">
+    <value>Taille compressée</value>
+  </data>
+  <data name="Pak_NewKey" xml:space="preserve">
+    <value>🔑 Nouvelle clé (XTEA) :</value>
+  </data>
+  <data name="Pak_ChangeKey" xml:space="preserve">
+    <value>🔐 CHANGER LA CLÉ DU PAK</value>
+  </data>
+  <data name="Pak_TabCreate" xml:space="preserve">
+    <value>Créer un nouveau PAK</value>
+  </data>
+  <data name="Pak_SourceHint" xml:space="preserve">
+    <value>Glissez un dossier ici...</value>
+  </data>
+  <data name="Pak_SelectFolder" xml:space="preserve">
+    <value>Sélectionner...</value>
+  </data>
+  <data name="Pak_EntryVersion" xml:space="preserve">
+    <value>Version de l'entrée :</value>
+  </data>
+  <data name="Pak_Compression" xml:space="preserve">
+    <value>Type de compression :</value>
+  </data>
+  <data name="Pak_CompressionLevel" xml:space="preserve">
+    <value>Niveau de compression (0-9) :</value>
+  </data>
+  <data name="Pak_Region" xml:space="preserve">
+    <value>Région / Clés (XTEA) :</value>
+  </data>
+  <data name="Pak_Create" xml:space="preserve">
+    <value>📦 GÉNÉRER LE FICHIER .PAK</value>
+  </data>
+  <data name="Pak_Ready" xml:space="preserve">
+    <value>Prêt</value>
+  </data>
+  <data name="Update_Title" xml:space="preserve">
+    <value>PangYa Studio - Gestionnaire UpdateList</value>
+  </data>
+  <data name="Update_DecryptTab" xml:space="preserve">
+    <value> 🔍 Visionneuse / Déchiffreur </value>
+  </data>
+  <data name="Update_GeneratorTab" xml:space="preserve">
+    <value> 🛠️ Générateur &amp; Surveillance </value>
+  </data>
+  <data name="Update_Config" xml:space="preserve">
+    <value> Paramètres du serveur de mise à jour </value>
+  </data>
+  <data name="Update_Source" xml:space="preserve">
+    <value>Dossier PangYa (Source) :</value>
+  </data>
+  <data name="Update_Destination" xml:space="preserve">
+    <value>Dossier WebServer (Destination) :</value>
+  </data>
+  <data name="Update_Key" xml:space="preserve">
+    <value>Région / Clé :</value>
+  </data>
+  <data name="Update_PatchVersion" xml:space="preserve">
+    <value>Version du correctif :</value>
+  </data>
+  <data name="Update_ListVersion" xml:space="preserve">
+    <value>Version de l'UpdateList :</value>
+  </data>
+  <data name="Update_PatchNumber" xml:space="preserve">
+    <value>Numéro du correctif :</value>
+  </data>
+  <data name="Update_Log" xml:space="preserve">
+    <value>Historique / Journal du terminal :</value>
+  </data>
+  <data name="Iff_Title" xml:space="preserve">
+    <value>PangYa Studio - Gestionnaire IFF avancé</value>
+  </data>
+  <data name="Iff_Directory" xml:space="preserve">
+    <value>Répertoire IFF (Dossier) :</value>
+  </data>
+  <data name="Iff_Browse" xml:space="preserve">
+    <value>Parcourir...</value>
+  </data>
+  <data name="Iff_Files" xml:space="preserve">
+    <value>Fichiers IFF détectés</value>
+  </data>
+  <data name="Options_Title" xml:space="preserve">
+    <value>Options</value>
+  </data>
+  <data name="Options_Group" xml:space="preserve">
+    <value>Associer les fichiers .pak</value>
+  </data>
+  <data name="Options_Register" xml:space="preserve">
+    <value>Enregistrer SuiteTools pour ouvrir les fichiers .pak</value>
+  </data>
+  <data name="Options_Shell" xml:space="preserve">
+    <value>Ajouter le menu contextuel SuiteTools à l'Explorateur Windows</value>
+  </data>
+  <data name="Options_Admin" xml:space="preserve">
+    <value>SuiteTools doit être démarré "En tant qu'administrateur" pour pouvoir modifier les entrées du menu contextuel !</value>
+  </data>
+  <data name="Pak_RemoveFolderConfirmation" xml:space="preserve"><value>Êtes-vous sûr de vouloir supprimer le dossier '{0}' et tout son contenu ?&#xA;Total des fichiers à supprimer : {1}.</value></data>
+  <data name="Pak_ChangeAuthorConfirmation" xml:space="preserve"><value>Voulez-vous changer le nom de l'auteur pour '{0}' ?</value></data>
+  <data name="Pak_RemoveFoldersConfirmation" xml:space="preserve"><value>Vous êtes sur le point de supprimer le(s) dossier(s) coché(s) : '{0}' et/ou les fichiers sélectionnés.&#xA;Total des fichiers à supprimer : {1}.&#xA;&#xA;Voulez-vous continuer ?</value></data>
+  <data name="Pak_RemoveFilesConfirmation" xml:space="preserve"><value>Supprimer {0} fichier(s) sélectionné(s) du PAK ?</value></data>
+  <data name="Common_Error" xml:space="preserve"><value>Erreur</value></data>
+  <data name="Options_ArchiveDescription" xml:space="preserve"><value>Fichier d'archive PAK PangYa</value></data>
+  <data name="Common_OK" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="Pak_OpenFileFilter" xml:space="preserve">
+    <value>Fichiers PAK Pangya (*.pak)|*.pak</value>
+  </data>
+  <data name="Pak_SaveFileFilter" xml:space="preserve">
+    <value>PAK Pangya (*.pak)|*.pak</value>
+  </data>
+  <data name="Pak_SecurityPak" xml:space="preserve">
+    <value>PAK de sécurité</value>
+  </data>
+  <data name="Pak_FilenameEncoding" xml:space="preserve">
+    <value>Noms de fichiers :</value>
+  </data>
+  <data name="Pak_FilenameEncodingTooltip" xml:space="preserve">
+    <value>Encodage utilisé pour lire et écrire les noms de fichiers dans les archives PAK.</value>
+  </data>
+  <data name="Pak_EncodingAppliesNextLoad" xml:space="preserve">
+    <value>L'encodage des noms de fichiers sera utilisé lors du prochain chargement d'un PAK.</value>
+  </data>
+  <data name="PakDiff_SelectBaseFolder" xml:space="preserve"><value>Sélectionnez le dossier PAK AVANT/BASE :</value></data>
+  <data name="PakDiff_SelectAfterFolder" xml:space="preserve"><value>Sélectionnez le dossier PAK APRÈS/NOUVEAU :</value></data>
+  <data name="PakDiff_SelectValidFolder" xml:space="preserve"><value>Sélectionnez un dossier valide.</value></data>
+  <data name="PakDiff_ReadingPaks" xml:space="preserve"><value>⏳ Lecture des PAK...</value></data>
+  <data name="PakDiff_Files" xml:space="preserve"><value>fichiers</value></data>
+  <data name="PakDiff_AddedUpper" xml:space="preserve"><value>AJOUTÉ</value></data>
+  <data name="PakDiff_RemovedUpper" xml:space="preserve"><value>SUPPRIMÉ</value></data>
+  <data name="PakDiff_ModifiedUpper" xml:space="preserve"><value>MODIFIÉ</value></data>
+  <data name="PakDiff_Added" xml:space="preserve"><value>ajouté</value></data>
+  <data name="PakDiff_Removed" xml:space="preserve"><value>supprimé</value></data>
+  <data name="PakDiff_Modified" xml:space="preserve"><value>modifié</value></data>
+  <data name="PakDiff_ComparisonComplete" xml:space="preserve"><value>Comparaison terminée</value></data>
+  <data name="PakDiff_NoLogToSave" xml:space="preserve"><value>Aucun journal à enregistrer. Lancez d'abord une comparaison.</value></data>
+  <data name="PakDiff_SaveChangeLog" xml:space="preserve"><value>Enregistrer le journal des modifications</value></data>
+  <data name="PakDiff_LogSavedTo" xml:space="preserve"><value>Journal enregistré sous :&#xA;{0}</value></data>
+  <data name="PakDiff_Saved" xml:space="preserve"><value>Enregistré</value></data>
+  <data name="PakDiff_SelectTargetClient" xml:space="preserve"><value>Sélectionnez le dossier du client cible (source d'extraction) :</value></data>
+  <data name="PakDiff_SelectBaseClient" xml:space="preserve"><value>Sélectionnez votre dossier client de base (comparaison) :</value></data>
+  <data name="PakDiff_SelectValidClientFolders" xml:space="preserve"><value>Sélectionnez des répertoires valides pour les deux clients.</value></data>
+  <data name="PakDiff_New" xml:space="preserve"><value>Nouveau</value></data>
+  <data name="PakDiff_ModifiedLabel" xml:space="preserve"><value>Modifié</value></data>
+  <data name="PakDiff_Identical" xml:space="preserve"><value>Identique</value></data>
+  <data name="PakDiff_ComparisonFound" xml:space="preserve"><value>Comparaison terminée ! {0} fichiers trouvés.</value></data>
+  <data name="PakDiff_Done" xml:space="preserve"><value>Terminé</value></data>
+  <data name="PakDiff_ComparisonError" xml:space="preserve"><value>Erreur lors de la comparaison :</value></data>
+  <data name="PakDiff_SelectAtLeastOne" xml:space="preserve"><value>Veuillez cocher au menos un fichier à extraire.</value></data>
+  <data name="PakDiff_SelectOutputFolder" xml:space="preserve"><value>Sélectionnez le dossier de sortie :</value></data>
+  <data name="PakDiff_ExtractionComplete" xml:space="preserve"><value>Extraction terminée !&#xA;{0} fichiers extraits vers :&#xA;{1}</value></data>
+  <data name="PakDiff_ExtractionFailed" xml:space="preserve"><value>L'extraction a échoué :</value></data>
+  <data name="PakDiff_Warning" xml:space="preserve"><value>Avertissement</value></data>
+  <data name="PakDiff_Error" xml:space="preserve"><value>Erreur</value></data>
+  <data name="PakDiff_TextLogFilter" xml:space="preserve"><value>Journal texte (*.txt)|*.txt</value></data>
+  <data name="PakDiff_LoadSnapshot" xml:space="preserve"><value>Charger l'instantané</value></data>
+  <data name="PakDiff_SnapshotFilter" xml:space="preserve"><value>Instantané JSON (*.paksnap)|*.paksnap</value></data>
+  <data name="PakDiff_SnapshotNotTaken" xml:space="preserve"><value>L'instantané {0} n'a pas encore été pris.</value></data>
+  <data name="PakDiff_SaveSnapshot" xml:space="preserve"><value>Enregistrer l'instantané {0}</value></data>
+  <data name="PakDiff_SnapshotSaved" xml:space="preserve"><value>Instantané enregistré : {0}</value></data>
+  <data name="PakDiff_LoadSnapshotFailed" xml:space="preserve"><value>Échec du chargement de l'instantané :</value></data>
+  <data name="PakDiff_Title" xml:space="preserve"><value>PAK Diff — Historique des modifications &amp; Synchro multi-clients</value></data>
+  <data name="PakDiff_TabLog" xml:space="preserve"><value>📋 Historique des modifications / Journal</value></data>
+  <data name="PakDiff_SnapshotABefore" xml:space="preserve"><value>📸 Instantané A — Avant / Base</value></data>
+  <data name="PakDiff_SnapshotBAfter" xml:space="preserve"><value>📸 Instantané B — Après / Nouveau</value></data>
+  <data name="PakDiff_PakFolder" xml:space="preserve"><value>Dossier PAK :</value></data>
+  <data name="PakDiff_Browse" xml:space="preserve"><value>📁...</value></data>
+  <data name="PakDiff_TakeSnapshot" xml:space="preserve"><value>📸 Prendre un instantané</value></data>
+  <data name="PakDiff_Save" xml:space="preserve"><value>💾 Enregistrer</value></data>
+  <data name="PakDiff_Load" xml:space="preserve"><value>📂 Charger</value></data>
+  <data name="PakDiff_NotTaken" xml:space="preserve"><value>(non pris)</value></data>
+  <data name="PakDiff_CompareSnapshots" xml:space="preserve"><value>🔍 COMPARER LES INSTANTANÉS</value></data>
+  <data name="PakDiff_SelectAll" xml:space="preserve"><value>Tout sélectionner</value></data>
+  <data name="PakDiff_ColumnPakFile" xml:space="preserve"><value>Fichier PAK</value></data>
+  <data name="PakDiff_ColumnInternalFile" xml:space="preserve"><value>Fichier interne</value></data>
+  <data name="PakDiff_ColumnStatus" xml:space="preserve"><value>Statut</value></data>
+  <data name="PakDiff_ColumnOldSize" xml:space="preserve"><value>Ancienne taille</value></data>
+  <data name="PakDiff_ColumnNewSize" xml:space="preserve"><value>Nouvelle taille</value></data>
+  <data name="PakDiff_SaveLog" xml:space="preserve"><value>💾 Enregistrer Journal .txt</value></data>
+  <data name="PakDiff_TabClientCompare" xml:space="preserve"><value>🔍 Comparer &amp; Extraire le client</value></data>
+  <data name="PakDiff_ClientDirectories" xml:space="preserve"><value>Répertoires clients</value></data>
+  <data name="PakDiff_TargetSource" xml:space="preserve"><value>Cible / Source (Extraire de) :</value></data>
+  <data name="PakDiff_CompareClient" xml:space="preserve"><value>Votre client (Pour comparer avec) :</value></data>
+  <data name="PakDiff_ComparisonMode" xml:space="preserve"><value>Mode de comparaison</value></data>
+  <data name="PakDiff_Differences" xml:space="preserve"><value>Différences / Nouveaux fichiers</value></data>
+  <data name="PakDiff_IdenticalFiles" xml:space="preserve"><value>Fichiers identiques (Égaux)</value></data>
+  <data name="PakDiff_Compare" xml:space="preserve"><value>🔍 Comparer</value></data>
+  <data name="PakDiff_ColumnFilePath" xml:space="preserve"><value>Chemin du fichier</value></data>
+  <data name="PakDiff_ColumnSourcePak" xml:space="preserve"><value>PAK source</value></data>
+  <data name="PakDiff_ExtractSelected" xml:space="preserve"><value>📦 Extraire la sélection</value></data>
+  <data name="IFFManager_OpenArchive" xml:space="preserve"><value>Ouvrir l'archive</value></data>
+  <data name="IFFManager_Save" xml:space="preserve"><value>Enregistrer</value></data>
+  <data name="IFFManager_Saved" xml:space="preserve"><value>IFF enregistré avec succès. Une sauvegarde a été créée.</value></data>
+  <data name="IFFManager_InvalidValue" xml:space="preserve"><value>La valeur est invalide pour ce champ.</value></data>
+  <data name="IFFManager_ConfirmOverwrite" xml:space="preserve"><value>Remplacer l'IFF sélectionné ? L'original sera conservé sous forme de fichier .bak.</value></data>
+  <data name="IFFManager_DiscardChanges" xml:space="preserve"><value>Abandonner les modifications IFF non enregistrées ?</value></data>
+  <data name="IFFManager_NoChanges" xml:space="preserve"><value>Il n'y a aucune modification IFF à enregistrer.</value></data>
+  <data name="Menu_Log" xml:space="preserve"><value>Voir le journal</value></data>
+  <data name="Log_Title" xml:space="preserve"><value>Journal de l'application</value></data>
+  <data name="Log_Clear" xml:space="preserve"><value>Effacer la vue</value></data>
+  <data name="IFFManager_NoEditableEntryLoaded" xml:space="preserve"><value>L'enregistrement ne peut pas démarrer car aucune entrée IFF modifiable n'est chargée.</value></data>
+  <data name="IFFManager_StringEncoding" xml:space="preserve"><value>Encodage des chaînes :</value></data>
+  <data name="IFFManager_EncodingAppliesNextLoad" xml:space="preserve"><value>L'encodage des chaînes sélectionné s'appliquera lors du prochain chargement d'un IFF.</value></data>
+  <data name="IFFManager_AddRow" xml:space="preserve"><value>Ajouter une ligne</value></data>
+  <data name="IFFManager_DeleteRows" xml:space="preserve"><value>Supprimer la sélection</value></data>
+  <data name="IFFManager_MaximumRows" xml:space="preserve"><value>Un fichier IFF ne peut pas contenir plus de 65 535 lignes.</value></data>
+  <data name="Log_ToFile" xml:space="preserve"><value>Journaliser dans un fichier</value></data>
+  <data name="Pak_CancelOperation" xml:space="preserve"><value>Annuler</value></data>
+  <data name="Pak_OperationCancelled" xml:space="preserve"><value>Opération annulée.</value></data>
+  <data name="PakMaker_SSKeyNotSupported" xml:space="preserve"><value>Ce PAK utilise pakkeys.ss. Les fichiers utilisant cette clé ne peuvent pas être désarchivés actuellement.</value></data>
+  <data name="Pak_KeyUsed" xml:space="preserve"><value>Clé PAK :</value></data>
+  <data name="Pak_CustomKey" xml:space="preserve"><value>Personnalisée</value></data>
+  <data name="IFFManager_AddColumn" xml:space="preserve"><value>Ajouter une colonne</value></data>
+  <data name="IFFManager_AddColumnTitle" xml:space="preserve"><value>Ajouter une colonne IFF</value></data>
+  <data name="IFFManager_ColumnName" xml:space="preserve"><value>Nom de la colonne :</value></data>
+  <data name="IFFManager_ByteOffset" xml:space="preserve"><value>Décalage d'octets (hex) :</value></data>
+  <data name="IFFManager_ByteWidth" xml:space="preserve"><value>Octets à lire :</value></data>
+  <data name="IFFManager_RenderAs" xml:space="preserve"><value>Rendre comme :</value></data>
+  <data name="IFFManager_TextBox" xml:space="preserve"><value>Zone de texte (hexadécimal)</value></data>
+  <data name="IFFManager_CheckBox" xml:space="preserve"><value>Case à cocher</value></data>
+  <data name="IFFManager_ColumnNameRequired" xml:space="preserve"><value>Entrez un nom pour la colonne.</value></data>
+  <data name="IFFManager_DuplicateColumnName" xml:space="preserve"><value>Une colonne avec ce nom existe déjà.</value></data>
+  <data name="IFFManager_ManageColumns" xml:space="preserve"><value>Colonnes du schéma</value></data>
+  <data name="IFFManager_ManageColumnsTitle" xml:space="preserve"><value>Gérer les colonnes du schéma IFF</value></data>
+  <data name="IFFManager_EditColumn" xml:space="preserve"><value>Modifier la colonne</value></data>
+  <data name="IFFManager_EditColumnTitle" xml:space="preserve"><value>Modifier la colonne IFF</value></data>
+  <data name="IFFManager_RemoveColumn" xml:space="preserve"><value>Supprimer la colonne</value></data>
+  <data name="IFFManager_SaveSchema" xml:space="preserve"><value>Enregistrer le schéma</value></data>
+  <data name="IFFManager_OnlyCustomColumnsEditable" xml:space="preserve"><value>Seules les colonnes hexadécimales et de cases à cocher peuvent être modifiées avec cette boîte de dialogue.</value></data>
+  <data name="IFFManager_SchemaRequiresColumn" xml:space="preserve"><value>Un schéma IFF doit contenir au moins une colonne.</value></data>
+  <data name="IFFManager_SchemaWarning" xml:space="preserve"><value>L'IFF a été ouvert en tant que données brutes en lecture seule car son schéma JSON n'a pas pu être chargé.</value></data>
+  <data name="IFFManager_Region" xml:space="preserve"><value>Région :</value></data>
+  <data name="IFFManager_RegionAuto" xml:space="preserve"><value>Détection automatique</value></data>
+  <data name="IFFManager_RegionThailand" xml:space="preserve"><value>Thaïlande</value></data>
+  <data name="IFFManager_RegionJapan" xml:space="preserve"><value>Japon</value></data>
+  <data name="IFFManager_RegionAppliesNextLoad" xml:space="preserve"><value>La région sélectionnée sera utilisée lors du prochain chargement d'un IFF.</value></data>
+  <data name="IFFManager_FieldType" xml:space="preserve"><value>Type de champ :</value></data>
+  <data name="IFFManager_FieldEditable" xml:space="preserve"><value>Le champ est modifiable</value></data>
+  <data name="IFFManager_EncodingCodePage" xml:space="preserve"><value>Page de code d'encodage :</value></data>
+  <data name="IFFManager_EncodingDocumentDefault" xml:space="preserve"><value>Encodage du document/par défaut</value></data>
+  <data name="IFFManager_MinimumValue" xml:space="preserve"><value>Valeur minimale :</value></data>
+  <data name="IFFManager_MaximumValue" xml:space="preserve"><value>Valeur maximale :</value></data>
+  <data name="IFFManager_BitMask" xml:space="preserve"><value>Masque de bits :</value></data>
+  <data name="IFFManager_BitShift" xml:space="preserve"><value>Décalage de bits :</value></data>
+  <data name="IFFManager_ShowRawRecord" xml:space="preserve"><value>Afficher l'enregistrement brut</value></data>
+  <data name="IFFManager_UnrepresentedBytes" xml:space="preserve"><value>Octets non représentés : {0} / {1}</value></data>
+  <data name="IFFManager_FieldVisible" xml:space="preserve"><value>Afficher le champ</value></data>
+  <data name="IFFManager_CloneColumn" xml:space="preserve"><value>Cloner la colonne</value></data>
+  <data name="IFFManager_MoveUp" xml:space="preserve"><value>Monter</value></data>
+  <data name="IFFManager_MoveDown" xml:space="preserve"><value>Descendre</value></data>
+  <data name="IFFManager_DefaultStringSize" xml:space="preserve"><value>Taille de chaîne par défaut :</value></data>
+  <data name="IFFManager_ContainerKey" xml:space="preserve"><value>Clé IFF :</value></data>
+  <data name="IFFManager_KeyNone" xml:space="preserve"><value>Aucune</value></data>
+  <data name="IFFManager_KeyPlainZip" xml:space="preserve"><value>ZIP brut</value></data>
+  <data name="IFFManager_SelectTemplate" xml:space="preserve"><value>Sélectionner le modèle de champ</value></data>
+  <data name="IFFManager_TemplateSchema" xml:space="preserve"><value>Schéma :</value></data>
+  <data name="IFFManager_Select" xml:space="preserve"><value>Sélectionner</value></data>
+  <data name="IFFManager_CurrentSchema" xml:space="preserve"><value>Schéma actuel</value></data>
+  <data name="IFFManager_SortByOffset" xml:space="preserve"><value>Trier par décalage</value></data>
+  <data name="IFFManager_AfterPreviousField" xml:space="preserve"><value>Après le précédent</value></data>
+  <data name="IFFManager_DefineRawColumnTitle" xml:space="preserve"><value>Définir la colonne à partir d'octets bruts</value></data>
+  <data name="IFFManager_ByteValue" xml:space="preserve"><value>Valeur d'octet</value></data>
+  <data name="IFFManager_DefineColumn" xml:space="preserve"><value>Définir la colonne</value></data>
+  <data name="IFFManager_SelectContiguousBytes" xml:space="preserve"><value>Sélectionnez une plage contiguë d'octets.</value></data>
+</root>

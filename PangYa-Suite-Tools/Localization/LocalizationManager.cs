@@ -1,5 +1,4 @@
 using System.Globalization;
-
 namespace PangYa_Suite_Tools.Localization;
 
 internal static class LocalizationManager
@@ -8,16 +7,18 @@ internal static class LocalizationManager
     public const string PortugueseBrazil = "pt-BR";
     public const string Swedish = "sv";
     public const string Japonese = "ja";
+    public const string French = "fr";
 
     private static readonly HashSet<string> SupportedCultures =
-        new(StringComparer.OrdinalIgnoreCase) { English, PortugueseBrazil, Swedish, Japonese };
+        new(StringComparer.OrdinalIgnoreCase) { English, PortugueseBrazil, Swedish, Japonese, French };
 
     internal static int CurrentCultureIndex => CurrentCulture.Name switch
     {
         PortugueseBrazil => 0,
         Swedish => 2, 
         Japonese => 3,
-        _ => 1,
+        French => 4,
+        _ => 1, // Default: English
     };
 
     internal static string? PreferencePathOverride { get; set; }

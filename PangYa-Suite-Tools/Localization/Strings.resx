@@ -504,6 +504,9 @@
    <data name="Common_Japonese" xml:space="preserve">
     <value>Japones</value>
   </data>
+  <data name="Common_French" xml:space="preserve">
+    <value>French</value>
+  </data>
   <data name="Common_Language" xml:space="preserve">
     <value>Language:</value>
   </data>
