@@ -17,9 +17,14 @@ namespace PangYa_Suite_Tools
         public FrmMenu()
         {
             InitializeComponent();
+            ConfigureShopButtonIcon();
             InitializeLanguageComboBox();
             LocalizationManager.CultureChanged += LocalizationManager_CultureChanged;
-            Disposed += (_, _) => LocalizationManager.CultureChanged -= LocalizationManager_CultureChanged;
+            Disposed += (_, _) =>
+            {
+                LocalizationManager.CultureChanged -= LocalizationManager_CultureChanged;
+                btnOpenShop.Image?.Dispose();
+            };
         }
 
         private void InitializeLanguageComboBox()
@@ -73,6 +78,28 @@ namespace PangYa_Suite_Tools
             btnOpenLog.Text = Strings.Menu_Log;
             btnOpenShop.Text = Strings.Menu_Shop;
             lblLanguage.Text = Strings.Common_Language;
+        }
+
+        private void ConfigureShopButtonIcon()
+        {
+            btnOpenShop.Image = CreateShopButtonIcon();
+        }
+
+        private static Bitmap CreateShopButtonIcon()
+        {
+            var bitmap = new Bitmap(16, 16);
+            using Graphics graphics = Graphics.FromImage(bitmap);
+            graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            graphics.Clear(Color.Transparent);
+
+            using var pen = new Pen(Color.Black, 1.5f);
+            using var fill = new SolidBrush(Color.FromArgb(48, Color.Black));
+
+            graphics.DrawArc(pen, 5, 2, 6, 7, 190, 160);
+            graphics.FillRoundedRectangle(fill, new Rectangle(3, 6, 10, 8), new Size(2, 2));
+            graphics.DrawRoundedRectangle(pen, new Rectangle(3, 6, 10, 8), new Size(2, 2));
+
+            return bitmap;
         }
 
         private void btnOpenPakMaker_Click(object sender, EventArgs e)
@@ -168,6 +195,79 @@ namespace PangYa_Suite_Tools
                     Strings.Common_Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally { btnOpenShop.Enabled = true; }
+        }
+
+        private sealed class CenteredImageButton : Button
+        {
+            private bool _isMouseDown;
+
+            protected override void OnMouseDown(MouseEventArgs mevent)
+            {
+                _isMouseDown = true;
+                base.OnMouseDown(mevent);
+            }
+
+            protected override void OnMouseUp(MouseEventArgs mevent)
+            {
+                _isMouseDown = false;
+                base.OnMouseUp(mevent);
+            }
+
+            protected override void OnMouseLeave(EventArgs e)
+            {
+                _isMouseDown = false;
+                base.OnMouseLeave(e);
+            }
+
+            protected override void OnPaint(PaintEventArgs pevent)
+            {
+                ButtonState state = !Enabled
+                    ? ButtonState.Inactive
+                    : _isMouseDown
+                        ? ButtonState.Pushed
+                        : ButtonState.Normal;
+                ControlPaint.DrawButton(pevent.Graphics, ClientRectangle, state);
+
+                Size imageSize = Image?.Size ?? Size.Empty;
+                Size textSize = TextRenderer.MeasureText(
+                    pevent.Graphics,
+                    Text,
+                    Font,
+                    Size.Empty,
+                    TextFormatFlags.NoPadding);
+                int gap = imageSize.IsEmpty || string.IsNullOrEmpty(Text) ? 0 : 6;
+                int totalWidth = imageSize.Width + gap + textSize.Width;
+                int centerOffset = _isMouseDown ? 1 : 0;
+                int x = (ClientSize.Width - totalWidth) / 2 + centerOffset;
+
+                if (Image != null)
+                {
+                    int imageY = (ClientSize.Height - imageSize.Height) / 2 + centerOffset;
+                    pevent.Graphics.DrawImage(Image, x, imageY, imageSize.Width, imageSize.Height);
+                    x += imageSize.Width + gap;
+                }
+
+                Color textColor = Enabled ? ForeColor : SystemColors.GrayText;
+                var textBounds = new Rectangle(
+                    x,
+                    (ClientSize.Height - textSize.Height) / 2 + centerOffset,
+                    textSize.Width,
+                    textSize.Height);
+                TextRenderer.DrawText(
+                    pevent.Graphics,
+                    Text,
+                    Font,
+                    textBounds,
+                    textColor,
+                    TextFormatFlags.NoPadding);
+
+                if (Focused && ShowFocusCues)
+                {
+                    Rectangle focusBounds = ClientRectangle;
+                    focusBounds.Inflate(-4, -4);
+                    ControlPaint.DrawFocusRectangle(pevent.Graphics, focusBounds);
+                }
+            }
         }
 
         
