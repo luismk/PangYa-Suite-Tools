@@ -428,12 +428,9 @@ namespace PangYa_Suite_Tools
 
         private static PakSnapshot? LoadSnapshot()
         {
-            using var ofd = new OpenFileDialog
-            {
-                Title = Strings.PakDiff_LoadSnapshot,
-                Filter = Strings.PakDiff_SnapshotFilter
-            };
+            using var ofd = FileDialogFactory.CreateSnapshotOpenDialog();
             if (ofd.ShowDialog() != DialogResult.OK) return null;
+            FileDialogFactory.RememberDirectory(FileDialogKind.Snapshot, ofd.FileName);
 
             try
             {
@@ -659,6 +656,7 @@ namespace PangYa_Suite_Tools
             {
                 await Task.Run(() =>
                 {
+                    var extractedFiles = new List<(PakFileEntry Entry, string OutputPath)>();
                     foreach (var pakGroup in groups)
                     {
                         using var reader = new PakReader(pakGroup.Key, logSink: AppLogger.Instance);
@@ -667,12 +665,15 @@ namespace PangYa_Suite_Tools
                         foreach (var diffEntry in pakGroup)
                         {
                             string outPath = Path.Combine(outputDir, diffEntry.PakEntry.Name.Replace('/', '\\'));
-                            reader.ExtractEntry(diffEntry.PakEntry, outPath);
+                            reader.ExtractEntry(diffEntry.PakEntry, outPath, writeManifest: false);
+                            extractedFiles.Add((diffEntry.PakEntry, outPath));
 
                             totalDone++;
                             this.Invoke(() => prgBarDiff.Value = totalDone);
                         }
                     }
+
+                    PakExtractionSidecar.WriteManifest(extractedFiles);
                 });
 
                 MessageBox.Show(

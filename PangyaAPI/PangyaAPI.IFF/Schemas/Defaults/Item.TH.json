@@ -139,14 +139,15 @@
       "name": "Icon",
       "offset": 49,
       "width": 40,
-      "type": "FixedString",
+      "type": "Icon",
       "isEditable": true,
       "encodingCodePage": 28591,
       "minimum": null,
       "maximum": null,
       "bitMask": null,
       "bitShift": 0,
-      "isVisible": true
+      "isVisible": true,
+      "iconPath": "ui/shop_myroom"
     },
     {
       "name": "Price",

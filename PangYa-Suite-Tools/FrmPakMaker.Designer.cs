@@ -583,7 +583,6 @@ namespace PangYa_Suite_Tools
             cboLanguage.DropDownStyle = ComboBoxStyle.DropDownList;
             cboLanguage.Name = "cboLanguage";
             cboLanguage.Size = new Size(120, 23);
-            cboLanguage.SelectedIndexChanged += cboLanguage_SelectedIndexChanged;
             // 
             // ckSecurityPak
             // 

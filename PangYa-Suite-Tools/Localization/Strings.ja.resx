@@ -88,6 +88,15 @@ IFFファイルのディレクトリを選択してください。</value>
   <data name="PakMaker_InvalidRenameName" xml:space="preserve">
     <value>パス区切り文字を含まない有効なファイル名を入力してください。</value>
   </data>
+  <data name="PakMaker_FileMenu" xml:space="preserve">
+    <value>ファイル</value>
+  </data>
+  <data name="PakMaker_PakOperations" xml:space="preserve">
+    <value>PAK 操作</value>
+  </data>
+  <data name="PakMaker_FileOperations" xml:space="preserve">
+    <value>ファイル操作</value>
+  </data>
   <data name="PakMaker_RemoveSelectedItemSFromPAK" xml:space="preserve">
     <value>🗑️ PAK から選択した項目を削除...</value>
   </data>
@@ -296,6 +305,9 @@ IFFファイルのディレクトリを選択してください。</value>
   <data name="PakMaker_SelectTheFilesToUpdateInject" xml:space="preserve">
     <value>更新/インジェクションするファイルを選択してください</value>
   </data>
+  <data name="PakMaker_InjectFilesFilter" xml:space="preserve">
+    <value>一般的な PangYa アセット (*.iff;*.tga;*.png;*.jpg;*.jpeg;*.bmp;*.dds;*.wav;*.mp3;*.txt;*.ini;*.xml;*.dat)|*.iff;*.tga;*.png;*.jpg;*.jpeg;*.bmp;*.dds;*.wav;*.mp3;*.txt;*.ini;*.xml;*.dat|すべてのファイル (*.*)|*.*</value>
+  </data>
   <data name="PakMaker_MergingAndRebuildingPAK" xml:space="preserve">
     <value>PAK を結合および再構築中...</value>
   </data>
@@ -379,6 +391,15 @@ IFFファイルのディレクトリを選択してください。</value>
   </data>
   <data name="UpdateList_StartMonitoring" xml:space="preserve">
     <value>▶️ 監視を開始</value>
+  </data>
+  <data name="UpdateList_SelectUpdateListFile" xml:space="preserve">
+    <value>updatelist ファイルを選択</value>
+  </data>
+  <data name="UpdateList_SelectExistingUpdateListFile" xml:space="preserve">
+    <value>既存の暗号化済み updatelist を選択 (任意)</value>
+  </data>
+  <data name="UpdateList_OpenFileFilter" xml:space="preserve">
+    <value>UpdateList ファイル|updatelist*.*|すべてのファイル (*.*)|*.*</value>
   </data>
   <data name="UpdateList_INACTIVE" xml:space="preserve">
     <value>停止中</value>
@@ -569,19 +590,19 @@ IFFファイルのディレクトリを選択してください。</value>
     <value>📂 パス: (すべてのファイル)</value>
   </data>
   <data name="Pak_ExtractSelected" xml:space="preserve">
-    <value>📤 選択した項目を抽出</value>
+    <value>抽出</value>
   </data>
   <data name="Pak_RemoveSelected" xml:space="preserve">
-    <value>🗑️ 選択した項目を削除</value>
+    <value>削除</value>
   </data>
   <data name="Pak_BatchExtract" xml:space="preserve">
-    <value>📂 フォルダを抽出</value>
+    <value>フォルダを抽出</value>
   </data>
   <data name="Pak_Update" xml:space="preserve">
-    <value>🔄 インジェクション / 更新</value>
+    <value>追加</value>
   </data>
   <data name="Pak_ExtractAll" xml:space="preserve">
-    <value>💥 すべて抽出</value>
+    <value>すべて抽出</value>
   </data>
   <data name="Pak_ColumnName" xml:space="preserve">
     <value>ファイル名</value>
@@ -599,7 +620,13 @@ IFFファイルのディレクトリを選択してください。</value>
     <value>🔑 新しいキー (XTEA):</value>
   </data>
   <data name="Pak_ChangeKey" xml:space="preserve">
-    <value>🔐 PAK キーの変更</value>
+    <value>キーの変更</value>
+  </data>
+  <data name="Pak_RenameSelected" xml:space="preserve">
+    <value>名前を変更</value>
+  </data>
+  <data name="Pak_ShowToolbarText" xml:space="preserve">
+    <value>ツールバーアイコンの下にテキストを表示</value>
   </data>
   <data name="Pak_TabCreate" xml:space="preserve">
     <value>新しい PAK を作成</value>
@@ -697,8 +724,11 @@ IFFファイルのディレクトリを選択してください。</value>
   <data name="Common_OK" xml:space="preserve">
     <value>OK</value>
   </data>
+  <data name="Pak_OpenFileTitle" xml:space="preserve">
+    <value>PAK アーカイブを開く</value>
+  </data>
   <data name="Pak_OpenFileFilter" xml:space="preserve">
-    <value>Pangya PAK ファイル (*.pak)|*.pak</value>
+    <value>Pangya PAK ファイル (*.pak)|*.pak|すべてのファイル (*.*)|*.*</value>
   </data>
   <data name="Pak_SaveFileFilter" xml:space="preserve">
     <value>Pangya PAK (*.pak)|*.pak</value>
@@ -783,7 +813,6 @@ IFFファイルのディレクトリを選択してください。</value>
   <data name="PakDiff_IdenticalFiles" xml:space="preserve"><value>一致するファイル (等価)</value></data>
   <data name="PakDiff_Compare" xml:space="preserve"><value>🔍 比較</value></data>
   <data name="PakDiff_ColumnFilePath" xml:space="preserve"><value>ファイルパス</value></data>
-  <data name="PakDiff_ColumnSourcePak" xml:space="preserve"><value>ソースPAK</value></data>
   <data name="PakDiff_ExtractSelected" xml:space="preserve"><value>📦 選択したアイテムを抽出</value></data>
   <data name="PakMaker_BatchFolderStructureTitle" xml:space="preserve"><value>一括展開のフォルダー構成</value></data>
   <data name="PakMaker_BatchFolderStructureChoice" xml:space="preserve"><value>PAK ごとに個別のフォルダーを作成しますか？
@@ -837,8 +866,8 @@ IFFファイルのディレクトリを選択してください。</value>
   <data name="Shop_FlagShowSpecial" xml:space="preserve"><value>Special を表示</value></data>
   <data name="Shop_FlagUnknown" xml:space="preserve"><value>不明 (0x{0:X2})</value></data>
   <data name="PakDiff_ColumnSourcePak" xml:space="preserve"><value>ソース PAK</value></data>
-  <data name="PakDiff_ExtractSelected" xml:space="preserve"><value>📦 選択した項目を抽出</value></data>
   <data name="IFFManager_OpenArchive" xml:space="preserve"><value>アーカイブを開く</value></data>
+  <data name="IFFManager_OpenArchiveFilter" xml:space="preserve"><value>PangYa IFF アーカイブ (*.iff;*.zip)|*.iff;*.zip|すべてのファイル (*.*)|*.*</value></data>
   <data name="IFFManager_Save" xml:space="preserve"><value>保存</value></data>
   <data name="IFFManager_Saved" xml:space="preserve"><value>IFF が正常に保存されました。バックアップが作成されました。</value></data>
   <data name="IFFManager_InvalidValue" xml:space="preserve"><value>このフィールドに対して値が無効です。</value></data>
@@ -892,6 +921,16 @@ IFFファイルのディレクトリを選択してください。</value>
   <data name="IFFManager_MaximumValue" xml:space="preserve"><value>最大値:</value></data>
   <data name="IFFManager_BitMask" xml:space="preserve"><value>ビットマスク:</value></data>
   <data name="IFFManager_BitShift" xml:space="preserve"><value>ビットシフト:</value></data>
+  <data name="IFFManager_ReferenceTargetFile" xml:space="preserve"><value>参照 IFF:</value></data>
+  <data name="IFFManager_ReferenceTargetKeyField" xml:space="preserve"><value>参照キー フィールド:</value></data>
+  <data name="IFFManager_ReferenceDisplayField" xml:space="preserve"><value>表示フィールド:</value></data>
+  <data name="IFFManager_ReferenceIconField" xml:space="preserve"><value>アイコン フィールド:</value></data>
+  <data name="IFFManager_ReferenceIconPath" xml:space="preserve"><value>アイコン パス:</value></data>
+  <data name="IFFManager_FieldIconPath" xml:space="preserve"><value>フィールド アイコン パス:</value></data>
+  <data name="IFFManager_FieldSoundPath" xml:space="preserve"><value>フィールド サウンド パス:</value></data>
+  <data name="IFFManager_PlaySound" xml:space="preserve"><value>再生</value></data>
+  <data name="IFFManager_SoundFileNotFound" xml:space="preserve"><value>選択したデータ フォルダーからサウンド ファイルが見つかりませんでした。</value></data>
+  <data name="IFFManager_ReferencePickerEnabled" xml:space="preserve"><value>参照ピッカーを有効化</value></data>
   <data name="IFFManager_ShowRawRecord" xml:space="preserve"><value>生レコードを表示</value></data>
   <data name="IFFManager_UnrepresentedBytes" xml:space="preserve"><value>未表現バイト: {0} / {1}</value></data>
   <data name="IFFManager_FieldVisible" xml:space="preserve"><value>フィールドを表示</value></data>
@@ -912,4 +951,47 @@ IFFファイルのディレクトリを選択してください。</value>
   <data name="IFFManager_ByteValue" xml:space="preserve"><value>バイト値</value></data>
   <data name="IFFManager_DefineColumn" xml:space="preserve"><value>列を定義</value></data>
   <data name="IFFManager_SelectContiguousBytes" xml:space="preserve"><value>連続した1つのバイト範囲を選択してください。</value></data>
+  <data name="IFFManager_SelectedRawValueLabel" xml:space="preserve"><value>値:</value></data>
+  <data name="IFFManager_SelectedRawValue" xml:space="preserve"><value>バイトが選択されていません</value></data>
+  <data name="IFFManager_SelectedRawValueFormat" xml:space="preserve"><value>オフセット {0}, {1} バイト: {2}</value></data>
+  <data name="IFFManager_ClearSelection" xml:space="preserve"><value>選択をクリア</value></data>
+  <data name="IFFManager_RawRecord" xml:space="preserve"><value>生レコード</value></data>
+  <data name="IFFManager_SetItemsPreview" xml:space="preserve"><value>セットアイテム</value></data>
+  <data name="IFFManager_SetItemPreviewDetails" xml:space="preserve"><value>スロット {0} · ID {1} · 数量 {2}</value></data>
+  <data name="IFFManager_SetItemMissingItem" xml:space="preserve"><value>Item.iff の参照が見つかりません</value></data>
+  <data name="IFFManager_SetItemMissingIcon" xml:space="preserve"><value>アイコンが見つかりません</value></data>
+  <data name="IFFManager_SelectSetItem" xml:space="preserve"><value>セットアイテムを選択</value></data>
+  <data name="IFFManager_ItemId" xml:space="preserve"><value>アイテムID</value></data>
+  <data name="IFFManager_ItemName" xml:space="preserve"><value>名前</value></data>
+  <data name="IFFManager_ReferencesPreview" xml:space="preserve"><value>参照</value></data>
+  <data name="IFFManager_ReferenceDetailsFormat" xml:space="preserve"><value>{0} · ID {1} · {2}</value></data>
+  <data name="IFFManager_ReferenceMissingRecord" xml:space="preserve"><value>参照が見つかりません</value></data>
+  <data name="IFFManager_ReferenceMissingRecordFormat" xml:space="preserve"><value>参照 {0} が見つかりません</value></data>
+  <data name="IFFManager_SelectReferenceFormat" xml:space="preserve"><value>{0} から参照を選択</value></data>
+  <data name="IFFManager_LinkedIff" xml:space="preserve"><value>リンク先 IFF</value></data>
+  <data name="IFFManager_ItemType" xml:space="preserve"><value>タイプ</value></data>
+  <data name="IFFManager_Character" xml:space="preserve"><value>キャラクター</value></data>
+  <data name="IFFManager_DataFolder" xml:space="preserve"><value>data フォルダー</value></data>
+  <data name="IFFManager_DataFolderNotSelected" xml:space="preserve"><value>data フォルダー未選択</value></data>
+  <data name="UpdateList_DecryptionSuccessFormat" xml:space="preserve"><value>✅ [成功] キー [{0}] で復号しました！</value></data>
+  <data name="UpdateList_Scanning" xml:space="preserve"><value>スキャン中...</value></data>
+  <data name="UpdateList_Done" xml:space="preserve"><value>完了！</value></data>
+  <data name="UpdateList_ErrorLogFormat" xml:space="preserve"><value>❌ [エラー] {0}</value></data>
+  <data name="UpdateList_ErrorStatus" xml:space="preserve"><value>エラー。</value></data>
+  <data name="UpdateList_SourceLogFormat" xml:space="preserve"><value>📂 ソース: {0}</value></data>
+  <data name="UpdateList_DestinationLogFormat" xml:space="preserve"><value>🌐 保存先: {0}</value></data>
+  <data name="UpdateList_KeyLogFormat" xml:space="preserve"><value>🔑 キー: {0}</value></data>
+  <data name="UpdateList_VersionLogFormat" xml:space="preserve"><value>🏷  バージョン: {0} | パッチ #{1}</value></data>
+  <data name="UpdateList_ScanningFiles" xml:space="preserve"><value>ファイルをスキャン中...</value></data>
+  <data name="UpdateList_ExistingLoadedFormat" xml:space="preserve"><value>📋 既存の updatelist を読み込みました: {0} ファイル</value></data>
+  <data name="UpdateList_ExistingLoadFailedFormat" xml:space="preserve"><value>⚠️ 既存の updatelist を読み込めませんでした: {0}</value></data>
+  <data name="UpdateList_ScanningProgressFormat" xml:space="preserve"><value>スキャン中 ({0}/{1})</value></data>
+  <data name="UpdateList_NewFileFormat" xml:space="preserve"><value>  ➕ [新規] {0}</value></data>
+  <data name="UpdateList_ChangedFileFormat" xml:space="preserve"><value>  🔄 [変更] {0} (CRC: {1:X8} → {2:X8})</value></data>
+  <data name="UpdateList_DeltaSummaryFormat" xml:space="preserve"><value>📊 差分の概要: ➕ 新規 {0} | 🔄 変更 {1} | ✅ 未変更 {2}</value></data>
+  <data name="UpdateList_GeneratedAtFormat" xml:space="preserve"><value>✅ [完了] updatelist の生成先: {0}</value></data>
+  <data name="UpdateList_InvalidSourceFolder" xml:space="preserve"><value>Pangya のソースフォルダが無効です。</value></data>
+  <data name="UpdateList_InvalidDestinationFolder" xml:space="preserve"><value>WebServer の保存先フォルダが無効です。</value></data>
+  <data name="UpdateList_PatchVersionRequired" xml:space="preserve"><value>パッチバージョンを入力してください。</value></data>
+  <data name="IFFManager_DefaultLongStringSize" xml:space="preserve"><value>長い文字列の既定サイズ:</value></data>
 </root>

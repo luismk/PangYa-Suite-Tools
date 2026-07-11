@@ -29,7 +29,7 @@ Have a great idea like a new multi-compare tool or a unique viewer?
 2. Keep the architecture clean:
    - The project runs on C# (.NET Core / Windows Forms).
    - Never run heavy operations (like extracting or compression loops) directly on the main UI thread. Always wrap them in Task.Run or asynchronous patterns to keep the UI fluid.
-   - Ensure all new visual text or strings support both English and Portuguese using the native localizer system or the GetText("en", "br") method.
+   - Ensure all new visual text or strings use the native RESX localization system for every supported culture.
 
 3. Commit Guidelines: Use descriptive messages following the Conventional Commits pattern:
    - feat(diff): add multi-pak synchronization
@@ -62,7 +62,7 @@ Tens uma ideia fantástica como uma nova ferramenta de comparação ou um visual
 2. Mantém a arquitetura limpa:
    - O projeto é executado em C# (.NET Core / Windows Forms).
    - Nunca executes operações pesadas (como loops de extração ou compactação) diretamente na Thread principal da interface (UI). Envolve-as sempre em Task.Run ou padrões assíncronas para manter a janela fluida.
-   - Garante que todos os novos textos ou strings na interface suportem Inglês e Português através do sistema nativo de localização ou do método GetText("en", "br").
+   - Garanta que todos os novos textos ou strings da interface usem o sistema de localização RESX nativo em todos os idiomas suportados.
 
 3. Padrão de Commits: Utiliza mensagens descritivas seguindo o padrão Conventional Commits:
    - feat(diff): add multi-pak synchronization

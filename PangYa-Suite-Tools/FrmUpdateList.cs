@@ -3,6 +3,7 @@ using PangYa_Suite_Tools.Logging;
 
 using System.ComponentModel;
 using System.Text; 
+using System.Xml.Linq;
 using PangyaAPI.UpdateList.Flags; 
 using PangyaAPI.UpdateList.Models;
 
@@ -17,17 +18,34 @@ namespace PangYa_Suite_Tools
 
         private FileSystemWatcher? _watcher;
         private readonly Lock _generatorLock = new();
+        private string _currentRawXml = string.Empty;
+        private UpdateListDocument? _currentUpdateListDocument;
         private bool _isMonitoring = false;
-        private bool _isInitializingLanguages = true;
+        // private bool _isInitializingLanguages = true;
+        private enum UpdateToolbarIconKind
+        {
+            Generate,
+            MonitorStart,
+            MonitorStop,
+            RawXml
+        }
 
         // ── Construtor ───────────────────────────────────────────────────────
         public FrmUpdateList()
         {
             InitializeComponent();
-            InitializeLanguageComboBox();
+            // InitializeLanguageComboBox();
             SetupComponents();
+            ConfigureToolbars();
             LocalizationManager.CultureChanged += LocalizationManager_CultureChanged;
-            Disposed += (_, _) => LocalizationManager.CultureChanged -= LocalizationManager_CultureChanged;
+            ApplyLocalization();
+            Disposed += (_, _) =>
+            {
+                LocalizationManager.CultureChanged -= LocalizationManager_CultureChanged;
+                btnGenerateNow.Image?.Dispose();
+                btnToggleWatch.Image?.Dispose();
+                btnShowRawXml.Image?.Dispose();
+            };
         }
 
         public FrmUpdateList(string idiomaAtual) : this()
@@ -35,39 +53,33 @@ namespace PangYa_Suite_Tools
             LocalizationManager.SetCulture(idiomaAtual);
         }
 
-        private void InitializeLanguageComboBox()
-        {
-            cboLanguage.ComboBox.DisplayMember = "Key";
-            cboLanguage.ComboBox.ValueMember = "Value";
+        // private void InitializeLanguageComboBox()
+        // {
+        //     cboLanguage.ComboBox.DisplayMember = "Key";
+        //     cboLanguage.ComboBox.ValueMember = "Value";
 
-            cboLanguage.Items.Add(new KeyValuePair<string, string>(Strings.Common_PortugueseBrazil, LocalizationManager.PortugueseBrazil));
-            cboLanguage.Items.Add(new KeyValuePair<string, string>(Strings.Common_EnglishUS, LocalizationManager.English));
-            cboLanguage.Items.Add(new KeyValuePair<string, string>(Strings.Common_Swedish, LocalizationManager.Swedish));
-            cboLanguage.Items.Add(new KeyValuePair<string, string>(Strings.Common_Japonese, LocalizationManager.Japonese));
-			cboLanguage.Items.Add(new KeyValuePair<string, string>(Strings.Common_French, LocalizationManager.French));
-            cboLanguage.SelectedIndex = LocalizationManager.CurrentCultureIndex;
+        //     cboLanguage.Items.Add(new KeyValuePair<string, string>(Strings.Common_PortugueseBrazil, LocalizationManager.PortugueseBrazil));
+        //     cboLanguage.Items.Add(new KeyValuePair<string, string>(Strings.Common_EnglishUS, LocalizationManager.English));
+        //     cboLanguage.Items.Add(new KeyValuePair<string, string>(Strings.Common_Swedish, LocalizationManager.Swedish));
+        //     cboLanguage.Items.Add(new KeyValuePair<string, string>(Strings.Common_Japonese, LocalizationManager.Japonese));
+		// 	cboLanguage.Items.Add(new KeyValuePair<string, string>(Strings.Common_French, LocalizationManager.French));
+        //     cboLanguage.SelectedIndex = LocalizationManager.CurrentCultureIndex;
 
-            _isInitializingLanguages = false;
-            ApplyLocalization();
-        }
+        //     _isInitializingLanguages = false;
+        //     ApplyLocalization();
+        // }
 
-        private void cboLanguage_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            if (_isInitializingLanguages) return;
+        // private void cboLanguage_SelectedIndexChanged(object sender, EventArgs e)
+        // {
+        //     if (_isInitializingLanguages) return;
 
-            if (cboLanguage.SelectedItem is KeyValuePair<string, string> selectedItem)
-            {
-                LocalizationManager.SetCulture(selectedItem.Value);
-            }
-        }
+        //     if (cboLanguage.SelectedItem is KeyValuePair<string, string> selectedItem)
+        //     {
+        //         LocalizationManager.SetCulture(selectedItem.Value);
+        //     }
+        // }
 
-        private void LocalizationManager_CultureChanged(object? sender, EventArgs e)
-        {
-            _isInitializingLanguages = true;
-            cboLanguage.SelectedIndex = LocalizationManager.CurrentCultureIndex;
-            _isInitializingLanguages = false;
-            ApplyLocalization();
-        }
+        private void LocalizationManager_CultureChanged(object? sender, EventArgs e) => ApplyLocalization();
 
         private void ApplyLocalization()
         {
@@ -81,20 +93,35 @@ namespace PangYa_Suite_Tools
             lblPatchVersion.Text = Strings.Update_PatchVersion;
             lblUpdateListVer.Text = Strings.Update_ListVersion;
             lblClientPatchNum.Text = Strings.Update_PatchNumber;
+            txtViewerFilePath.PlaceholderText = Strings.UpdateList_ViewerPathHint;
             btnBrowsePangya.Text = Strings.Pak_Browse;
             btnBrowseUpdate.Text = Strings.Pak_Browse;
+            btnBrowseViewer.Text = Strings.Pak_Browse;
+            btnGenerateNow.Text = Strings.UpdateList_GenerateNow;
+            btnShowRawXml.Text = Strings.UpdateList_RawXml;
+            colFileName.Text = Strings.UpdateList_ColumnFileName;
+            colDirectory.Text = Strings.UpdateList_ColumnDirectory;
+            colFileSize.Text = Strings.UpdateList_ColumnFileSize;
+            colCrc.Text = Strings.UpdateList_ColumnCrc;
+            colDate.Text = Strings.UpdateList_ColumnDate;
+            colTime.Text = Strings.UpdateList_ColumnTime;
+            colPackageName.Text = Strings.UpdateList_ColumnPackageName;
+            colPackageSize.Text = Strings.UpdateList_ColumnPackageSize;
             lblLog.Text = Strings.Update_Log;
-            lblLanguage.Text = Strings.Common_Language;
+            // lblLanguage.Text = Strings.Common_Language;
+            UpdatePatchSummary(_currentUpdateListDocument);
 
             // Estados dinâmicos: só atualiza se não houver monitoramento/drop em andamento, para não confundir o usuário no meio de uma operação
             if (!_isMonitoring)
             {
                 btnToggleWatch.Text = Strings.UpdateList_StartMonitoring;
+                SetToolbarIcon(btnToggleWatch, UpdateToolbarIconKind.MonitorStart);
                 lblWatchStatus.Text = Strings.UpdateList_INACTIVE;
             }
             else
             {
                 btnToggleWatch.Text = Strings.UpdateList_StopMonitoring;
+                SetToolbarIcon(btnToggleWatch, UpdateToolbarIconKind.MonitorStop);
                 lblWatchStatus.Text = Strings.UpdateList_ACTIVELYMONITORING;
             }
 
@@ -104,22 +131,14 @@ namespace PangYa_Suite_Tools
             }
         }
 
-        private static string GetText(string english, string portugueseBrazil) =>
-            LocalizationManager.CurrentCulture.Name switch
-            {
-                LocalizationManager.PortugueseBrazil => portugueseBrazil,
-                LocalizationManager.Swedish => SwedishInlineTranslations.Get(english),
-                _ => english
-            };
-
 private void SetupComponents()
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
             // Aba 1 — Drag-and-Drop
-            pnlCryptoDrop.AllowDrop = true;
-            pnlCryptoDrop.DragEnter += PnlCryptoDrop_DragEnter;
-            pnlCryptoDrop.DragDrop += pnlCryptoDrop_DragDrop;
+            // pnlCryptoDrop.AllowDrop = true;
+            // pnlCryptoDrop.DragEnter += PnlCryptoDrop_DragEnter;
+            // pnlCryptoDrop.DragDrop += pnlCryptoDrop_DragDrop;
 
             // Aba 2 — ComboBox de região
             cboFileKey.Items.Clear();
@@ -135,24 +154,105 @@ private void SetupComponents()
             Log(Strings.UpdateList_InterfaceInitializedInMultiTabMode);
         }
 
+        private void ConfigureToolbars()
+        {
+            SetToolbarIcon(btnGenerateNow, UpdateToolbarIconKind.Generate);
+            SetToolbarIcon(btnToggleWatch, UpdateToolbarIconKind.MonitorStart);
+            SetToolbarIcon(btnShowRawXml, UpdateToolbarIconKind.RawXml);
+            foreach (ToolStripButton button in new[] { btnGenerateNow, btnToggleWatch, btnShowRawXml })
+            {
+                button.DisplayStyle = ToolStripItemDisplayStyle.ImageAndText;
+                button.TextImageRelation = TextImageRelation.ImageAboveText;
+                button.Size = new Size(92, 62);
+            }
+
+            AutoSizeUpdateFileColumns();
+        }
+
+        private static void SetToolbarIcon(ToolStripButton button, UpdateToolbarIconKind iconKind)
+        {
+            Image? oldImage = button.Image;
+            button.Image = CreateToolbarIcon(iconKind);
+            oldImage?.Dispose();
+        }
+
+        private static Bitmap CreateToolbarIcon(UpdateToolbarIconKind iconKind)
+        {
+            var bitmap = new Bitmap(32, 32);
+            using Graphics g = Graphics.FromImage(bitmap);
+            g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            g.Clear(Color.Transparent);
+
+            using var primary = new SolidBrush(Color.FromArgb(0, 122, 204));
+            using var green = new SolidBrush(Color.FromArgb(40, 167, 69));
+            using var red = new SolidBrush(Color.FromArgb(220, 53, 69));
+            using var white = new SolidBrush(Color.White);
+            switch (iconKind)
+            {
+                case UpdateToolbarIconKind.Generate:
+                    g.FillRectangle(primary, 7, 4, 18, 24);
+                    g.FillRectangle(white, 11, 10, 10, 2);
+                    g.FillRectangle(white, 11, 15, 10, 2);
+                    g.FillRectangle(white, 11, 20, 7, 2);
+                    break;
+                case UpdateToolbarIconKind.MonitorStart:
+                    g.FillEllipse(green, 5, 5, 22, 22);
+                    g.FillPolygon(white, [new Point(14, 11), new Point(14, 21), new Point(23, 16)]);
+                    break;
+                case UpdateToolbarIconKind.MonitorStop:
+                    g.FillEllipse(red, 5, 5, 22, 22);
+                    g.FillRectangle(white, 12, 12, 8, 8);
+                    break;
+                case UpdateToolbarIconKind.RawXml:
+                    g.FillRectangle(primary, 5, 7, 22, 18);
+                    using (var font = new Font("Consolas", 8F, FontStyle.Bold, GraphicsUnit.Pixel))
+                    {
+                        g.DrawString("</>", font, white, new PointF(8, 13));
+                    }
+                    break;
+            }
+
+            return bitmap;
+        }
+
         // ════════════════════════════════════════════════════════════════════
         // ABA 1 — VISUALIZADOR / DECRYPT DE UPDATELIST
         // ════════════════════════════════════════════════════════════════════
 
-        private void PnlCryptoDrop_DragEnter(object? sender, DragEventArgs e)
+        // private void PnlCryptoDrop_DragEnter(object? sender, DragEventArgs e)
+        // {
+        //     if (e.Data != null && e.Data.GetDataPresent(DataFormats.FileDrop))
+        //         e.Effect = DragDropEffects.Copy;
+        // }
+
+        // private async void pnlCryptoDrop_DragDrop(object? sender, DragEventArgs e)
+        // {
+        //     if (e.Data == null) return;
+        //     string[] files = (string[])e.Data.GetData(DataFormats.FileDrop)!;
+        //     if (files.Length == 0) return;
+
+        //     await ProcessViewerFileAsync(files[0]);
+        // }
+
+        private async void btnBrowseViewer_Click(object? sender, EventArgs e)
         {
-            if (e.Data != null && e.Data.GetDataPresent(DataFormats.FileDrop))
-                e.Effect = DragDropEffects.Copy;
+            using var ofd = FileDialogFactory.CreateUpdateListOpenDialog();
+
+            if (ofd.ShowDialog(this) == DialogResult.OK)
+            {
+                FileDialogFactory.RememberDirectory(FileDialogKind.UpdateList, ofd.FileName);
+                await ProcessViewerFileAsync(ofd.FileName);
+            }
         }
 
-        private async void pnlCryptoDrop_DragDrop(object? sender, DragEventArgs e)
+        private async Task ProcessViewerFileAsync(string targetFile)
         {
-            if (e.Data == null) return;
-            string[] files = (string[])e.Data.GetData(DataFormats.FileDrop)!;
-            if (files.Length == 0) return;
-
-            string targetFile = files[0];
+            txtViewerFilePath.Text = targetFile;
             txtXmlViewer.Clear();
+            lstUpdateFiles.Items.Clear();
+            _currentRawXml = string.Empty;
+            _currentUpdateListDocument = null;
+            UpdatePatchSummary(null);
             lblDropHint.Text = $"{Strings.UpdateList_Processing} {Path.GetFileName(targetFile)}...";
 
             string selectedKeyName = string.Empty;
@@ -184,7 +284,7 @@ private void SetupComponents()
                                 string formattedXml = FormatXml(xmlText);
 
                                 this.Invoke(() => {
-                                    txtXmlViewer.Text = formattedXml;
+                                    DisplayUpdateListXml(xmlText, formattedXml);
                                     lblDropHint.Text = Strings.UpdateList_DragAndDropAnEncryptedUpdatelist;
                                     Log($"✅ [{Strings.UpdateList_SUCCESS}] {Strings.UpdateList_DecryptedWithKey} {selectedKeyName}!");
                                 });
@@ -206,7 +306,7 @@ private void SetupComponents()
                             string formattedXml = FormatXml(xmlText);
 
                             this.Invoke(() => {
-                                txtXmlViewer.Text = formattedXml;
+                                DisplayUpdateListXml(xmlText, formattedXml);
                                 lblDropHint.Text = Strings.UpdateList_DragAndDropAnEncryptedUpdatelist;
                                 Log($"✅ [{Strings.UpdateList_BRUTEFORCESUCCESS}] {Strings.UpdateList_KeyIdentifiedSuccessfully}");
                             });
@@ -226,7 +326,7 @@ private void SetupComponents()
                         string formattedXml = FormatXml(xmlText);
 
                         this.Invoke(() => {
-                            txtXmlViewer.Text = formattedXml;
+                            DisplayUpdateListXml(xmlText, formattedXml);
                             lblDropHint.Text = Strings.UpdateList_DragAndDropAnEncryptedUpdatelist;
                             Log($"📋 {Strings.UpdateList_TheDroppedFileIsAlreadyIn}");
                         });
@@ -255,11 +355,152 @@ private void SetupComponents()
             string xmlText = Encoding.GetEncoding("euc-kr").GetString(rawDoc, 0, nullIdx == -1 ? rawDoc.Length : nullIdx);
             this.Invoke(() =>
             {
-                txtXmlViewer.Text = FormatXml(xmlText);
-                lblDropHint.Text = GetText("🪂 Drag and drop an encrypted 'updatelist' file here.", "🪂 Arraste e solte um arquivo 'updatelist' criptografado aqui.");
-                Log($"✅ [{GetText("SUCCESS", "SUCESSO")}] {GetText("Decrypted with key", "Descriptografado com a chave")} [{keyLabel}]!");
+                DisplayUpdateListXml(xmlText, FormatXml(xmlText));
+                lblDropHint.Text = Strings.UpdateList_DragAndDropAnEncryptedUpdatelist;
+                Log(string.Format(LocalizationManager.CurrentCulture,
+                    Strings.UpdateList_DecryptionSuccessFormat, keyLabel));
             });
         }
+
+        private void DisplayUpdateListXml(string rawXml, string formattedXml)
+        {
+            _currentRawXml = formattedXml;
+            txtXmlViewer.Text = formattedXml;
+            UpdateListDocument document = ParseUpdateListXml(rawXml);
+            _currentUpdateListDocument = document;
+            PopulateUpdateFileList(document);
+            UpdatePatchSummary(document);
+        }
+
+        private static UpdateListDocument ParseUpdateListXml(string xmlText)
+        {
+            string trimmed = xmlText.Trim('\uFEFF', '\0', ' ', '\r', '\n', '\t');
+            if (trimmed.StartsWith("<?xml", StringComparison.OrdinalIgnoreCase))
+            {
+                int endDeclaration = trimmed.IndexOf("?>", StringComparison.Ordinal);
+                if (endDeclaration >= 0)
+                    trimmed = trimmed[(endDeclaration + 2)..].TrimStart();
+            }
+
+            XDocument document = XDocument.Parse($"<root>{trimmed}</root>", LoadOptions.PreserveWhitespace);
+            XElement root = document.Root ?? throw new InvalidDataException(Strings.UpdateList_InvalidOrCorruptedFile);
+
+            string patchVersion = root.Element("patchVer")?.Attribute("value")?.Value ?? string.Empty;
+            string patchNumber = root.Element("patchNum")?.Attribute("value")?.Value ?? string.Empty;
+            string updateListVersion = root.Element("updatelistVer")?.Attribute("value")?.Value ?? string.Empty;
+            XElement? updateFiles = root.Element("updatefiles");
+            int declaredCount = int.TryParse(updateFiles?.Attribute("count")?.Value, out int count) ? count : 0;
+
+            List<UpdateListFileInfo> files = updateFiles?
+                .Elements("fileinfo")
+                .Select(file => new UpdateListFileInfo(
+                    file.Attribute("fname")?.Value ?? string.Empty,
+                    file.Attribute("fdir")?.Value ?? string.Empty,
+                    file.Attribute("fsize")?.Value ?? string.Empty,
+                    file.Attribute("fcrc")?.Value ?? string.Empty,
+                    file.Attribute("fdate")?.Value ?? string.Empty,
+                    file.Attribute("ftime")?.Value ?? string.Empty,
+                    file.Attribute("pname")?.Value ?? string.Empty,
+                    file.Attribute("psize")?.Value ?? string.Empty))
+                .ToList() ?? [];
+
+            return new UpdateListDocument(patchVersion, patchNumber, updateListVersion, declaredCount, files);
+        }
+
+        private void PopulateUpdateFileList(UpdateListDocument document)
+        {
+            lstUpdateFiles.BeginUpdate();
+            try
+            {
+                lstUpdateFiles.Items.Clear();
+                foreach (UpdateListFileInfo file in document.Files)
+                {
+                    var item = new ListViewItem(file.FileName);
+                    item.SubItems.Add(file.Directory);
+                    item.SubItems.Add(file.FileSize);
+                    item.SubItems.Add(file.Crc);
+                    item.SubItems.Add(file.Date);
+                    item.SubItems.Add(file.Time);
+                    item.SubItems.Add(file.PackageName);
+                    item.SubItems.Add(file.PackageSize);
+                    lstUpdateFiles.Items.Add(item);
+                }
+            }
+            finally
+            {
+                lstUpdateFiles.EndUpdate();
+            }
+
+            AutoSizeUpdateFileColumns();
+        }
+
+        private void AutoSizeUpdateFileColumns()
+        {
+            foreach (ColumnHeader column in lstUpdateFiles.Columns)
+                column.Width = -2;
+        }
+
+        private void UpdatePatchSummary(UpdateListDocument? document)
+        {
+            if (document == null)
+            {
+                lblUpdateListSummary.Text = string.Empty;
+                return;
+            }
+
+            lblUpdateListSummary.Text = string.Format(
+                LocalizationManager.CurrentCulture,
+                Strings.UpdateList_StatusSummary,
+                document.PatchVersion,
+                document.PatchNumber,
+                document.UpdateListVersion,
+                document.Files.Count,
+                document.DeclaredCount);
+        }
+
+        private void btnShowRawXml_Click(object? sender, EventArgs e)
+        {
+            using var dialog = new Form
+            {
+                AutoScaleMode = AutoScaleMode.Font,
+                ClientSize = new Size(760, 520),
+                StartPosition = FormStartPosition.CenterParent,
+                Text = Strings.UpdateList_RawXml
+            };
+
+            var textBox = new TextBox
+            {
+                Dock = DockStyle.Fill,
+                Font = new Font("Consolas", 9.75F),
+                Multiline = true,
+                ReadOnly = true,
+                ScrollBars = ScrollBars.Both,
+                Text = string.IsNullOrWhiteSpace(_currentRawXml)
+                    ? Strings.UpdateList_NoRawXmlLoaded
+                    : _currentRawXml,
+                WordWrap = false
+            };
+
+            dialog.Controls.Add(textBox);
+            dialog.ShowDialog(this);
+        }
+
+        private sealed record UpdateListDocument(
+            string PatchVersion,
+            string PatchNumber,
+            string UpdateListVersion,
+            int DeclaredCount,
+            IReadOnlyList<UpdateListFileInfo> Files);
+
+        private sealed record UpdateListFileInfo(
+            string FileName,
+            string Directory,
+            string FileSize,
+            string Crc,
+            string Date,
+            string Time,
+            string PackageName,
+            string PackageSize);
 
         // ════════════════════════════════════════════════════════════════════
         // ABA 2 — GERADOR & MONITOR DE UPDATELIST
@@ -280,12 +521,12 @@ private void SetupComponents()
 
         private void btnBrowseExisting_Click(object sender, EventArgs e)
         {
-            using var ofd = new OpenFileDialog
+            using var ofd = FileDialogFactory.CreateExistingUpdateListOpenDialog();
+            if (ofd.ShowDialog() == DialogResult.OK)
             {
-                Title = GetText("Select existing encrypted updatelist (optional)", "Selecione o updatelist criptografado existente (opcional)"),
-                Filter = GetText("UpdateList files|updatelist*.*|All files|*.*", "Arquivos UpdateList|updatelist*.*|Todos os arquivos|*.*")
-            };
-            if (ofd.ShowDialog() == DialogResult.OK) txtExistingList.Text = ofd.FileName;
+                FileDialogFactory.RememberDirectory(FileDialogKind.ExistingUpdateList, ofd.FileName);
+                txtExistingList.Text = ofd.FileName;
+            }
         }
 
         // ── GERAR AGORA (equivalente ao BtnStart_Click do sistema antigo) ───
@@ -297,17 +538,18 @@ private void SetupComponents()
             btnToggleWatch.Enabled = false;
             progressBar.Value = 0;
             progressBar.Visible = true;
-            lblStatus.Text = GetText("Scanning...", "Varrendo...");
+            lblStatus.Text = Strings.UpdateList_Scanning;
 
             try
             {
                 await RunGenerationAsync(isMonitoringTrigger: false);
-                lblStatus.Text = GetText("Done!", "Pronto!");
+                lblStatus.Text = Strings.UpdateList_Done;
             }
             catch (Exception ex)
             {
-                Log($"❌ [{GetText("ERROR", "ERRO")}] {ex.Message}");
-                lblStatus.Text = GetText("Error.", "Erro.");
+                Log(string.Format(LocalizationManager.CurrentCulture,
+                    Strings.UpdateList_ErrorLogFormat, ex.Message));
+                lblStatus.Text = Strings.UpdateList_ErrorStatus;
             }
             finally
             {
@@ -353,6 +595,7 @@ private void SetupComponents()
 
                 _isMonitoring = true;
                 btnToggleWatch.Text = Strings.UpdateList_StopMonitoring;
+                SetToolbarIcon(btnToggleWatch, UpdateToolbarIconKind.MonitorStop);
                 btnToggleWatch.BackColor = Color.Tomato;
                 lblWatchStatus.Text = Strings.UpdateList_ACTIVELYMONITORING;
                 lblWatchStatus.ForeColor = Color.Green;
@@ -377,6 +620,7 @@ private void SetupComponents()
 
             _isMonitoring = false;
             btnToggleWatch.Text = Strings.UpdateList_StartMonitoring;
+            SetToolbarIcon(btnToggleWatch, UpdateToolbarIconKind.MonitorStart);
             btnToggleWatch.BackColor = Color.LightGreen;
             lblWatchStatus.Text = Strings.UpdateList_INACTIVE;
             lblWatchStatus.ForeColor = Color.DimGray;
@@ -497,11 +741,11 @@ private void SetupComponents()
                 progressBar.Maximum = Math.Max(totalFiles, 1);
                 progressBar.Value = 0;
                 Log("─────────────────────────────────────────────────────");
-                Log($"📂 {GetText("Source:", "Origem:")} {_pangyaPath}");
-                Log($"🌐 {GetText("Destination:", "Destino:")} {outputPath}");
-                Log($"🔑 {GetText("Key:", "Chave:")} {_keyLabel}");
-                Log($"🏷  {GetText("Version:", "Versão:")} {_patchVersion} | Patch #{_patchNum}");
-                Log(GetText("Scanning files...", "Varrendo arquivos..."));
+                Log(string.Format(LocalizationManager.CurrentCulture, Strings.UpdateList_SourceLogFormat, _pangyaPath));
+                Log(string.Format(LocalizationManager.CurrentCulture, Strings.UpdateList_DestinationLogFormat, outputPath));
+                Log(string.Format(LocalizationManager.CurrentCulture, Strings.UpdateList_KeyLogFormat, _keyLabel));
+                Log(string.Format(LocalizationManager.CurrentCulture, Strings.UpdateList_VersionLogFormat, _patchVersion, _patchNum));
+                Log(Strings.UpdateList_ScanningFiles);
             });
 
             // ── Carrega updatelist existente para delta comparison ────────────
@@ -518,11 +762,13 @@ private void SetupComponents()
                     var reader = new UpdateReader(detectedKey);
                     var (_, loaded) = reader.ReadUpdateList(_existingPath);
                     existingEntries = loaded;
-                    this.Invoke(() => Log($"📋 {GetText("Existing updatelist loaded:", "Updatelist existente carregado:")} {loaded.Count} {GetText("files", "arquivos")}"));
+                    this.Invoke(() => Log(string.Format(LocalizationManager.CurrentCulture,
+                        Strings.UpdateList_ExistingLoadedFormat, loaded.Count)));
                 }
                 catch (Exception ex)
                 {
-                    this.Invoke(() => Log($"⚠️ {GetText("Could not load existing updatelist:", "Não foi possível carregar o updatelist existente:")} {ex.Message}"));
+                    this.Invoke(() => Log(string.Format(LocalizationManager.CurrentCulture,
+                        Strings.UpdateList_ExistingLoadFailedFormat, ex.Message)));
                 }
             }
 
@@ -545,7 +791,8 @@ private void SetupComponents()
                         {
                             progressBar.Maximum = Math.Max(total, 1);
                             progressBar.Value = Math.Min(done, total);
-                            lblStatus.Text = $"{GetText("Scanning", "Varrendo")} ({done}/{total})";
+                            lblStatus.Text = string.Format(LocalizationManager.CurrentCulture,
+                                Strings.UpdateList_ScanningProgressFormat, done, total);
                         });
                     }
                 );
@@ -572,12 +819,14 @@ private void SetupComponents()
                     if (!existingByCrc.TryGetValue(key, out int existingCrc))
                     {
                         newFiles++;
-                        this.Invoke(() => Log($"  ➕ [{GetText("NEW", "NOVO")}] {entry.fname}"));
+                        this.Invoke(() => Log(string.Format(LocalizationManager.CurrentCulture,
+                            Strings.UpdateList_NewFileFormat, entry.fname)));
                     }
                     else if (existingCrc != entry.fcrc)
                     {
                         changedFiles++;
-                        this.Invoke(() => Log($"  🔄 [{GetText("CHANGED", "ALTERADO")}] {entry.fname} (CRC: {existingCrc:X8} → {entry.fcrc:X8})"));
+                        this.Invoke(() => Log(string.Format(LocalizationManager.CurrentCulture,
+                            Strings.UpdateList_ChangedFileFormat, entry.fname, existingCrc, entry.fcrc)));
                     }
                     else
                     {
@@ -588,16 +837,15 @@ private void SetupComponents()
                 this.Invoke(() =>
                 {
                     Log("─────────────────────────────────────────────────────");
-                    Log($"📊 {GetText("Delta Summary", "Resumo Delta")}: "
-                      + $"➕ {newFiles} {GetText("new", "novos")} | "
-                      + $"🔄 {changedFiles} {GetText("changed", "alterados")} | "
-                      + $"✅ {unchangedFiles} {GetText("unchanged", "sem alteração")}");
+                    Log(string.Format(LocalizationManager.CurrentCulture,
+                        Strings.UpdateList_DeltaSummaryFormat, newFiles, changedFiles, unchangedFiles));
                 });
             }
 
             this.Invoke(() =>
             {
-                Log($"✅ [{GetText("DONE", "PRONTO")}] {GetText("updatelist generated at:", "updatelist gerado em:")} {outputPath}");
+                Log(string.Format(LocalizationManager.CurrentCulture,
+                    Strings.UpdateList_GeneratedAtFormat, outputPath));
                 Log("─────────────────────────────────────────────────────");
             });
         }
@@ -608,22 +856,22 @@ private void SetupComponents()
             if (!Directory.Exists(txtPangyaPath.Text))
             {
                 MessageBox.Show(
-                    GetText("The Pangya source folder is invalid.", "A pasta de origem do Pangya é inválida."),
-                    GetText("Warning", "Aviso"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    Strings.UpdateList_InvalidSourceFolder,
+                    Strings.UpdateList_Warning, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return false;
             }
             if (!Directory.Exists(txtUpdatePath.Text))
             {
                 MessageBox.Show(
-                    GetText("The WebServer destination folder is invalid.", "A pasta do WebServer de destino é inválida."),
-                    GetText("Warning", "Aviso"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    Strings.UpdateList_InvalidDestinationFolder,
+                    Strings.UpdateList_Warning, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return false;
             }
             if (string.IsNullOrWhiteSpace(txtPatchVersion.Text))
             {
                 MessageBox.Show(
-                    GetText("Please fill in the Patch Version.", "Por favor, preencha a Versão do Patch."),
-                    GetText("Warning", "Aviso"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    Strings.UpdateList_PatchVersionRequired,
+                    Strings.UpdateList_Warning, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return false;
             }
             return true;

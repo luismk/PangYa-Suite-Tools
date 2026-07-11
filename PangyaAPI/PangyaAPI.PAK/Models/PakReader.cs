@@ -2,6 +2,7 @@
 using PangyaAPI.PAK.Flags;
 using PangyaAPI.Utilities.Cryptography; 
 using PangyaAPI.Utilities.Logging;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -192,7 +193,8 @@ namespace PangyaAPI.PAK.Models
         public void Extract(string pattern, string outputDir = "./",
                             Action<string>? log = null,
                             Action<int, int>? onProgress = null,
-                            CancellationToken cancellationToken = default)
+                            CancellationToken cancellationToken = default,
+                            bool writeManifest = true)
         {
             // 1. Filtragem inicial (Rápida)
             var regexPattern = "^" + Regex.Escape(pattern).Replace(@"\*", ".*") + "$";
@@ -214,6 +216,7 @@ namespace PangyaAPI.PAK.Models
             string baseOutDir = Path.GetFullPath(outputDir);
             string baseOutPrefix = baseOutDir.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
                 + Path.DirectorySeparatorChar;
+            var extractedFiles = new ConcurrentBag<(PakFileEntry Entry, string OutputPath)>();
 
             foreach (var entry in matches)
                 _ = GetSafeOutputPath(baseOutPrefix, entry.Name);
@@ -285,6 +288,7 @@ namespace PangyaAPI.PAK.Models
                         Directory.CreateDirectory(outDir);
 
                         File.WriteAllBytes(outPath, decompressedData);
+                        extractedFiles.Add((entry, outPath));
                         Log($"Extracted '{name}' to '{outPath}'.");
                         log?.Invoke($"Extraído: {name} → {outPath.Replace("\\", "/")}");
                     }
@@ -304,6 +308,8 @@ namespace PangyaAPI.PAK.Models
                 int currentDone = Interlocked.Increment(ref done);
                 onProgress?.Invoke(currentDone, total);
             });
+            if (writeManifest)
+                PakExtractionSidecar.WriteManifest(extractedFiles);
             Log($"Extraction completed: {done} of {total} entries processed.");
         }
 
@@ -369,7 +375,7 @@ namespace PangyaAPI.PAK.Models
         /// Use esse método em vez de instanciar um novo PakReader só para um item —
         /// é a forma rápida de implementar "extrair item selecionado" na GUI.
         /// </summary>
-        public void ExtractEntry(PakFileEntry entry, string outputPath)
+        public void ExtractEntry(PakFileEntry entry, string outputPath, bool writeManifest = true)
         {
             Log($"Extracting entry '{entry.Name}' to '{Path.GetFullPath(outputPath)}'.");
             if (entry.Type == PakFileEntryType.Directory)
@@ -388,6 +394,8 @@ namespace PangyaAPI.PAK.Models
                 Directory.CreateDirectory(dir);
 
             File.WriteAllBytes(outputPath, data);
+            if (writeManifest)
+                PakExtractionSidecar.WriteForEntry(entry, outputPath);
             Log($"Extracted entry '{entry.Name}' successfully.");
         }
 

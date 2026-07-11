@@ -2,6 +2,7 @@ using System.Drawing;
 using System.Text;
 using PangYa_Suite_Tools.Shop;
 using PangyaAPI.IFF;
+using PangyaAPI.PAK.Models;
 using Xunit;
 
 namespace PangYa_Suite_Tools.Tests;
@@ -295,9 +296,255 @@ public sealed class ShopTests : IDisposable
         Assert.Equal(end, saved.GetValue("EndDate", encoding));
     }
 
+    [Fact]
+    public async Task IffReferenceResolver_ResolvesLooseReferencedItemsAndMissingIcons()
+    {
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+        Encoding encoding = Encoding.GetEncoding(949);
+        Directory.CreateDirectory(Path.Combine(_directory, "ui", "shop_myroom"));
+        using (var bitmap = new Bitmap(8, 8))
+        {
+            bitmap.SetPixel(0, 0, Color.Red);
+            bitmap.Save(Path.Combine(_directory, "ui", "shop_myroom", "item_icon.png"));
+        }
+
+        string itemPath = Path.Combine(_directory, "Item.iff");
+        var header = new IffHeader(1, 0, 11, [0, 0, 0]);
+        IffSchema itemSchema = IffSchemaRegistry.Resolve("Item.iff", header, 196)!;
+        IffRecord itemWithIcon = IffRecord.CreateBlank(0, 196, itemSchema);
+        itemWithIcon.SetValue("ItemId", 123u, encoding);
+        itemWithIcon.SetValue("Name", "Resolved Item", encoding);
+        itemWithIcon.SetValue("Icon", "item_icon", encoding);
+        IffRecord itemMissingIcon = IffRecord.CreateBlank(1, 196, itemSchema);
+        itemMissingIcon.SetValue("ItemId", 456u, encoding);
+        itemMissingIcon.SetValue("Name", "No Icon Item", encoding);
+        itemMissingIcon.SetValue("Icon", "missing_icon", encoding);
+        await using (var output = File.Create(itemPath))
+            await IffWriter.WriteAsync(output, header, Many(itemWithIcon, itemMissingIcon));
+
+        IffSchema setSchema = new("SetItem", 32,
+        [
+            new IffField("ItemCount", 0, 4, IffFieldType.UInt32),
+            new IffField("Item1", 4, 4, IffFieldType.ItemIdReference,
+                Reference: new IffFieldReference("Item.iff")),
+            new IffField("Item2", 8, 4, IffFieldType.ItemIdReference,
+                Reference: new IffFieldReference("Item.iff")),
+            new IffField("Item3", 12, 4, IffFieldType.ItemIdReference,
+                Reference: new IffFieldReference("Item.iff")),
+            new IffField("Item1Count", 16, 2, IffFieldType.UInt16),
+            new IffField("Item2Count", 18, 2, IffFieldType.UInt16),
+            new IffField("Item3Count", 20, 2, IffFieldType.UInt16)
+        ]);
+        IffRecord setRecord = IffRecord.CreateBlank(0, 32, setSchema);
+        setRecord.SetValue("ItemCount", 3u, encoding);
+        setRecord.SetValue("Item1", 123u, encoding);
+        setRecord.SetValue("Item2", 456u, encoding);
+        setRecord.SetValue("Item3", 999u, encoding);
+        setRecord.SetValue("Item1Count", (ushort)2, encoding);
+        setRecord.SetValue("Item2Count", (ushort)4, encoding);
+        setRecord.SetValue("Item3Count", (ushort)6, encoding);
+
+        var document = new IffDocumentInfo("SetItem.iff", "TH", 32, setSchema, header);
+        IIffReferenceResolver resolver = (await IffReferenceResolver.CreateAsync(
+            document, null, _directory, Path.Combine(_directory, "SetItem.iff"), "TH", encoding,
+            new EmbeddedIffSchemaProvider(), CancellationToken.None))!;
+
+        IffReferenceCatalogItem[] catalog = resolver.GetCatalog(setSchema.Fields[1]).ToArray();
+        Assert.Equal(2, catalog.Length);
+        Assert.Contains(catalog, item => item.Key == 123u && item.Name == "Resolved Item" && item.IconPath is not null);
+
+        IffReferenceDisplay resolved = resolver.Resolve(setSchema.Fields[1], setRecord.GetValue("Item1", encoding));
+        IffReferenceDisplay missingIcon = resolver.Resolve(setSchema.Fields[2], setRecord.GetValue("Item2", encoding));
+        IffReferenceDisplay missingRecord = resolver.Resolve(setSchema.Fields[3], setRecord.GetValue("Item3", encoding));
+
+        Assert.Equal("Resolved Item", resolved.Name);
+        Assert.NotNull(resolved.IconPath);
+        Assert.Equal("No Icon Item", missingIcon.Name);
+        Assert.True(missingIcon.MissingIcon);
+        Assert.True(missingRecord.MissingRecord);
+    }
+
+    [Fact]
+    public async Task IffReferenceResolver_UsesSelectedDataRootForLooseReferencedIffs()
+    {
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+        Encoding encoding = Encoding.GetEncoding(949);
+        string dataRoot = Path.Combine(_directory, "selected-data");
+        Directory.CreateDirectory(dataRoot);
+        Directory.CreateDirectory(Path.Combine(dataRoot, "custom_icons"));
+        using (var bitmap = new Bitmap(8, 8))
+        {
+            bitmap.SetPixel(0, 0, Color.Blue);
+            bitmap.Save(Path.Combine(dataRoot, "custom_icons", "root_icon.png"));
+        }
+
+        var header = new IffHeader(1, 0, 11, [0, 0, 0]);
+        IffSchema itemSchema = IffSchemaRegistry.Resolve("Item.iff", header, 196)!;
+        IffRecord item = IffRecord.CreateBlank(0, 196, itemSchema);
+        item.SetValue("ItemId", 321u, encoding);
+        item.SetValue("Name", "Data Root Item", encoding);
+        item.SetValue("Icon", "root_icon", encoding);
+        await using (var output = File.Create(Path.Combine(dataRoot, "Item.iff")))
+            await IffWriter.WriteAsync(output, header, One(item));
+
+        IffSchema setSchema = new("SetItem", 8,
+        [
+            new IffField("Item1", 0, 4, IffFieldType.ItemIdReference,
+                Reference: new IffFieldReference("Item.iff"))
+        ]);
+        var document = new IffDocumentInfo("SetItem.iff", "TH", 8, setSchema, header);
+        var schemaProvider = new StaticIffSchemaProvider(new IffSchema("Item", 196,
+        [
+            new IffField("ItemId", 4, 4, IffFieldType.UInt32),
+            new IffField("Name", 8, 40, IffFieldType.FixedString, Encoding: Encoding.Latin1),
+            new IffField("Icon", 49, 40, IffFieldType.Icon, Encoding: Encoding.Latin1, IconPath: "custom_icons")
+        ]));
+
+        IIffReferenceResolver resolver = (await IffReferenceResolver.CreateAsync(
+            document, null, null, Path.Combine(_directory, "missing-source"), "TH", encoding,
+            schemaProvider, CancellationToken.None, dataRoot))!;
+
+        IffReferenceDisplay resolved = resolver.Resolve(setSchema.Fields[0], 321u);
+
+        Assert.Equal(dataRoot, resolver.DataRoot);
+        Assert.Equal("Data Root Item", resolved.Name);
+        Assert.Equal(Path.Combine(dataRoot, "custom_icons", "root_icon.png"), resolved.IconPath);
+    }
+
+    [Fact]
+    public async Task IffReferenceResolver_UsesPakExtractionSidecarAsDataRoot()
+    {
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+        Encoding encoding = Encoding.GetEncoding(949);
+        string dataRoot = Path.Combine(_directory, "client");
+        string dataDirectory = Path.Combine(dataRoot, "data");
+        string iconDirectory = Path.Combine(dataRoot, "custom_icons");
+        Directory.CreateDirectory(dataDirectory);
+        Directory.CreateDirectory(iconDirectory);
+        string pangyaPath = Path.Combine(dataDirectory, "pangya_th.iff");
+        File.WriteAllBytes(pangyaPath, [1, 2, 3, 4]);
+        PakExtractionSidecar.WriteForEntry(new PakFileEntry { Name = @"data\pangya_th.iff" }, pangyaPath);
+        using (var bitmap = new Bitmap(8, 8))
+        {
+            bitmap.SetPixel(0, 0, Color.Green);
+            bitmap.Save(Path.Combine(iconDirectory, "sidecar_icon.png"));
+        }
+
+        var header = new IffHeader(1, 0, 11, [0, 0, 0]);
+        IffSchema itemSchema = IffSchemaRegistry.Resolve("Item.iff", header, 196)!;
+        IffRecord item = IffRecord.CreateBlank(0, 196, itemSchema);
+        item.SetValue("ItemId", 654u, encoding);
+        item.SetValue("Name", "Sidecar Item", encoding);
+        item.SetValue("Icon", "sidecar_icon", encoding);
+        await using (var output = File.Create(Path.Combine(dataRoot, "Item.iff")))
+            await IffWriter.WriteAsync(output, header, One(item));
+
+        IffSchema setSchema = new("SetItem", 4,
+        [
+            new IffField("Item1", 0, 4, IffFieldType.ItemIdReference,
+                Reference: new IffFieldReference("Item.iff"))
+        ]);
+        var document = new IffDocumentInfo("SetItem.iff", "TH", 4, setSchema, header);
+        var schemaProvider = new StaticIffSchemaProvider(new IffSchema("Item", 196,
+        [
+            new IffField("ItemId", 4, 4, IffFieldType.UInt32),
+            new IffField("Name", 8, 40, IffFieldType.FixedString, Encoding: Encoding.Latin1),
+            new IffField("Icon", 49, 40, IffFieldType.Icon, Encoding: Encoding.Latin1, IconPath: "custom_icons")
+        ]));
+
+        IIffReferenceResolver resolver = (await IffReferenceResolver.CreateAsync(
+            document, null, dataDirectory, pangyaPath, "TH", encoding, schemaProvider, CancellationToken.None))!;
+        IffReferenceDisplay resolved = resolver.Resolve(setSchema.Fields[0], 654u);
+
+        Assert.Equal(dataRoot, resolver.DataRoot);
+        Assert.Equal("Sidecar Item", resolved.Name);
+        Assert.Equal(Path.Combine(iconDirectory, "sidecar_icon.png"), resolved.IconPath);
+    }
+
+    [Fact]
+    public async Task IffReferenceResolver_AllowsMissingOptionalDisplayAndIconFields()
+    {
+        Encoding encoding = Encoding.ASCII;
+        var header = new IffHeader(1, 0, 11, [0, 0, 0]);
+        IffSchema itemSchema = new("Item", 4,
+            [new IffField("ItemId", 0, 4, IffFieldType.UInt32)]);
+        IffRecord item = IffRecord.CreateBlank(0, 4, itemSchema);
+        item.SetValue("ItemId", 42u, encoding);
+        await using (var output = File.Create(Path.Combine(_directory, "Item.iff")))
+            await IffWriter.WriteAsync(output, header, One(item));
+
+        IffSchema setSchema = new("SetItem", 4,
+        [
+            new IffField("Item1", 0, 4, IffFieldType.ItemIdReference,
+                Reference: new IffFieldReference("Item.iff", DisplayField: "MissingName", IconField: "MissingIcon"))
+        ]);
+        var document = new IffDocumentInfo("SetItem.iff", "TH", 4, setSchema, header);
+
+        IIffReferenceResolver resolver = (await IffReferenceResolver.CreateAsync(
+            document, null, _directory, Path.Combine(_directory, "SetItem.iff"), "TH", encoding,
+            new StaticIffSchemaProvider(itemSchema), CancellationToken.None))!;
+
+        IffReferenceCatalogItem catalogItem = Assert.Single(resolver.GetCatalog(setSchema.Fields[0]));
+        IffReferenceDisplay display = resolver.Resolve(setSchema.Fields[0], 42u);
+
+        Assert.Equal(42u, catalogItem.Key);
+        Assert.Equal("42", catalogItem.Name);
+        Assert.Equal("42", display.Name);
+        Assert.False(display.MissingRecord);
+        Assert.False(display.MissingIcon);
+    }
+
+    [Fact]
+    public void IffReferenceResolver_BuildsItemIdTableRowWithCharacterName()
+    {
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+        Encoding encoding = Encoding.GetEncoding(949);
+        var header = new IffHeader(1, 0, 11, [0, 0, 0]);
+        IffSchema schema = IffSchemaRegistry.Resolve("Item.iff", header, 196)!;
+        IffRecord record = IffRecord.CreateBlank(0, 196, schema);
+        record.SetValue("ItemId", 0u, encoding);
+        record.SetValue("IFF Type", 0x2Au, encoding);
+        record.SetValue("Character Serial", 7u, encoding);
+        record.SetValue("Position", 3u, encoding);
+        record.SetValue("Group", 2u, encoding);
+        record.SetValue("Type", 1u, encoding);
+        record.SetValue("Serial", 99u, encoding);
+        record.SetValue("Name", "Item Name", encoding);
+        record.SetValue("Icon", "item_icon", encoding);
+
+        IffItemIdTableRow row = IffReferenceResolver.TryCreateItemIdRow(schema, record, encoding,
+            "Item.iff", "Item Name", "item_icon", "icon.png",
+            new Dictionary<uint, string> { [7] = "Nuri" })!;
+
+        Assert.Equal("Item.iff", row.SourceFile);
+        Assert.Equal(0x2Au, row.IffType);
+        Assert.Equal(7u, row.CharacterSerial);
+        Assert.Equal("Nuri", row.CharacterName);
+        Assert.Equal(1u, row.Type);
+        Assert.Equal(99u, row.Serial);
+        Assert.Contains("Nuri", row.Summary, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void IffReferenceResolver_ItemIdTableRowIsOptionalWhenFieldsAreMissing()
+    {
+        var schema = new IffSchema("NoItemId", 8,
+            [new IffField("Name", 0, 8, IffFieldType.FixedString)]);
+        IffRecord record = IffRecord.CreateBlank(0, 8, schema);
+
+        Assert.Null(IffReferenceResolver.TryCreateItemIdRow(schema, record, Encoding.ASCII,
+            "NoItemId.iff", "Name", string.Empty, null));
+    }
+
     private static async IAsyncEnumerable<IffRecord> One(IffRecord record)
     {
         yield return record;
+        await Task.CompletedTask;
+    }
+
+    private static async IAsyncEnumerable<IffRecord> Many(params IffRecord[] records)
+    {
+        foreach (IffRecord record in records) yield return record;
         await Task.CompletedTask;
     }
 
@@ -305,6 +552,14 @@ public sealed class ShopTests : IDisposable
     {
         await foreach (IffRecord record in records) return record;
         throw new InvalidOperationException("No record was returned.");
+    }
+
+    private sealed class StaticIffSchemaProvider(IffSchema schema) : IIffSchemaProvider
+    {
+        public IffSchemaResolution Resolve(string fileName, string region, int recordSize) =>
+            fileName.Equals("Item.iff", StringComparison.OrdinalIgnoreCase)
+                ? new IffSchemaResolution(schema)
+                : new IffSchemaResolution(null);
     }
 
     public void Dispose()

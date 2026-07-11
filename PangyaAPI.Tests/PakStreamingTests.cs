@@ -96,6 +96,33 @@ public sealed class PakStreamingTests
         Assert.Contains(finalReader.Entries, entry => entry.Name.EndsWith("keep.txt"));
     }
 
+    [Fact]
+    public void InjectWithExplicitFolder_DoesNotReplaceSameNamedEntryElsewhere()
+    {
+        using var temp = new TemporaryDirectory();
+        string source = CreateSource(temp);
+        string pak = temp.Combine("explicit-folder.pak");
+        NewWriter(PakKeys.JP).CreateFromDirectoryContents(source, pak);
+
+        string replacement = temp.Combine("data.bin");
+        byte[] replacementBytes = [9, 8, 7];
+        File.WriteAllBytes(replacement, replacementBytes);
+
+        byte[] originalBytes;
+        using (var reader = Open(pak, PakKeys.JP))
+        {
+            originalBytes = Assert.IsType<byte[]>(
+                reader.ExtractEntryToBytes(FindEntry(reader, "nested/data.bin")));
+            PakManager.InjectFiles(pak, reader,
+                [new PakInjectItem(replacement, "selected/folder")], Options(PakKeys.JP));
+        }
+
+        using var updated = Open(pak, PakKeys.JP);
+        Assert.Equal(originalBytes, updated.ExtractEntryToBytes(FindEntry(updated, "nested/data.bin")));
+        Assert.Equal(replacementBytes,
+            updated.ExtractEntryToBytes(FindEntry(updated, "selected/folder/data.bin")));
+    }
+
     [Theory]
     [InlineData(PakFileEntryType.Raw)]
     [InlineData(PakFileEntryType.LZ77)]

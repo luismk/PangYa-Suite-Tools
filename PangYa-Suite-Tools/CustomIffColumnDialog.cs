@@ -22,11 +22,21 @@ internal sealed class CustomIffColumnDialog : Form
     private readonly TextBox _maximum = new();
     private readonly TextBox _bitMask = new();
     private readonly NumericUpDown _bitShift = new();
+    private readonly ComboBox _referenceTargetFile = new();
+    private readonly TextBox _referenceTargetKeyField = new();
+    private readonly TextBox _referenceDisplayField = new();
+    private readonly TextBox _referenceIconField = new();
+    private readonly TextBox _iconPath = new();
+    private readonly TextBox _soundPath = new();
+    private readonly CheckBox _referencePickerEnabled = new();
+    private TableLayoutPanel? _layout;
+    private readonly Dictionary<int, Control[]> _rowControls = [];
 
     public IffFieldDefinition FieldDefinition { get; private set; } = null!;
 
     public CustomIffColumnDialog(int recordSize, IffFieldDefinition? field = null, int defaultStringSize = 32,
-        int? initialOffset = null, int? previousFieldEnd = null, bool createFromTemplate = false)
+        int? initialOffset = null, int? previousFieldEnd = null, bool createFromTemplate = false,
+        IEnumerable<string>? availableIffFiles = null, int defaultLongStringSize = 512)
     {
         if (recordSize <= 0) throw new ArgumentOutOfRangeException(nameof(recordSize));
         _recordSize = recordSize;
@@ -36,7 +46,7 @@ internal sealed class CustomIffColumnDialog : Form
         FormBorderStyle = FormBorderStyle.FixedDialog;
         MaximizeBox = false;
         MinimizeBox = false;
-        ClientSize = new Size(470, 493);
+        ClientSize = new Size(520, 765);
 
         _offset.Maximum = recordSize - 1;
         _offset.Hexadecimal = false;
@@ -48,6 +58,9 @@ internal sealed class CustomIffColumnDialog : Form
         _width.Maximum = recordSize;
         _type.DropDownStyle = ComboBoxStyle.DropDownList;
         _type.Items.AddRange(Enum.GetValues<IffFieldType>().Cast<object>().ToArray());
+        _referenceTargetFile.DropDownStyle = ComboBoxStyle.DropDown;
+        foreach (string fileName in (availableIffFiles ?? []).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(name => name))
+            _referenceTargetFile.Items.Add(fileName);
         _encoding.DropDownStyle = ComboBoxStyle.DropDownList;
         _encoding.DisplayMember = nameof(SchemaEncodingOption.Label);
         _encoding.Items.Add(new SchemaEncodingOption(null, Strings.IFFManager_EncodingDocumentDefault));
@@ -78,24 +91,47 @@ internal sealed class CustomIffColumnDialog : Form
             _maximum.Text = field.Maximum?.ToString(CultureInfo.InvariantCulture) ?? string.Empty;
             _bitMask.Text = field.BitMask is uint mask ? $"0x{mask:X}" : string.Empty;
             _bitShift.Value = field.BitShift;
+            SetReferenceTargetFile(field.Reference?.TargetFile ?? string.Empty);
+            _referenceTargetKeyField.Text = field.Reference?.TargetKeyField ?? "ItemId";
+            _referenceDisplayField.Text = field.Reference?.DisplayField ?? "Name";
+            _referenceIconField.Text = field.Reference?.IconField ?? "Icon";
+            _iconPath.Text = field.IconPath ?? string.Empty;
+            _soundPath.Text = field.SoundPath ?? string.Empty;
+            _referencePickerEnabled.Checked = field.Reference?.PickerEnabled ?? true;
         }
         else
         {
             _type.SelectedItem = IffFieldType.Raw;
             _encoding.SelectedIndex = 0;
             _offset.Value = Math.Clamp(initialOffset ?? 0, 0, recordSize - 1);
+            _referenceTargetKeyField.Text = "ItemId";
+            _referenceDisplayField.Text = "Name";
+            _referenceIconField.Text = "Icon";
+            _referencePickerEnabled.Checked = true;
         }
         IffFieldType previousType = SelectedType;
         _type.SelectedIndexChanged += (_, _) =>
         {
-            if (field is null && SelectedType == IffFieldType.FixedString && previousType != IffFieldType.FixedString)
+            if (field is null && SelectedType is IffFieldType.FixedString or IffFieldType.Icon or IffFieldType.Sound &&
+                previousType is not (IffFieldType.FixedString or IffFieldType.Icon or IffFieldType.Sound))
                 _width.Value = Math.Min(defaultStringSize, decimal.ToInt32(_width.Maximum));
+            if (field is null && SelectedType == IffFieldType.LongString && previousType != IffFieldType.LongString)
+                _width.Value = Math.Min(defaultLongStringSize, decimal.ToInt32(_width.Maximum));
+            if (SelectedType == IffFieldType.ItemIdReference && previousType != IffFieldType.ItemIdReference)
+            {
+                _width.Value = Math.Min(4, decimal.ToInt32(_width.Maximum));
+                if (string.IsNullOrWhiteSpace(_referenceTargetFile.Text))
+                    SetReferenceTargetFile(_referenceTargetFile.Items.Cast<object>()
+                        .Select(Convert.ToString)
+                        .FirstOrDefault(item => string.Equals(item, "Item.iff", StringComparison.OrdinalIgnoreCase)) ?? "Item.iff");
+            }
             previousType = SelectedType;
-            UpdateEncodingState();
+            UpdateTypeState();
         };
-        UpdateEncodingState();
+        UpdateTypeState();
 
-        var layout = new TableLayoutPanel { Dock = DockStyle.Fill, Padding = new Padding(12), ColumnCount = 2, RowCount = 12 };
+        var layout = new TableLayoutPanel { Dock = DockStyle.Fill, Padding = new Padding(12), ColumnCount = 2, RowCount = 19 };
+        _layout = layout;
         layout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 170));
         layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
         AddRow(layout, 0, Strings.IFFManager_ColumnName, _name);
@@ -115,6 +151,14 @@ internal sealed class CustomIffColumnDialog : Form
         AddRow(layout, 8, Strings.IFFManager_MaximumValue, _maximum);
         AddRow(layout, 9, Strings.IFFManager_BitMask, _bitMask);
         AddRow(layout, 10, Strings.IFFManager_BitShift, _bitShift);
+        AddRow(layout, 11, Strings.IFFManager_ReferenceTargetFile, _referenceTargetFile);
+        AddRow(layout, 12, Strings.IFFManager_ReferenceTargetKeyField, _referenceTargetKeyField);
+        AddRow(layout, 13, Strings.IFFManager_ReferenceDisplayField, _referenceDisplayField);
+        AddRow(layout, 14, Strings.IFFManager_ReferenceIconField, _referenceIconField);
+        AddRow(layout, 15, Strings.IFFManager_FieldIconPath, _iconPath);
+        AddRow(layout, 16, Strings.IFFManager_FieldSoundPath, _soundPath);
+        _referencePickerEnabled.Text = Strings.IFFManager_ReferencePickerEnabled;
+        AddRow(layout, 17, string.Empty, _referencePickerEnabled);
 
         var buttons = new FlowLayoutPanel { Dock = DockStyle.Fill, FlowDirection = FlowDirection.RightToLeft };
         var ok = new Button { Text = Strings.Common_OK, AutoSize = true };
@@ -122,11 +166,12 @@ internal sealed class CustomIffColumnDialog : Form
         ok.Click += (_, _) => AcceptField();
         buttons.Controls.Add(ok);
         buttons.Controls.Add(cancel);
-        layout.Controls.Add(buttons, 0, 11);
+        layout.Controls.Add(buttons, 0, 18);
         layout.SetColumnSpan(buttons, 2);
         Controls.Add(layout);
         AcceptButton = ok;
         CancelButton = cancel;
+        UpdateTypeState();
     }
 
     private void AcceptField()
@@ -141,9 +186,16 @@ internal sealed class CustomIffColumnDialog : Form
             FieldDefinition = new IffFieldDefinition(
                 _name.Text.Trim(), decimal.ToInt32(_offset.Value), decimal.ToInt32(_width.Value),
                 (IffFieldType)_type.SelectedItem!, _editable.Checked,
-                (SelectedType == IffFieldType.FixedString ? (_encoding.SelectedItem as SchemaEncodingOption)?.CodePage : null),
+                (SelectedType is IffFieldType.FixedString or IffFieldType.LongString or IffFieldType.Icon or IffFieldType.Sound ? (_encoding.SelectedItem as SchemaEncodingOption)?.CodePage : null),
                 ParseNullableLong(_minimum.Text), ParseNullableLong(_maximum.Text),
-                ParseNullableUInt(_bitMask.Text), decimal.ToInt32(_bitShift.Value), _visible.Checked);
+                ParseNullableUInt(_bitMask.Text), decimal.ToInt32(_bitShift.Value), _visible.Checked,
+                BuildReferenceDefinition(),
+                SelectedType == IffFieldType.Icon && !string.IsNullOrWhiteSpace(_iconPath.Text)
+                    ? _iconPath.Text.Trim()
+                    : null,
+                SelectedType == IffFieldType.Sound && !string.IsNullOrWhiteSpace(_soundPath.Text)
+                    ? _soundPath.Text.Trim()
+                    : null);
             var schema = new IffSchemaDefinition(1, "Validation.iff", "*", _recordSize, true, [FieldDefinition]);
             IffSchemaJson.ValidateDefinition(schema, _recordSize);
             DialogResult = DialogResult.OK;
@@ -161,9 +213,61 @@ internal sealed class CustomIffColumnDialog : Form
 
     private IffFieldType SelectedType => (IffFieldType)_type.SelectedItem!;
 
-    private void UpdateEncodingState()
+    private void UpdateTypeState()
     {
-        _encoding.Enabled = SelectedType == IffFieldType.FixedString;
+        bool isString = SelectedType is IffFieldType.FixedString or IffFieldType.LongString or IffFieldType.Icon or IffFieldType.Sound;
+        bool isNumeric = SelectedType is IffFieldType.Byte or IffFieldType.UInt16 or IffFieldType.Int16 or
+            IffFieldType.UInt32 or IffFieldType.ItemIdReference or IffFieldType.Int32 or IffFieldType.Single or
+            IffFieldType.BitField;
+        bool isBitField = SelectedType is IffFieldType.BitField or IffFieldType.BooleanBitField;
+        bool isReference = SelectedType == IffFieldType.ItemIdReference || !string.IsNullOrWhiteSpace(_referenceTargetFile.Text);
+        SetRowVisible(6, isString);
+        SetRowVisible(7, isNumeric);
+        SetRowVisible(8, isNumeric);
+        SetRowVisible(9, isBitField);
+        SetRowVisible(10, isBitField);
+        SetRowVisible(11, isReference);
+        SetRowVisible(12, isReference);
+        SetRowVisible(13, isReference);
+        SetRowVisible(14, isReference);
+        SetRowVisible(15, SelectedType == IffFieldType.Icon);
+        SetRowVisible(16, SelectedType == IffFieldType.Sound);
+        SetRowVisible(17, isReference);
+    }
+
+    private IffFieldReferenceDefinition? BuildReferenceDefinition()
+    {
+        if (SelectedType != IffFieldType.ItemIdReference && string.IsNullOrWhiteSpace(_referenceTargetFile.Text))
+            return null;
+
+        return new IffFieldReferenceDefinition(
+            _referenceTargetFile.Text.Trim(),
+            string.IsNullOrWhiteSpace(_referenceTargetKeyField.Text) ? "ItemId" : _referenceTargetKeyField.Text.Trim(),
+            string.IsNullOrWhiteSpace(_referenceDisplayField.Text) ? "Name" : _referenceDisplayField.Text.Trim(),
+            string.IsNullOrWhiteSpace(_referenceIconField.Text) ? "Icon" : _referenceIconField.Text.Trim(),
+            _referencePickerEnabled.Checked);
+    }
+
+    private void SetReferenceTargetFile(string value)
+    {
+        if (value.Length > 0 && !_referenceTargetFile.Items.Cast<object>()
+                .Select(Convert.ToString)
+                .Any(item => string.Equals(item, value, StringComparison.OrdinalIgnoreCase)))
+            _referenceTargetFile.Items.Add(value);
+        _referenceTargetFile.Text = value;
+    }
+
+    private void SetRowVisible(int row, bool visible)
+    {
+        if (_layout is null || row >= _layout.RowStyles.Count) return;
+        _layout.RowStyles[row].SizeType = SizeType.Absolute;
+        _layout.RowStyles[row].Height = visible ? 38 : 0;
+        if (_rowControls.TryGetValue(row, out Control[]? controls))
+            foreach (Control control in controls)
+            {
+                control.Visible = visible;
+                control.Enabled = visible;
+            }
     }
 
     private static long? ParseNullableLong(string text)
@@ -185,11 +289,13 @@ internal sealed class CustomIffColumnDialog : Form
     private static void ShowValidation(string message) => MessageBox.Show(message,
         Strings.IFFManager_Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
 
-    private static void AddRow(TableLayoutPanel layout, int row, string label, Control control)
+    private void AddRow(TableLayoutPanel layout, int row, string label, Control control)
     {
         layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 38));
-        layout.Controls.Add(new Label { Text = label, AutoSize = true, Anchor = AnchorStyles.Left }, 0, row);
+        var labelControl = new Label { Text = label, AutoSize = true, Anchor = AnchorStyles.Left };
+        layout.Controls.Add(labelControl, 0, row);
         control.Dock = DockStyle.Fill;
         layout.Controls.Add(control, 1, row);
+        _rowControls[row] = [labelControl, control];
     }
 }

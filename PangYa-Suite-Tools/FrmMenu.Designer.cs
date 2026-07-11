@@ -28,7 +28,7 @@
             btnOpenPakDiff = new Button();
             btnOpenOptions = new Button();
             btnOpenLog = new Button();
-            btnOpenShop = new Button();
+            btnOpenShop = new CenteredImageButton();
             lblTitle = new Label();
             statusStrip1 = new StatusStrip();
             lblLanguage = new ToolStripStatusLabel();
@@ -79,29 +79,30 @@
             // 
             // btnOpenOptions
             // 
-            btnOpenOptions.Location = new Point(103, 330);
+            btnOpenOptions.Location = new Point(103, 395);
             btnOpenOptions.Name = "btnOpenOptions";
             btnOpenOptions.Size = new Size(180, 35);
-            btnOpenOptions.TabIndex = 5;
+            btnOpenOptions.TabIndex = 6;
             btnOpenOptions.Text = "Options";
             btnOpenOptions.UseVisualStyleBackColor = true;
             btnOpenOptions.Click += btnOpenOptions_Click;
             //
             // btnOpenLog
             //
-            btnOpenLog.Location = new Point(103, 375);
+            btnOpenLog.Location = new Point(103, 440);
             btnOpenLog.Name = "btnOpenLog";
             btnOpenLog.Size = new Size(180, 35);
-            btnOpenLog.TabIndex = 6;
+            btnOpenLog.TabIndex = 7;
             btnOpenLog.UseVisualStyleBackColor = true;
             btnOpenLog.Click += btnOpenLog_Click;
             //
             // btnOpenShop
             //
-            btnOpenShop.Location = new Point(103, 420);
+            btnOpenShop.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+            btnOpenShop.Location = new Point(42, 330);
             btnOpenShop.Name = "btnOpenShop";
-            btnOpenShop.Size = new Size(180, 35);
-            btnOpenShop.TabIndex = 7;
+            btnOpenShop.Size = new Size(300, 50);
+            btnOpenShop.TabIndex = 5;
             btnOpenShop.UseVisualStyleBackColor = true;
             btnOpenShop.Click += btnOpenShop_Click;
             // 
@@ -117,7 +118,7 @@
             // statusStrip1
             // 
             statusStrip1.Items.AddRange(new ToolStripItem[] { lblLanguage, cboLanguage });
-            statusStrip1.Location = new Point(0, 475);
+            statusStrip1.Location = new Point(0, 520);
             statusStrip1.Name = "statusStrip1";
             statusStrip1.Size = new Size(402, 23);
             statusStrip1.TabIndex = 8;
@@ -138,7 +139,7 @@
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(402, 498);
+            ClientSize = new Size(402, 543);
             Controls.Add(btnOpenShop);
             Controls.Add(btnOpenLog);
             Controls.Add(btnOpenOptions);

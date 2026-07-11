@@ -95,6 +95,64 @@ public sealed class PakRoundTripTests
     }
 
     [Fact]
+    public void Extract_WritesPangyaIffPathSidecar()
+    {
+        using var temp = new TemporaryDirectory();
+        string source = temp.Combine("source");
+        string dataDirectory = System.IO.Path.Combine(source, "data");
+        string pak = temp.Combine("pangya.pak");
+        string output = temp.Combine("output");
+        Directory.CreateDirectory(dataDirectory);
+        File.WriteAllBytes(System.IO.Path.Combine(dataDirectory, "pangya_th.iff"), [1, 2, 3, 4]);
+        File.WriteAllText(System.IO.Path.Combine(dataDirectory, "Item.iff"), "item-data");
+
+        new PakWriter { EntryType = PakFileEntryType.Raw }
+            .CreateFromDirectoryContents(source, pak);
+
+        using var reader = new PakReader(pak);
+        reader.Parse();
+        reader.Extract("*", output);
+
+        string extracted = System.IO.Path.Combine(output, "data", "pangya_th.iff");
+        string manifestPath = PakExtractionSidecar.GetManifestPath(extracted);
+        Assert.Equal(System.IO.Path.Combine(output, "data", "pakpath.json"), manifestPath);
+        Assert.True(File.Exists(manifestPath));
+        Assert.Equal(output, PakExtractionSidecar.TryResolveExtractionRoot(extracted));
+        string json = File.ReadAllText(manifestPath);
+        Assert.Contains("\"Files\":", json, StringComparison.Ordinal);
+        Assert.Contains("\"FileName\": \"pangya_th.iff\"", json, StringComparison.Ordinal);
+        Assert.Contains("\"FileName\": \"Item.iff\"", json, StringComparison.Ordinal);
+        Assert.Contains("\"Path\": \"data\"", json, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void WriteManifest_IncludesFilesFromAllExtractedPaks()
+    {
+        using var temp = new TemporaryDirectory();
+        string output = temp.Combine("output");
+        string dataDirectory = System.IO.Path.Combine(output, "data");
+        Directory.CreateDirectory(dataDirectory);
+
+        string pangyaPath = System.IO.Path.Combine(dataDirectory, "pangya_th.iff");
+        string itemPath = System.IO.Path.Combine(dataDirectory, "Item.iff");
+        string cardPath = System.IO.Path.Combine(dataDirectory, "Card.iff");
+        File.WriteAllBytes(pangyaPath, [1]);
+        File.WriteAllBytes(itemPath, [2]);
+        File.WriteAllBytes(cardPath, [3]);
+
+        PakExtractionSidecar.WriteManifest([
+            (new PakFileEntry { Name = @"data\pangya_th.iff" }, pangyaPath),
+            (new PakFileEntry { Name = @"data\Item.iff" }, itemPath),
+            (new PakFileEntry { Name = @"data\Card.iff" }, cardPath),
+        ]);
+
+        string json = File.ReadAllText(System.IO.Path.Combine(dataDirectory, "pakpath.json"));
+        Assert.Contains("\"FileName\": \"pangya_th.iff\"", json, StringComparison.Ordinal);
+        Assert.Contains("\"FileName\": \"Item.iff\"", json, StringComparison.Ordinal);
+        Assert.Contains("\"FileName\": \"Card.iff\"", json, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void ReadersKeepIndependentFilenameEncodings()
     {
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);

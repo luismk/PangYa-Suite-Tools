@@ -79,6 +79,24 @@ Sélectionnez le répertoire des fichiers IFF.</value>
   <data name="PakMaker_ExtractSelectedItemS" xml:space="preserve">
     <value>📁 Extraire l'élément / les éléments sélectionné(s)...</value>
   </data>
+  <data name="PakMaker_RenameSelectedFile" xml:space="preserve">
+    <value>✏️ Renommer le fichier sélectionné (F2)</value>
+  </data>
+  <data name="PakMaker_SelectSingleFileToRename" xml:space="preserve">
+    <value>Sélectionnez exactement un fichier à renommer.</value>
+  </data>
+  <data name="PakMaker_InvalidRenameName" xml:space="preserve">
+    <value>Saisissez un nom de fichier valide, sans séparateur de chemin.</value>
+  </data>
+  <data name="PakMaker_FileMenu" xml:space="preserve">
+    <value>Fichier</value>
+  </data>
+  <data name="PakMaker_PakOperations" xml:space="preserve">
+    <value>Opérations PAK</value>
+  </data>
+  <data name="PakMaker_FileOperations" xml:space="preserve">
+    <value>Opérations de fichiers</value>
+  </data>
   <data name="PakMaker_RemoveSelectedItemSFromPAK" xml:space="preserve">
     <value>🗑️ Supprimer l'élément / les éléments sélectionné(s) du PAK...</value>
   </data>
@@ -287,6 +305,9 @@ Sélectionnez un dossier spécifique.</value>
   <data name="PakMaker_SelectTheFilesToUpdateInject" xml:space="preserve">
     <value>Sélectionnez les fichiers à mettre à jour/injecter</value>
   </data>
+  <data name="PakMaker_InjectFilesFilter" xml:space="preserve">
+    <value>Ressources PangYa courantes (*.iff;*.tga;*.png;*.jpg;*.jpeg;*.bmp;*.dds;*.wav;*.mp3;*.txt;*.ini;*.xml;*.dat)|*.iff;*.tga;*.png;*.jpg;*.jpeg;*.bmp;*.dds;*.wav;*.mp3;*.txt;*.ini;*.xml;*.dat|Tous les fichiers (*.*)|*.*</value>
+  </data>
   <data name="PakMaker_MergingAndRebuildingPAK" xml:space="preserve">
     <value>Fusion et reconstruction du PAK...</value>
   </data>
@@ -370,6 +391,15 @@ Sélectionnez un dossier spécifique.</value>
   </data>
   <data name="UpdateList_StartMonitoring" xml:space="preserve">
     <value>▶️ Démarrer la surveillance</value>
+  </data>
+  <data name="UpdateList_SelectUpdateListFile" xml:space="preserve">
+    <value>Sélectionner le fichier updatelist</value>
+  </data>
+  <data name="UpdateList_SelectExistingUpdateListFile" xml:space="preserve">
+    <value>Sélectionner une updatelist chiffrée existante (facultatif)</value>
+  </data>
+  <data name="UpdateList_OpenFileFilter" xml:space="preserve">
+    <value>Fichiers UpdateList|updatelist*.*|Tous les fichiers (*.*)|*.*</value>
   </data>
   <data name="UpdateList_INACTIVE" xml:space="preserve">
     <value>INACTIF</value>
@@ -559,19 +589,19 @@ Déclencheur :</value>
     <value>📂 Chemin : (tous les fichiers)</value>
   </data>
   <data name="Pak_ExtractSelected" xml:space="preserve">
-    <value>📤 EXTRAIRE LA SÉLECTION</value>
+    <value>Extraire</value>
   </data>
   <data name="Pak_RemoveSelected" xml:space="preserve">
-    <value>🗑️ SUPPRIMER LA SÉLECTION</value>
+    <value>Supprimer</value>
   </data>
   <data name="Pak_BatchExtract" xml:space="preserve">
-    <value>📂 EXTRAIRE LE DOSSIER</value>
+    <value>Extraire le dossier</value>
   </data>
   <data name="Pak_Update" xml:space="preserve">
-    <value>🔄 INJECTER / METTRE À JOUR</value>
+    <value>Ajouter</value>
   </data>
   <data name="Pak_ExtractAll" xml:space="preserve">
-    <value>💥 TOUT EXTRAIRE</value>
+    <value>Tout extraire</value>
   </data>
   <data name="Pak_ColumnName" xml:space="preserve">
     <value>Nom du fichier</value>
@@ -589,7 +619,13 @@ Déclencheur :</value>
     <value>🔑 Nouvelle clé (XTEA) :</value>
   </data>
   <data name="Pak_ChangeKey" xml:space="preserve">
-    <value>🔐 CHANGER LA CLÉ DU PAK</value>
+    <value>Changer la clé</value>
+  </data>
+  <data name="Pak_RenameSelected" xml:space="preserve">
+    <value>Renommer</value>
+  </data>
+  <data name="Pak_ShowToolbarText" xml:space="preserve">
+    <value>Afficher le texte sous les icônes de la barre d'outils</value>
   </data>
   <data name="Pak_TabCreate" xml:space="preserve">
     <value>Créer un nouveau PAK</value>
@@ -687,8 +723,11 @@ Déclencheur :</value>
   <data name="Common_OK" xml:space="preserve">
     <value>OK</value>
   </data>
+  <data name="Pak_OpenFileTitle" xml:space="preserve">
+    <value>Ouvrir une archive PAK</value>
+  </data>
   <data name="Pak_OpenFileFilter" xml:space="preserve">
-    <value>Fichiers PAK Pangya (*.pak)|*.pak</value>
+    <value>Fichiers PAK Pangya (*.pak)|*.pak|Tous les fichiers (*.*)|*.*</value>
   </data>
   <data name="Pak_SaveFileFilter" xml:space="preserve">
     <value>PAK Pangya (*.pak)|*.pak</value>
@@ -773,6 +812,7 @@ Déclencheur :</value>
   <data name="PakDiff_ColumnSourcePak" xml:space="preserve"><value>PAK source</value></data>
   <data name="PakDiff_ExtractSelected" xml:space="preserve"><value>📦 Extraire la sélection</value></data>
   <data name="IFFManager_OpenArchive" xml:space="preserve"><value>Ouvrir l'archive</value></data>
+  <data name="IFFManager_OpenArchiveFilter" xml:space="preserve"><value>Archives IFF PangYa (*.iff;*.zip)|*.iff;*.zip|Tous les fichiers (*.*)|*.*</value></data>
   <data name="IFFManager_Save" xml:space="preserve"><value>Enregistrer</value></data>
   <data name="IFFManager_Saved" xml:space="preserve"><value>IFF enregistré avec succès. Une sauvegarde a été créée.</value></data>
   <data name="IFFManager_InvalidValue" xml:space="preserve"><value>La valeur est invalide pour ce champ.</value></data>
@@ -826,6 +866,16 @@ Déclencheur :</value>
   <data name="IFFManager_MaximumValue" xml:space="preserve"><value>Valeur maximale :</value></data>
   <data name="IFFManager_BitMask" xml:space="preserve"><value>Masque de bits :</value></data>
   <data name="IFFManager_BitShift" xml:space="preserve"><value>Décalage de bits :</value></data>
+  <data name="IFFManager_ReferenceTargetFile" xml:space="preserve"><value>IFF de référence :</value></data>
+  <data name="IFFManager_ReferenceTargetKeyField" xml:space="preserve"><value>Champ clé de référence :</value></data>
+  <data name="IFFManager_ReferenceDisplayField" xml:space="preserve"><value>Champ d'affichage :</value></data>
+  <data name="IFFManager_ReferenceIconField" xml:space="preserve"><value>Champ d'icône :</value></data>
+  <data name="IFFManager_ReferenceIconPath" xml:space="preserve"><value>Chemin de l'icône :</value></data>
+  <data name="IFFManager_FieldIconPath" xml:space="preserve"><value>Chemin de l'icône du champ :</value></data>
+  <data name="IFFManager_FieldSoundPath" xml:space="preserve"><value>Chemin du son du champ :</value></data>
+  <data name="IFFManager_PlaySound" xml:space="preserve"><value>Lire</value></data>
+  <data name="IFFManager_SoundFileNotFound" xml:space="preserve"><value>Le fichier son est introuvable dans le dossier de données sélectionné.</value></data>
+  <data name="IFFManager_ReferencePickerEnabled" xml:space="preserve"><value>Activer le sélecteur de référence</value></data>
   <data name="IFFManager_ShowRawRecord" xml:space="preserve"><value>Afficher l'enregistrement brut</value></data>
   <data name="IFFManager_UnrepresentedBytes" xml:space="preserve"><value>Octets non représentés : {0} / {1}</value></data>
   <data name="IFFManager_FieldVisible" xml:space="preserve"><value>Afficher le champ</value></data>
@@ -846,4 +896,47 @@ Déclencheur :</value>
   <data name="IFFManager_ByteValue" xml:space="preserve"><value>Valeur d'octet</value></data>
   <data name="IFFManager_DefineColumn" xml:space="preserve"><value>Définir la colonne</value></data>
   <data name="IFFManager_SelectContiguousBytes" xml:space="preserve"><value>Sélectionnez une plage contiguë d'octets.</value></data>
+  <data name="IFFManager_SelectedRawValueLabel" xml:space="preserve"><value>Valeur :</value></data>
+  <data name="IFFManager_SelectedRawValue" xml:space="preserve"><value>Aucun octet sélectionné</value></data>
+  <data name="IFFManager_SelectedRawValueFormat" xml:space="preserve"><value>Décalage {0}, {1} octet(s) : {2}</value></data>
+  <data name="IFFManager_ClearSelection" xml:space="preserve"><value>Effacer la sélection</value></data>
+  <data name="IFFManager_RawRecord" xml:space="preserve"><value>Enregistrement brut</value></data>
+  <data name="IFFManager_SetItemsPreview" xml:space="preserve"><value>Objets du set</value></data>
+  <data name="IFFManager_SetItemPreviewDetails" xml:space="preserve"><value>Emplacement {0} · ID {1} · Quantité {2}</value></data>
+  <data name="IFFManager_SetItemMissingItem" xml:space="preserve"><value>Référence introuvable dans Item.iff</value></data>
+  <data name="IFFManager_SetItemMissingIcon" xml:space="preserve"><value>Icône introuvable</value></data>
+  <data name="IFFManager_SelectSetItem" xml:space="preserve"><value>Sélectionner l'objet du set</value></data>
+  <data name="IFFManager_ItemId" xml:space="preserve"><value>ID d'objet</value></data>
+  <data name="IFFManager_ItemName" xml:space="preserve"><value>Nom</value></data>
+  <data name="IFFManager_ReferencesPreview" xml:space="preserve"><value>Références</value></data>
+  <data name="IFFManager_ReferenceDetailsFormat" xml:space="preserve"><value>{0} · ID {1} · {2}</value></data>
+  <data name="IFFManager_ReferenceMissingRecord" xml:space="preserve"><value>Référence introuvable</value></data>
+  <data name="IFFManager_ReferenceMissingRecordFormat" xml:space="preserve"><value>Référence {0} manquante</value></data>
+  <data name="IFFManager_SelectReferenceFormat" xml:space="preserve"><value>Sélectionner une référence depuis {0}</value></data>
+  <data name="IFFManager_LinkedIff" xml:space="preserve"><value>IFF lié</value></data>
+  <data name="IFFManager_ItemType" xml:space="preserve"><value>Type</value></data>
+  <data name="IFFManager_Character" xml:space="preserve"><value>Personnage</value></data>
+  <data name="IFFManager_DataFolder" xml:space="preserve"><value>Dossier data</value></data>
+  <data name="IFFManager_DataFolderNotSelected" xml:space="preserve"><value>Aucun dossier data sélectionné</value></data>
+  <data name="UpdateList_DecryptionSuccessFormat" xml:space="preserve"><value>✅ [SUCCÈS] Déchiffré avec la clé [{0}] !</value></data>
+  <data name="UpdateList_Scanning" xml:space="preserve"><value>Analyse...</value></data>
+  <data name="UpdateList_Done" xml:space="preserve"><value>Terminé !</value></data>
+  <data name="UpdateList_ErrorLogFormat" xml:space="preserve"><value>❌ [ERREUR] {0}</value></data>
+  <data name="UpdateList_ErrorStatus" xml:space="preserve"><value>Erreur.</value></data>
+  <data name="UpdateList_SourceLogFormat" xml:space="preserve"><value>📂 Source : {0}</value></data>
+  <data name="UpdateList_DestinationLogFormat" xml:space="preserve"><value>🌐 Destination : {0}</value></data>
+  <data name="UpdateList_KeyLogFormat" xml:space="preserve"><value>🔑 Clé : {0}</value></data>
+  <data name="UpdateList_VersionLogFormat" xml:space="preserve"><value>🏷  Version : {0} | Patch nº {1}</value></data>
+  <data name="UpdateList_ScanningFiles" xml:space="preserve"><value>Analyse des fichiers...</value></data>
+  <data name="UpdateList_ExistingLoadedFormat" xml:space="preserve"><value>📋 Updatelist existante chargée : {0} fichiers</value></data>
+  <data name="UpdateList_ExistingLoadFailedFormat" xml:space="preserve"><value>⚠️ Impossible de charger l’updatelist existante : {0}</value></data>
+  <data name="UpdateList_ScanningProgressFormat" xml:space="preserve"><value>Analyse ({0}/{1})</value></data>
+  <data name="UpdateList_NewFileFormat" xml:space="preserve"><value>  ➕ [NOUVEAU] {0}</value></data>
+  <data name="UpdateList_ChangedFileFormat" xml:space="preserve"><value>  🔄 [MODIFIÉ] {0} (CRC : {1:X8} → {2:X8})</value></data>
+  <data name="UpdateList_DeltaSummaryFormat" xml:space="preserve"><value>📊 Résumé des différences : ➕ {0} nouveaux | 🔄 {1} modifiés | ✅ {2} inchangés</value></data>
+  <data name="UpdateList_GeneratedAtFormat" xml:space="preserve"><value>✅ [TERMINÉ] updatelist générée dans : {0}</value></data>
+  <data name="UpdateList_InvalidSourceFolder" xml:space="preserve"><value>Le dossier source de Pangya n’est pas valide.</value></data>
+  <data name="UpdateList_InvalidDestinationFolder" xml:space="preserve"><value>Le dossier de destination du WebServer n’est pas valide.</value></data>
+  <data name="UpdateList_PatchVersionRequired" xml:space="preserve"><value>Veuillez renseigner la version du patch.</value></data>
+  <data name="IFFManager_DefaultLongStringSize" xml:space="preserve"><value>Taille par défaut des chaînes longues :</value></data>
 </root>

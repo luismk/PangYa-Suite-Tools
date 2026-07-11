@@ -87,6 +87,15 @@
   <data name="PakMaker_InvalidRenameName" xml:space="preserve">
     <value>Ange ett giltigt filnamn utan sökvägsavgränsare.</value>
   </data>
+  <data name="PakMaker_FileMenu" xml:space="preserve">
+    <value>Arkiv</value>
+  </data>
+  <data name="PakMaker_PakOperations" xml:space="preserve">
+    <value>PAK-åtgärder</value>
+  </data>
+  <data name="PakMaker_FileOperations" xml:space="preserve">
+    <value>Filåtgärder</value>
+  </data>
   <data name="PakMaker_RemoveSelectedItemSFromPAK" xml:space="preserve">
     <value>🗑️ Ta bort markerat/markerade objekt från PAK...</value>
   </data>
@@ -294,6 +303,9 @@
   <data name="PakMaker_SelectTheFilesToUpdateInject" xml:space="preserve">
     <value>Välj filer att uppdatera/injicera</value>
   </data>
+  <data name="PakMaker_InjectFilesFilter" xml:space="preserve">
+    <value>Vanliga PangYa-filer (*.iff;*.tga;*.png;*.jpg;*.jpeg;*.bmp;*.dds;*.wav;*.mp3;*.txt;*.ini;*.xml;*.dat)|*.iff;*.tga;*.png;*.jpg;*.jpeg;*.bmp;*.dds;*.wav;*.mp3;*.txt;*.ini;*.xml;*.dat|Alla filer (*.*)|*.*</value>
+  </data>
   <data name="PakMaker_MergingAndRebuildingPAK" xml:space="preserve">
     <value>Slår samman och bygger om PAK...</value>
   </data>
@@ -378,6 +390,38 @@
   <data name="UpdateList_StartMonitoring" xml:space="preserve">
     <value>▶️ Starta övervakning</value>
   </data>
+  <data name="UpdateList_GenerateNow" xml:space="preserve">
+    <value>Generera nu</value>
+  </data>
+  <data name="UpdateList_SelectUpdateListFile" xml:space="preserve">
+    <value>Välj updatelist-fil</value>
+  </data>
+  <data name="UpdateList_SelectExistingUpdateListFile" xml:space="preserve">
+    <value>Välj befintlig krypterad updatelist (valfritt)</value>
+  </data>
+  <data name="UpdateList_OpenFileFilter" xml:space="preserve">
+    <value>UpdateList-filer|updatelist*.*|Alla filer (*.*)|*.*</value>
+  </data>
+  <data name="UpdateList_ViewerPathHint" xml:space="preserve">
+    <value>Dra en updatelist-fil hit eller klicka på Bläddra...</value>
+  </data>
+  <data name="UpdateList_RawXml" xml:space="preserve">
+    <value>Rå XML</value>
+  </data>
+  <data name="UpdateList_NoRawXmlLoaded" xml:space="preserve">
+    <value>Ingen updatelist-XML har lästs in.</value>
+  </data>
+  <data name="UpdateList_StatusSummary" xml:space="preserve">
+    <value>Patch: {0} | Patchnummer: {1} | UpdateList: {2} | Filer: {3}/{4}</value>
+  </data>
+  <data name="UpdateList_ColumnFileName" xml:space="preserve"><value>Fil</value></data>
+  <data name="UpdateList_ColumnDirectory" xml:space="preserve"><value>Mapp</value></data>
+  <data name="UpdateList_ColumnFileSize" xml:space="preserve"><value>Storlek</value></data>
+  <data name="UpdateList_ColumnCrc" xml:space="preserve"><value>CRC</value></data>
+  <data name="UpdateList_ColumnDate" xml:space="preserve"><value>Datum</value></data>
+  <data name="UpdateList_ColumnTime" xml:space="preserve"><value>Tid</value></data>
+  <data name="UpdateList_ColumnPackageName" xml:space="preserve"><value>Paket</value></data>
+  <data name="UpdateList_ColumnPackageSize" xml:space="preserve"><value>Paketstorlek</value></data>
   <data name="UpdateList_INACTIVE" xml:space="preserve">
     <value>INAKTIV</value>
   </data>
@@ -559,19 +603,19 @@
     <value>📂 Sökväg: (alla filer)</value>
   </data>
   <data name="Pak_ExtractSelected" xml:space="preserve">
-    <value>📤 EXTRAHERA MARKERADE</value>
+    <value>Extrahera</value>
   </data>
   <data name="Pak_RemoveSelected" xml:space="preserve">
-    <value>🗑️ TA BORT MARKERADE</value>
+    <value>Ta bort</value>
   </data>
   <data name="Pak_BatchExtract" xml:space="preserve">
-    <value>📂 EXTRAHERA MAPP</value>
+    <value>Extrahera mapp</value>
   </data>
   <data name="Pak_Update" xml:space="preserve">
-    <value>🔄 INJICERA / UPPDATERA</value>
+    <value>Lägg till</value>
   </data>
   <data name="Pak_ExtractAll" xml:space="preserve">
-    <value>💥 EXTRAHERA ALLA</value>
+    <value>Extrahera alla</value>
   </data>
   <data name="Pak_ColumnName" xml:space="preserve">
     <value>Filnamn</value>
@@ -589,7 +633,13 @@
     <value>🔑 Ny nyckel (XTEA):</value>
   </data>
   <data name="Pak_ChangeKey" xml:space="preserve">
-    <value>🔐 ÄNDRA PAK-NYCKEL</value>
+    <value>Ändra nyckel</value>
+  </data>
+  <data name="Pak_RenameSelected" xml:space="preserve">
+    <value>Byt namn</value>
+  </data>
+  <data name="Pak_ShowToolbarText" xml:space="preserve">
+    <value>Visa text under toolbarikoner</value>
   </data>
   <data name="Pak_TabCreate" xml:space="preserve">
     <value>Skapa ny PAK</value>
@@ -687,8 +737,11 @@
   <data name="Common_OK" xml:space="preserve">
     <value>OK</value>
   </data>
+  <data name="Pak_OpenFileTitle" xml:space="preserve">
+    <value>Öppna PAK-arkiv</value>
+  </data>
   <data name="Pak_OpenFileFilter" xml:space="preserve">
-    <value>Pangya PAK-filer (*.pak)|*.pak</value>
+    <value>Pangya PAK-filer (*.pak)|*.pak|Alla filer (*.*)|*.*</value>
   </data>
   <data name="Pak_SaveFileFilter" xml:space="preserve">
     <value>Pangya PAK (*.pak)|*.pak</value>
@@ -773,6 +826,7 @@
   <data name="PakDiff_ColumnSourcePak" xml:space="preserve"><value>Käll-PAK</value></data>
   <data name="PakDiff_ExtractSelected" xml:space="preserve"><value>📦 Extrahera valda</value></data>
   <data name="IFFManager_OpenArchive" xml:space="preserve"><value>Öppna arkiv</value></data>
+  <data name="IFFManager_OpenArchiveFilter" xml:space="preserve"><value>PangYa IFF-arkiv (*.iff;*.zip)|*.iff;*.zip|Alla filer (*.*)|*.*</value></data>
   <data name="IFFManager_Save" xml:space="preserve"><value>Spara</value></data>
   <data name="IFFManager_Saved" xml:space="preserve"><value>IFF-filen sparades. En säkerhetskopia skapades.</value></data>
   <data name="IFFManager_InvalidValue" xml:space="preserve"><value>Värdet är ogiltigt för detta fält.</value></data>
@@ -826,6 +880,16 @@
   <data name="IFFManager_MaximumValue" xml:space="preserve"><value>Maximivärde:</value></data>
   <data name="IFFManager_BitMask" xml:space="preserve"><value>Bitmask:</value></data>
   <data name="IFFManager_BitShift" xml:space="preserve"><value>Bitförskjutning:</value></data>
+  <data name="IFFManager_ReferenceTargetFile" xml:space="preserve"><value>Referens-IFF:</value></data>
+  <data name="IFFManager_ReferenceTargetKeyField" xml:space="preserve"><value>Referensnyckelfält:</value></data>
+  <data name="IFFManager_ReferenceDisplayField" xml:space="preserve"><value>Visningsfält:</value></data>
+  <data name="IFFManager_ReferenceIconField" xml:space="preserve"><value>Ikonfält:</value></data>
+  <data name="IFFManager_ReferenceIconPath" xml:space="preserve"><value>Ikonsökväg:</value></data>
+  <data name="IFFManager_FieldIconPath" xml:space="preserve"><value>Fältets ikonsökväg:</value></data>
+  <data name="IFFManager_FieldSoundPath" xml:space="preserve"><value>Fältets ljudsökväg:</value></data>
+  <data name="IFFManager_PlaySound" xml:space="preserve"><value>Spela</value></data>
+  <data name="IFFManager_SoundFileNotFound" xml:space="preserve"><value>Ljudfilen kunde inte hittas från den valda datamappen.</value></data>
+  <data name="IFFManager_ReferencePickerEnabled" xml:space="preserve"><value>Aktivera referensväljare</value></data>
   <data name="IFFManager_ShowRawRecord" xml:space="preserve"><value>Visa råpost</value></data>
   <data name="IFFManager_UnrepresentedBytes" xml:space="preserve"><value>Ej representerade byte: {0} / {1}</value></data>
   <data name="IFFManager_FieldVisible" xml:space="preserve"><value>Visa fält</value></data>
@@ -846,6 +910,40 @@
   <data name="IFFManager_ByteValue" xml:space="preserve"><value>Bytevärde</value></data>
   <data name="IFFManager_DefineColumn" xml:space="preserve"><value>Definiera kolumn</value></data>
   <data name="IFFManager_SelectContiguousBytes" xml:space="preserve"><value>Välj ett sammanhängande byteintervall.</value></data>
+  <data name="IFFManager_SelectedRawValueLabel" xml:space="preserve"><value>Värde:</value></data>
+  <data name="IFFManager_SelectedRawValue" xml:space="preserve"><value>Inga byte valda</value></data>
+  <data name="IFFManager_SelectedRawValueFormat" xml:space="preserve"><value>Offset {0}, {1} byte: {2}</value></data>
+  <data name="IFFManager_ClearSelection" xml:space="preserve"><value>Rensa markering</value></data>
+  <data name="IFFManager_RawRecord" xml:space="preserve"><value>Råpost</value></data>
+  <data name="IFFManager_FormView" xml:space="preserve"><value>Formulärvy</value></data>
+  <data name="IFFManager_GridView" xml:space="preserve"><value>Rutnätsvy</value></data>
+  <data name="IFFManager_FormTabGeneral" xml:space="preserve"><value>Fält</value></data>
+  <data name="IFFManager_FormNew" xml:space="preserve"><value>Ny</value></data>
+  <data name="IFFManager_FormDelete" xml:space="preserve"><value>Ta bort</value></data>
+  <data name="IFFManager_FormCopy" xml:space="preserve"><value>Kopiera</value></data>
+  <data name="IFFManager_FormApply" xml:space="preserve"><value>Verkställ</value></data>
+  <data name="IFFManager_FormUpdate" xml:space="preserve"><value>Uppdatera</value></data>
+  <data name="IFFManager_FormRecordSearch" xml:space="preserve"><value>Sök poster...</value></data>
+  <data name="IFFManager_FormRecordFormat" xml:space="preserve"><value>#{0} {1}</value></data>
+  <data name="IFFManager_FormRecordNameFormat" xml:space="preserve"><value>#{0} {1} - {2}</value></data>
+  <data name="IFFManager_FormUnsavedChanges" xml:space="preserve"><value>Verkställ ändringar i aktuell post innan du byter post?</value></data>
+  <data name="IFFManager_SetItemsPreview" xml:space="preserve"><value>Set-objekt</value></data>
+  <data name="IFFManager_SetItemPreviewDetails" xml:space="preserve"><value>Plats {0} · ID {1} · Antal {2}</value></data>
+  <data name="IFFManager_SetItemMissingItem" xml:space="preserve"><value>Referensen hittades inte i Item.iff</value></data>
+  <data name="IFFManager_SetItemMissingIcon" xml:space="preserve"><value>Ikon hittades inte</value></data>
+  <data name="IFFManager_SelectSetItem" xml:space="preserve"><value>Välj set-objekt</value></data>
+  <data name="IFFManager_ItemId" xml:space="preserve"><value>Objekt-ID</value></data>
+  <data name="IFFManager_ItemName" xml:space="preserve"><value>Namn</value></data>
+  <data name="IFFManager_ReferencesPreview" xml:space="preserve"><value>Referenser</value></data>
+  <data name="IFFManager_ReferenceDetailsFormat" xml:space="preserve"><value>{0} · ID {1} · {2}</value></data>
+  <data name="IFFManager_ReferenceMissingRecord" xml:space="preserve"><value>Referensen hittades inte</value></data>
+  <data name="IFFManager_ReferenceMissingRecordFormat" xml:space="preserve"><value>Saknad referens {0}</value></data>
+  <data name="IFFManager_SelectReferenceFormat" xml:space="preserve"><value>Välj referens från {0}</value></data>
+  <data name="IFFManager_LinkedIff" xml:space="preserve"><value>Länkad IFF</value></data>
+  <data name="IFFManager_ItemType" xml:space="preserve"><value>Typ</value></data>
+  <data name="IFFManager_Character" xml:space="preserve"><value>Karaktär</value></data>
+  <data name="IFFManager_DataFolder" xml:space="preserve"><value>Data-mapp</value></data>
+  <data name="IFFManager_DataFolderNotSelected" xml:space="preserve"><value>Ingen data-mapp vald</value></data>
   <data name="PakMaker_BatchFolderStructureTitle" xml:space="preserve"><value>Mappstruktur för batchextrahering</value></data>
   <data name="PakMaker_BatchFolderStructureChoice" xml:space="preserve"><value>Skapa en separat mapp för varje PAK-fil?
 
@@ -897,4 +995,25 @@ Avbryt: Stoppa extraheringen.</value></data>
   <data name="Shop_FlagShowHot" xml:space="preserve"><value>Visa Het</value></data>
   <data name="Shop_FlagShowSpecial" xml:space="preserve"><value>Visa Special</value></data>
   <data name="Shop_FlagUnknown" xml:space="preserve"><value>Okänd (0x{0:X2})</value></data>
+  <data name="UpdateList_DecryptionSuccessFormat" xml:space="preserve"><value>✅ [LYCKADES] Dekrypterad med nyckeln [{0}]!</value></data>
+  <data name="UpdateList_Scanning" xml:space="preserve"><value>Söker igenom...</value></data>
+  <data name="UpdateList_Done" xml:space="preserve"><value>Klart!</value></data>
+  <data name="UpdateList_ErrorLogFormat" xml:space="preserve"><value>❌ [FEL] {0}</value></data>
+  <data name="UpdateList_ErrorStatus" xml:space="preserve"><value>Fel.</value></data>
+  <data name="UpdateList_SourceLogFormat" xml:space="preserve"><value>📂 Källa: {0}</value></data>
+  <data name="UpdateList_DestinationLogFormat" xml:space="preserve"><value>🌐 Mål: {0}</value></data>
+  <data name="UpdateList_KeyLogFormat" xml:space="preserve"><value>🔑 Nyckel: {0}</value></data>
+  <data name="UpdateList_VersionLogFormat" xml:space="preserve"><value>🏷  Version: {0} | Patch #{1}</value></data>
+  <data name="UpdateList_ScanningFiles" xml:space="preserve"><value>Söker igenom filer...</value></data>
+  <data name="UpdateList_ExistingLoadedFormat" xml:space="preserve"><value>📋 Befintlig updatelist inläst: {0} filer</value></data>
+  <data name="UpdateList_ExistingLoadFailedFormat" xml:space="preserve"><value>⚠️ Kunde inte läsa in befintlig updatelist: {0}</value></data>
+  <data name="UpdateList_ScanningProgressFormat" xml:space="preserve"><value>Söker igenom ({0}/{1})</value></data>
+  <data name="UpdateList_NewFileFormat" xml:space="preserve"><value>  ➕ [NY] {0}</value></data>
+  <data name="UpdateList_ChangedFileFormat" xml:space="preserve"><value>  🔄 [ÄNDRAD] {0} (CRC: {1:X8} → {2:X8})</value></data>
+  <data name="UpdateList_DeltaSummaryFormat" xml:space="preserve"><value>📊 Sammanfattning av ändringar: ➕ {0} nya | 🔄 {1} ändrade | ✅ {2} oförändrade</value></data>
+  <data name="UpdateList_GeneratedAtFormat" xml:space="preserve"><value>✅ [KLART] updatelist skapad i: {0}</value></data>
+  <data name="UpdateList_InvalidSourceFolder" xml:space="preserve"><value>PangYa-källmappen är ogiltig.</value></data>
+  <data name="UpdateList_InvalidDestinationFolder" xml:space="preserve"><value>Webbserverns målmapp är ogiltig.</value></data>
+  <data name="UpdateList_PatchVersionRequired" xml:space="preserve"><value>Fyll i patchversionen.</value></data>
+  <data name="IFFManager_DefaultLongStringSize" xml:space="preserve"><value>Standardstorlek för lång sträng:</value></data>
 </root>

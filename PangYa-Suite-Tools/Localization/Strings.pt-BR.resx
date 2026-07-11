@@ -87,6 +87,15 @@
   <data name="PakMaker_InvalidRenameName" xml:space="preserve">
     <value>Informe um nome de arquivo válido, sem separadores de caminho.</value>
   </data>
+  <data name="PakMaker_FileMenu" xml:space="preserve">
+    <value>Arquivo</value>
+  </data>
+  <data name="PakMaker_PakOperations" xml:space="preserve">
+    <value>Operações do PAK</value>
+  </data>
+  <data name="PakMaker_FileOperations" xml:space="preserve">
+    <value>Operações de arquivos</value>
+  </data>
   <data name="PakMaker_RemoveSelectedItemSFromPAK" xml:space="preserve">
     <value>🗑️ Remover selecionado(s) do PAK...</value>
   </data>
@@ -294,6 +303,9 @@
   <data name="PakMaker_SelectTheFilesToUpdateInject" xml:space="preserve">
     <value>Selecione os arquivos para atualizar/injetar</value>
   </data>
+  <data name="PakMaker_InjectFilesFilter" xml:space="preserve">
+    <value>Arquivos comuns do PangYa (*.iff;*.tga;*.png;*.jpg;*.jpeg;*.bmp;*.dds;*.wav;*.mp3;*.txt;*.ini;*.xml;*.dat)|*.iff;*.tga;*.png;*.jpg;*.jpeg;*.bmp;*.dds;*.wav;*.mp3;*.txt;*.ini;*.xml;*.dat|Todos os arquivos (*.*)|*.*</value>
+  </data>
   <data name="PakMaker_MergingAndRebuildingPAK" xml:space="preserve">
     <value>Mesclando e reconstruindo PAK...</value>
   </data>
@@ -378,6 +390,38 @@
   <data name="UpdateList_StartMonitoring" xml:space="preserve">
     <value>▶️ Iniciar Monitoramento</value>
   </data>
+  <data name="UpdateList_GenerateNow" xml:space="preserve">
+    <value>Gerar agora</value>
+  </data>
+  <data name="UpdateList_SelectUpdateListFile" xml:space="preserve">
+    <value>Selecionar arquivo updatelist</value>
+  </data>
+  <data name="UpdateList_SelectExistingUpdateListFile" xml:space="preserve">
+    <value>Selecionar updatelist criptografado existente (opcional)</value>
+  </data>
+  <data name="UpdateList_OpenFileFilter" xml:space="preserve">
+    <value>Arquivos UpdateList|updatelist*.*|Todos os arquivos (*.*)|*.*</value>
+  </data>
+  <data name="UpdateList_ViewerPathHint" xml:space="preserve">
+    <value>Arraste um arquivo updatelist aqui ou clique em Procurar...</value>
+  </data>
+  <data name="UpdateList_RawXml" xml:space="preserve">
+    <value>XML bruto</value>
+  </data>
+  <data name="UpdateList_NoRawXmlLoaded" xml:space="preserve">
+    <value>Nenhum XML de updatelist foi carregado.</value>
+  </data>
+  <data name="UpdateList_StatusSummary" xml:space="preserve">
+    <value>Patch: {0} | Número do patch: {1} | UpdateList: {2} | Arquivos: {3}/{4}</value>
+  </data>
+  <data name="UpdateList_ColumnFileName" xml:space="preserve"><value>Arquivo</value></data>
+  <data name="UpdateList_ColumnDirectory" xml:space="preserve"><value>Pasta</value></data>
+  <data name="UpdateList_ColumnFileSize" xml:space="preserve"><value>Tamanho</value></data>
+  <data name="UpdateList_ColumnCrc" xml:space="preserve"><value>CRC</value></data>
+  <data name="UpdateList_ColumnDate" xml:space="preserve"><value>Data</value></data>
+  <data name="UpdateList_ColumnTime" xml:space="preserve"><value>Hora</value></data>
+  <data name="UpdateList_ColumnPackageName" xml:space="preserve"><value>Pacote</value></data>
+  <data name="UpdateList_ColumnPackageSize" xml:space="preserve"><value>Tamanho do pacote</value></data>
   <data name="UpdateList_INACTIVE" xml:space="preserve">
     <value>INATIVO</value>
   </data>
@@ -562,19 +606,19 @@
     <value>📂 Caminho: (todos os arquivos)</value>
   </data>
   <data name="Pak_ExtractSelected" xml:space="preserve">
-    <value>📤 EXTRAIR SELECIONADO(S)</value>
+    <value>Extrair</value>
   </data>
   <data name="Pak_RemoveSelected" xml:space="preserve">
-    <value>🗑️ REMOVER SELECIONADO(S)</value>
+    <value>Remover</value>
   </data>
   <data name="Pak_BatchExtract" xml:space="preserve">
-    <value>📂 EXTRAIR PASTA</value>
+    <value>Extrair pasta</value>
   </data>
   <data name="Pak_Update" xml:space="preserve">
-    <value>🔄 INJETAR / ATUALIZAR</value>
+    <value>Adicionar</value>
   </data>
   <data name="Pak_ExtractAll" xml:space="preserve">
-    <value>💥 EXTRAIR TUDO</value>
+    <value>Extrair tudo</value>
   </data>
   <data name="Pak_ColumnName" xml:space="preserve">
     <value>Nome do Arquivo</value>
@@ -592,7 +636,13 @@
     <value>🔑 Nova Chave (XTEA):</value>
   </data>
   <data name="Pak_ChangeKey" xml:space="preserve">
-    <value>🔐 TROCAR CHAVE DO PAK</value>
+    <value>Trocar chave</value>
+  </data>
+  <data name="Pak_RenameSelected" xml:space="preserve">
+    <value>Renomear</value>
+  </data>
+  <data name="Pak_ShowToolbarText" xml:space="preserve">
+    <value>Mostrar texto abaixo dos ícones da toolbar</value>
   </data>
   <data name="Pak_TabCreate" xml:space="preserve">
     <value>Criar Novo PAK</value>
@@ -690,8 +740,11 @@
   <data name="Common_OK" xml:space="preserve">
     <value>OK</value>
   </data>
+  <data name="Pak_OpenFileTitle" xml:space="preserve">
+    <value>Abrir arquivo PAK</value>
+  </data>
   <data name="Pak_OpenFileFilter" xml:space="preserve">
-    <value>Arquivos PAK do Pangya (*.pak)|*.pak</value>
+    <value>Arquivos PAK do Pangya (*.pak)|*.pak|Todos os arquivos (*.*)|*.*</value>
   </data>
   <data name="Pak_SaveFileFilter" xml:space="preserve">
     <value>PAK do Pangya (*.pak)|*.pak</value>
@@ -776,6 +829,7 @@
   <data name="PakDiff_ColumnSourcePak" xml:space="preserve"><value>PAK de origem</value></data>
   <data name="PakDiff_ExtractSelected" xml:space="preserve"><value>📦 Extrair selecionados</value></data>
   <data name="IFFManager_OpenArchive" xml:space="preserve"><value>Abrir arquivo</value></data>
+  <data name="IFFManager_OpenArchiveFilter" xml:space="preserve"><value>Arquivos IFF do PangYa (*.iff;*.zip)|*.iff;*.zip|Todos os arquivos (*.*)|*.*</value></data>
   <data name="IFFManager_Save" xml:space="preserve"><value>Salvar</value></data>
   <data name="IFFManager_Saved" xml:space="preserve"><value>IFF salvo com sucesso. Um backup foi criado.</value></data>
   <data name="IFFManager_InvalidValue" xml:space="preserve"><value>O valor é inválido para este campo.</value></data>
@@ -829,6 +883,16 @@
   <data name="IFFManager_MaximumValue" xml:space="preserve"><value>Valor máximo:</value></data>
   <data name="IFFManager_BitMask" xml:space="preserve"><value>Máscara de bits:</value></data>
   <data name="IFFManager_BitShift" xml:space="preserve"><value>Deslocamento de bits:</value></data>
+  <data name="IFFManager_ReferenceTargetFile" xml:space="preserve"><value>IFF de referência:</value></data>
+  <data name="IFFManager_ReferenceTargetKeyField" xml:space="preserve"><value>Campo-chave da referência:</value></data>
+  <data name="IFFManager_ReferenceDisplayField" xml:space="preserve"><value>Campo de exibição:</value></data>
+  <data name="IFFManager_ReferenceIconField" xml:space="preserve"><value>Campo do ícone:</value></data>
+  <data name="IFFManager_ReferenceIconPath" xml:space="preserve"><value>Caminho do ícone:</value></data>
+  <data name="IFFManager_FieldIconPath" xml:space="preserve"><value>Caminho do ícone do campo:</value></data>
+  <data name="IFFManager_FieldSoundPath" xml:space="preserve"><value>Caminho do som do campo:</value></data>
+  <data name="IFFManager_PlaySound" xml:space="preserve"><value>Reproduzir</value></data>
+  <data name="IFFManager_SoundFileNotFound" xml:space="preserve"><value>O arquivo de som não pôde ser encontrado na pasta de dados selecionada.</value></data>
+  <data name="IFFManager_ReferencePickerEnabled" xml:space="preserve"><value>Ativar seletor de referência</value></data>
   <data name="IFFManager_ShowRawRecord" xml:space="preserve"><value>Mostrar registro bruto</value></data>
   <data name="IFFManager_UnrepresentedBytes" xml:space="preserve"><value>Bytes não representados: {0} / {1}</value></data>
   <data name="IFFManager_FieldVisible" xml:space="preserve"><value>Exibir campo</value></data>
@@ -849,6 +913,40 @@
   <data name="IFFManager_ByteValue" xml:space="preserve"><value>Valor do byte</value></data>
   <data name="IFFManager_DefineColumn" xml:space="preserve"><value>Definir coluna</value></data>
   <data name="IFFManager_SelectContiguousBytes" xml:space="preserve"><value>Selecione um intervalo contínuo de bytes.</value></data>
+  <data name="IFFManager_SelectedRawValueLabel" xml:space="preserve"><value>Valor:</value></data>
+  <data name="IFFManager_SelectedRawValue" xml:space="preserve"><value>Nenhum byte selecionado</value></data>
+  <data name="IFFManager_SelectedRawValueFormat" xml:space="preserve"><value>Deslocamento {0}, {1} byte(s): {2}</value></data>
+  <data name="IFFManager_ClearSelection" xml:space="preserve"><value>Limpar seleção</value></data>
+  <data name="IFFManager_RawRecord" xml:space="preserve"><value>Registro bruto</value></data>
+  <data name="IFFManager_FormView" xml:space="preserve"><value>Visualização de formulário</value></data>
+  <data name="IFFManager_GridView" xml:space="preserve"><value>Visualização em grade</value></data>
+  <data name="IFFManager_FormTabGeneral" xml:space="preserve"><value>Campos</value></data>
+  <data name="IFFManager_FormNew" xml:space="preserve"><value>Novo</value></data>
+  <data name="IFFManager_FormDelete" xml:space="preserve"><value>Excluir</value></data>
+  <data name="IFFManager_FormCopy" xml:space="preserve"><value>Copiar</value></data>
+  <data name="IFFManager_FormApply" xml:space="preserve"><value>Aplicar</value></data>
+  <data name="IFFManager_FormUpdate" xml:space="preserve"><value>Atualizar</value></data>
+  <data name="IFFManager_FormRecordSearch" xml:space="preserve"><value>Pesquisar registros...</value></data>
+  <data name="IFFManager_FormRecordFormat" xml:space="preserve"><value>#{0} {1}</value></data>
+  <data name="IFFManager_FormRecordNameFormat" xml:space="preserve"><value>#{0} {1} - {2}</value></data>
+  <data name="IFFManager_FormUnsavedChanges" xml:space="preserve"><value>Aplicar alterações ao registro atual antes de trocar de registro?</value></data>
+  <data name="IFFManager_SetItemsPreview" xml:space="preserve"><value>Itens do conjunto</value></data>
+  <data name="IFFManager_SetItemPreviewDetails" xml:space="preserve"><value>Slot {0} · ID {1} · Quantidade {2}</value></data>
+  <data name="IFFManager_SetItemMissingItem" xml:space="preserve"><value>Referência não encontrada em Item.iff</value></data>
+  <data name="IFFManager_SetItemMissingIcon" xml:space="preserve"><value>Ícone não encontrado</value></data>
+  <data name="IFFManager_SelectSetItem" xml:space="preserve"><value>Selecionar item do conjunto</value></data>
+  <data name="IFFManager_ItemId" xml:space="preserve"><value>ID do item</value></data>
+  <data name="IFFManager_ItemName" xml:space="preserve"><value>Nome</value></data>
+  <data name="IFFManager_ReferencesPreview" xml:space="preserve"><value>Referências</value></data>
+  <data name="IFFManager_ReferenceDetailsFormat" xml:space="preserve"><value>{0} · ID {1} · {2}</value></data>
+  <data name="IFFManager_ReferenceMissingRecord" xml:space="preserve"><value>Referência não encontrada</value></data>
+  <data name="IFFManager_ReferenceMissingRecordFormat" xml:space="preserve"><value>Referência {0} ausente</value></data>
+  <data name="IFFManager_SelectReferenceFormat" xml:space="preserve"><value>Selecionar referência de {0}</value></data>
+  <data name="IFFManager_LinkedIff" xml:space="preserve"><value>IFF vinculado</value></data>
+  <data name="IFFManager_ItemType" xml:space="preserve"><value>Tipo</value></data>
+  <data name="IFFManager_Character" xml:space="preserve"><value>Personagem</value></data>
+  <data name="IFFManager_DataFolder" xml:space="preserve"><value>Pasta data</value></data>
+  <data name="IFFManager_DataFolderNotSelected" xml:space="preserve"><value>Nenhuma pasta data selecionada</value></data>
   <data name="PakMaker_BatchFolderStructureTitle" xml:space="preserve"><value>Estrutura de pastas da extração em lote</value></data>
   <data name="PakMaker_BatchFolderStructureChoice" xml:space="preserve"><value>Criar uma pasta separada para cada PAK?
 
@@ -900,4 +998,25 @@ Cancelar: Interromper a extração.</value></data>
   <data name="Shop_FlagShowHot" xml:space="preserve"><value>Mostrar Hot</value></data>
   <data name="Shop_FlagShowSpecial" xml:space="preserve"><value>Mostrar Especial</value></data>
   <data name="Shop_FlagUnknown" xml:space="preserve"><value>Desconhecido (0x{0:X2})</value></data>
+  <data name="UpdateList_DecryptionSuccessFormat" xml:space="preserve"><value>✅ [SUCESSO] Descriptografado com a chave [{0}]!</value></data>
+  <data name="UpdateList_Scanning" xml:space="preserve"><value>Varrendo...</value></data>
+  <data name="UpdateList_Done" xml:space="preserve"><value>Pronto!</value></data>
+  <data name="UpdateList_ErrorLogFormat" xml:space="preserve"><value>❌ [ERRO] {0}</value></data>
+  <data name="UpdateList_ErrorStatus" xml:space="preserve"><value>Erro.</value></data>
+  <data name="UpdateList_SourceLogFormat" xml:space="preserve"><value>📂 Origem: {0}</value></data>
+  <data name="UpdateList_DestinationLogFormat" xml:space="preserve"><value>🌐 Destino: {0}</value></data>
+  <data name="UpdateList_KeyLogFormat" xml:space="preserve"><value>🔑 Chave: {0}</value></data>
+  <data name="UpdateList_VersionLogFormat" xml:space="preserve"><value>🏷  Versão: {0} | Patch #{1}</value></data>
+  <data name="UpdateList_ScanningFiles" xml:space="preserve"><value>Varrendo arquivos...</value></data>
+  <data name="UpdateList_ExistingLoadedFormat" xml:space="preserve"><value>📋 Updatelist existente carregado: {0} arquivos</value></data>
+  <data name="UpdateList_ExistingLoadFailedFormat" xml:space="preserve"><value>⚠️ Não foi possível carregar o updatelist existente: {0}</value></data>
+  <data name="UpdateList_ScanningProgressFormat" xml:space="preserve"><value>Varrendo ({0}/{1})</value></data>
+  <data name="UpdateList_NewFileFormat" xml:space="preserve"><value>  ➕ [NOVO] {0}</value></data>
+  <data name="UpdateList_ChangedFileFormat" xml:space="preserve"><value>  🔄 [ALTERADO] {0} (CRC: {1:X8} → {2:X8})</value></data>
+  <data name="UpdateList_DeltaSummaryFormat" xml:space="preserve"><value>📊 Resumo Delta: ➕ {0} novos | 🔄 {1} alterados | ✅ {2} sem alteração</value></data>
+  <data name="UpdateList_GeneratedAtFormat" xml:space="preserve"><value>✅ [PRONTO] updatelist gerado em: {0}</value></data>
+  <data name="UpdateList_InvalidSourceFolder" xml:space="preserve"><value>A pasta de origem do Pangya é inválida.</value></data>
+  <data name="UpdateList_InvalidDestinationFolder" xml:space="preserve"><value>A pasta do WebServer de destino é inválida.</value></data>
+  <data name="UpdateList_PatchVersionRequired" xml:space="preserve"><value>Por favor, preencha a Versão do Patch.</value></data>
+  <data name="IFFManager_DefaultLongStringSize" xml:space="preserve"><value>Tamanho padrão de string longa:</value></data>
 </root>

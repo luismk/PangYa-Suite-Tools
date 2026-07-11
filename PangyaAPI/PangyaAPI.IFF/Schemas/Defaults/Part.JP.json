@@ -4,6 +4,69 @@
   "region": "JP",
   "minimumRecordSize": 560,
   "isEditable": true,
+  "ui": {
+    "tabs": [
+      {
+        "name": "Basic Info",
+        "fields": [
+          { "field": "Enabled", "label": "Active", "editor": "checkbox", "order": 0 },
+          { "field": "Name", "label": "Name", "editor": "text", "order": 1 },
+          { "field": "ItemId", "label": "ID", "editor": "numeric", "order": 2 },
+          { "field": "Icon", "label": "Icon", "editor": "text", "order": 3 },
+          { "field": "Price", "label": "Price", "editor": "numeric", "order": 4 },
+          { "field": "DiscountPrice", "label": "Discount", "editor": "numeric", "order": 5 },
+          { "field": "UsedPrice", "label": "Used Price", "editor": "numeric", "order": 6 },
+          { "field": "IsCash", "label": "Cash", "editor": "checkbox", "order": 7 },
+          { "field": "StartDate", "label": "Start Sell", "editor": "datetime", "order": 8 },
+          { "field": "EndDate", "label": "End Sell", "editor": "datetime", "order": 9 },
+          { "field": "TimeFlag", "label": "Time Active", "editor": "checkbox", "order": 10 },
+          { "field": "Time", "label": "Time", "editor": "numeric", "order": 11 }
+        ]
+      },
+      {
+        "name": "TikiShop",
+        "fields": [
+          { "field": "InStock", "label": "In Stock", "editor": "checkbox", "order": 0 },
+          { "field": "ShowNew", "label": "Item New", "editor": "checkbox", "order": 1 },
+          { "field": "DisplayOnly", "label": "Display Only", "editor": "checkbox", "order": 2 },
+          { "field": "ShowHot", "label": "Item Hot", "editor": "checkbox", "order": 3 },
+          { "field": "ShowSpecial", "label": "Item Special", "editor": "checkbox", "order": 4 },
+          { "field": "Point", "label": "Point", "editor": "numeric", "order": 5 }
+        ]
+      },
+      {
+        "name": "Part",
+        "fields": [
+          { "field": "Character Serial", "label": "Character", "editor": "numeric", "order": 0 },
+          { "field": "Position", "label": "Position", "editor": "numeric", "order": 1 },
+          { "field": "Group", "label": "Group", "editor": "numeric", "order": 2 },
+          { "field": "Type", "label": "Type", "editor": "numeric", "order": 3 },
+          { "field": "Serial", "label": "Serial", "editor": "numeric", "order": 4 }
+        ]
+      },
+      {
+        "name": "Desc Info",
+        "fields": [
+          { "field": "SecondaryIcon", "label": "Secondary Icon", "editor": "text", "order": 0 }
+        ]
+      },
+      {
+        "name": "Ability Info",
+        "fields": [
+          { "field": "LevelFlags", "label": "Level Flags", "editor": "numeric", "order": 0 },
+          { "field": "ShopFlags", "label": "Shop Flags", "editor": "numeric", "order": 1 },
+          { "field": "MoneyFlags", "label": "Money Flags", "editor": "numeric", "order": 2 },
+          { "field": "CanSendMailAndPersonalShop", "label": "Mail / Personal Shop", "editor": "checkbox", "order": 3 },
+          { "field": "CanDuplicate", "label": "Can Duplicate", "editor": "checkbox", "order": 4 },
+          { "field": "ShopSpecial", "label": "Shop Special", "editor": "checkbox", "order": 5 },
+          { "field": "BlockMailAndPersonalShop", "label": "Block Mail / Shop", "editor": "checkbox", "order": 6 },
+          { "field": "IsSaleable", "label": "Saleable", "editor": "checkbox", "order": 7 },
+          { "field": "IsGift", "label": "Gift", "editor": "checkbox", "order": 8 },
+          { "field": "OnlyDisplay", "label": "Only Display", "editor": "checkbox", "order": 9 }
+        ]
+      }
+    ]
+  },
   "fields": [
     {
       "name": "Enabled",

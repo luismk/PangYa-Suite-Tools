@@ -9,7 +9,7 @@ namespace PangYa_Suite_Tools;
 
 public partial class FrmIFFManager : Form
 {
-    private sealed record RegionOption(string Label, string? Region);
+    private sealed record RegionOption(string Label, string? Region, string? DetectedRegion = null);
     private sealed record ContainerKeyOption(string Label, IffContainerSaveOptions SaveOptions);
     private const string LogSource = "IFF Editor";
     private bool _initializingLanguages = true;
@@ -32,6 +32,18 @@ public partial class FrmIFFManager : Form
     private bool _initializingContainerKeys = true;
     private bool _containerEncodingDirty;
     private IffContainerSaveOptions? _selectedSaveOptions;
+    private IffFormRecordEditor? _formEditor;
+    private string? _dataRootOverride;
+    private bool _showFormView = true;
+    private ToolStrip? _editorToolbar;
+    private ToolStripButton? _toolbarOpenArchive;
+    private ToolStripButton? _toolbarSave;
+    private ToolStripButton? _toolbarAddRow;
+    private ToolStripButton? _toolbarDeleteRows;
+    private ToolStripButton? _toolbarManageSchema;
+    private ToolStripButton? _toolbarRawRecord;
+    private ToolStripButton? _toolbarFormView;
+    private ToolStripButton? _toolbarGridView;
 
     private IReadOnlyList<IffField> VisibleFields => _visibleFields;
 
@@ -43,12 +55,16 @@ public partial class FrmIFFManager : Form
         : IffStringEncodingPreferences.GetEncoding(IffStringEncodingPreferences.DefaultCodePage);
 
     private string? SelectedSchemaRegion => cboRegion.SelectedItem is RegionOption option ? option.Region : null;
+    private string? SelectedDetectedRegion => cboRegion.SelectedItem is RegionOption option
+        ? option.DetectedRegion
+        : null;
 
     public FrmIFFManager()
     {
         InitializeComponent();
         _schemaProvider = IffSchemaPreferences.CreateProvider();
         ConfigureGrid();
+        ConfigureEditorToolbar();
         RefreshContainerKeyComboBox();
         InitializeEncodingComboBox();
         InitializeRegionComboBox();
@@ -73,7 +89,6 @@ public partial class FrmIFFManager : Form
         gridRecords.CellValueNeeded += GridRecords_CellValueNeeded;
         gridRecords.CellValuePushed += GridRecords_CellValuePushed;
         gridRecords.CellPainting += GridRecords_CellPainting;
-        gridRecords.CellDoubleClick += GridRecords_CellDoubleClick;
         gridRecords.MouseWheel += GridRecords_MouseWheel;
         gridRecords.DataError += (_, e) =>
         {
@@ -84,7 +99,10 @@ public partial class FrmIFFManager : Form
                 MessageBoxButtons.OK, MessageBoxIcon.Error);
         };
         gridRecords.SelectionChanged += (_, _) =>
+        {
             btnDeleteRows.Enabled = CanEditDocument && gridRecords.SelectedRows.Count > 0;
+            UpdateToolbarState();
+        };
     }
 
     private void RefreshContainerKeyComboBox(bool preserveSelection = false)
@@ -168,18 +186,25 @@ public partial class FrmIFFManager : Form
         _initializingEncodings = false;
     }
 
-    private void InitializeRegionComboBox() => RefreshRegionComboBox(null);
+    private void InitializeRegionComboBox() => RefreshRegionComboBox(null, null);
 
-    private void RefreshRegionComboBox(string? selectedRegion)
+    private void RefreshRegionComboBox(string? selectedRegion, string? detectedRegion = null)
     {
+        if (string.IsNullOrWhiteSpace(detectedRegion) ||
+            string.Equals(detectedRegion, "Unknown", StringComparison.OrdinalIgnoreCase))
+            detectedRegion = null;
         _initializingRegions = true;
         cboRegion.Items.Clear();
         cboRegion.ComboBox.DisplayMember = nameof(RegionOption.Label);
         cboRegion.Items.Add(new RegionOption(Strings.IFFManager_RegionAuto, null));
         cboRegion.Items.Add(new RegionOption(Strings.IFFManager_RegionThailand, "TH"));
         cboRegion.Items.Add(new RegionOption(Strings.IFFManager_RegionJapan, "JP"));
+        if (detectedRegion is not null)
+            cboRegion.Items.Add(new RegionOption(detectedRegion, null, detectedRegion));
         cboRegion.SelectedItem = cboRegion.Items.Cast<RegionOption>()
-            .First(option => string.Equals(option.Region, selectedRegion, StringComparison.OrdinalIgnoreCase));
+            .First(option => detectedRegion is not null
+                ? string.Equals(option.DetectedRegion, detectedRegion, StringComparison.OrdinalIgnoreCase)
+                : string.Equals(option.Region, selectedRegion, StringComparison.OrdinalIgnoreCase));
         _initializingRegions = false;
     }
 
@@ -220,6 +245,7 @@ public partial class FrmIFFManager : Form
     private void ApplyLocalization()
     {
         string? selectedRegion = SelectedSchemaRegion;
+        string? detectedRegion = SelectedDetectedRegion;
         Text = Strings.Iff_Title;
         lblIffDir.Text = Strings.Iff_Directory;
         btnBrowseIffDir.Text = Strings.Iff_Browse;
@@ -228,15 +254,106 @@ public partial class FrmIFFManager : Form
         btnAddRow.Text = Strings.IFFManager_AddRow;
         btnDeleteRows.Text = Strings.IFFManager_DeleteRows;
         btnAddColumn.Text = Strings.IFFManager_ManageColumns;
+        UpdateToolbarText();
         lblContainerKey.Text = Strings.IFFManager_ContainerKey;
         grpIffFiles.Text = Strings.Iff_Files;
         lblLanguage.Text = Strings.Common_Language;
         lblStringEncoding.Text = Strings.IFFManager_StringEncoding;
         lblRegion.Text = Strings.IFFManager_Region;
-        RefreshRegionComboBox(selectedRegion);
+        RefreshRegionComboBox(selectedRegion, detectedRegion);
         RefreshContainerKeyComboBox(preserveSelection: true);
         UpdateSchemaCoverageLabel();
         if (_document is null) lblStatus.Text = Strings.IFFManager_ReadySelectTheIFFFilesDirectory;
+    }
+
+    private void ConfigureEditorToolbar()
+    {
+        btnOpenArchive.Visible = false;
+        btnSave.Visible = false;
+        btnAddRow.Visible = false;
+        btnDeleteRows.Visible = false;
+        btnAddColumn.Visible = false;
+
+        _editorToolbar = new ToolStrip
+        {
+            Name = "iffEditorToolbar",
+            GripStyle = ToolStripGripStyle.Hidden,
+            ImageScalingSize = new Size(24, 24),
+            AutoSize = false,
+            Height = 44,
+            Location = new Point(8, 47),
+            Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right
+        };
+        _editorToolbar.Width = pnlTopBar.ClientSize.Width - 16;
+
+        _toolbarOpenArchive = CreateToolbarButton(Strings.IFFManager_OpenArchive, SystemIcons.Application.ToBitmap(),
+            (_, _) => btnOpenArchive_Click(btnOpenArchive, EventArgs.Empty));
+        _toolbarSave = CreateToolbarButton(Strings.IFFManager_Save, SystemIcons.Shield.ToBitmap(),
+            (_, _) => btnSave_Click(btnSave, EventArgs.Empty));
+        _toolbarAddRow = CreateToolbarButton(Strings.IFFManager_AddRow, SystemIcons.Information.ToBitmap(),
+            (_, _) => btnAddRow_Click(btnAddRow, EventArgs.Empty));
+        _toolbarDeleteRows = CreateToolbarButton(Strings.IFFManager_DeleteRows, SystemIcons.Error.ToBitmap(),
+            (_, _) =>
+            {
+                if (_showFormView) DeleteSelectedFormRecord();
+                else btnDeleteRows_Click(btnDeleteRows, EventArgs.Empty);
+            });
+        _toolbarManageSchema = CreateToolbarButton(Strings.IFFManager_ManageColumns, SystemIcons.WinLogo.ToBitmap(),
+            (_, _) => btnAddColumn_Click(btnAddColumn, EventArgs.Empty));
+        _toolbarRawRecord = CreateToolbarButton(Strings.IFFManager_RawRecord, SystemIcons.Application.ToBitmap(),
+            async (_, _) => await OpenRawRecordWindowAsync());
+        _toolbarFormView = CreateToolbarButton(Strings.IFFManager_FormView, SystemIcons.Question.ToBitmap(),
+            (_, _) => SetEditorView(showFormView: true));
+        _toolbarGridView = CreateToolbarButton(Strings.IFFManager_GridView, SystemIcons.Asterisk.ToBitmap(),
+            (_, _) => SetEditorView(showFormView: false));
+        _toolbarFormView.CheckOnClick = true;
+        _toolbarGridView.CheckOnClick = true;
+
+        _editorToolbar.Items.AddRange([
+            _toolbarOpenArchive,
+            _toolbarSave,
+            new ToolStripSeparator(),
+            _toolbarAddRow,
+            _toolbarDeleteRows,
+            _toolbarManageSchema,
+            _toolbarRawRecord,
+            new ToolStripSeparator(),
+            _toolbarFormView,
+            _toolbarGridView
+        ]);
+        pnlTopBar.Controls.Add(_editorToolbar);
+        pnlTopBar.Resize += (_, _) =>
+        {
+            if (_editorToolbar is not null) _editorToolbar.Width = pnlTopBar.ClientSize.Width - 16;
+        };
+        UpdateToolbarState();
+    }
+
+    private static ToolStripButton CreateToolbarButton(string text, Image image, EventHandler handler)
+    {
+        var button = new ToolStripButton(text, image)
+        {
+            DisplayStyle = ToolStripItemDisplayStyle.ImageAndText,
+            TextImageRelation = TextImageRelation.ImageAboveText,
+            AutoSize = false,
+            Width = 88,
+            Height = 42
+        };
+        button.Click += handler;
+        return button;
+    }
+
+    private void UpdateToolbarText()
+    {
+        if (_toolbarOpenArchive is null) return;
+        _toolbarOpenArchive.Text = Strings.IFFManager_OpenArchive;
+        _toolbarSave!.Text = Strings.IFFManager_Save;
+        _toolbarAddRow!.Text = Strings.IFFManager_AddRow;
+        _toolbarDeleteRows!.Text = Strings.IFFManager_DeleteRows;
+        _toolbarManageSchema!.Text = Strings.IFFManager_ManageColumns;
+        _toolbarRawRecord!.Text = Strings.IFFManager_RawRecord;
+        _toolbarFormView!.Text = Strings.IFFManager_FormView;
+        _toolbarGridView!.Text = Strings.IFFManager_GridView;
     }
 
     private void btnBrowseIffDir_Click(object sender, EventArgs e)
@@ -263,12 +380,13 @@ public partial class FrmIFFManager : Form
     private async void btnOpenArchive_Click(object sender, EventArgs e)
     {
         AppLogger.Instance.Log(LogSource, "Open archive button clicked.");
-        using var dialog = new OpenFileDialog { Filter = "PangYa IFF (*.iff;*.zip)|*.iff;*.zip|All files (*.*)|*.*" };
+        using var dialog = FileDialogFactory.CreateIffOpenDialog();
         if (dialog.ShowDialog() != DialogResult.OK)
         {
             AppLogger.Instance.Log(LogSource, "Archive selection was cancelled.", AppLogLevel.Warning);
             return;
         }
+        FileDialogFactory.RememberDirectory(FileDialogKind.Iff, dialog.FileName);
 
         if (!ConfirmDiscard())
         {
@@ -360,6 +478,7 @@ public partial class FrmIFFManager : Form
 
     private async Task LoadEntryAsync(IffContainerEntry entry, CancellationToken token)
     {
+        string? selectedRegion = SelectedSchemaRegion;
         ClearDocument();
         _entry = entry;
         _documentStringEncoding = SelectedStringEncoding;
@@ -377,11 +496,10 @@ public partial class FrmIFFManager : Form
         }
         await using Stream stream = await entry.OpenAsync(token);
         await using IffReader reader = IffReader.Open(stream, Path.GetFileName(entry.Name),
-            new(SchemaProvider: _schemaProvider,
-                SchemaRegion: _container?.FileNameRegion ?? SelectedSchemaRegion));
+            new(SchemaProvider: _schemaProvider, SchemaRegion: selectedRegion,
+                FallbackSchemaRegion: _container?.FileNameRegion));
         _document = reader.Info;
-        string detectedRegion = _document.Region;
-        if (detectedRegion is "TH" or "JP") RefreshRegionComboBox(detectedRegion);
+        RefreshRegionComboBox(selectedRegion, selectedRegion is null ? _document.Region : null);
         if (!string.IsNullOrEmpty(_document.SchemaWarning))
         {
             AppLogger.Instance.Log(LogSource, _document.SchemaWarning, AppLogLevel.Warning);
@@ -389,15 +507,130 @@ public partial class FrmIFFManager : Form
                 Strings.IFFManager_Warning, MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
         await foreach (IffRecord record in reader.ReadRecordsAsync(token)) _records.Add(record);
-        BuildColumns();
+        await RefreshSchemaViewAsync(token);
         lblNoFileSelected.Visible = false;
-        gridRecords.Visible = true;
+        SetEditorView(_showFormView);
         btnSave.Enabled = _document.Schema?.IsEditable == true;
         btnAddRow.Enabled = _document.Schema?.IsEditable == true;
         btnAddColumn.Enabled = true;
+        UpdateToolbarState();
         lblStatus.Text = $"{Strings.IFFManager_EditingStructureOf} {entry.Name} — {_document.Region}, {_records.Count} records, {_document.RecordSize} bytes";
         AppLogger.Instance.Log(LogSource,
             $"Loaded '{entry.Name}' using {_documentStringEncoding.EncodingName}: region {_document.Region}, {_records.Count} records, {_document.RecordSize} bytes per record.");
+    }
+
+    private void EnsureFormEditor()
+    {
+        if (_formEditor is not null) return;
+        _formEditor = new IffFormRecordEditor { Visible = false };
+        _formEditor.AddRequested += (_, _) => btnAddRow_Click(btnAddRow, EventArgs.Empty);
+        _formEditor.DeleteRequested += (_, _) => DeleteSelectedFormRecord();
+        _formEditor.CopyRequested += (_, _) => CopySelectedFormRecord();
+        _formEditor.SaveRequested += (_, _) => btnSave_Click(btnSave, EventArgs.Empty);
+        _formEditor.DataRootChangeRequested += path => _ = ChangeDataRootAsync(path);
+        _formEditor.Applied += (_, _) =>
+        {
+            gridRecords.Invalidate();
+            UpdateDirtyState();
+        };
+        pnlEditorContainer.Controls.Add(_formEditor);
+        _formEditor.BringToFront();
+    }
+
+    private void LoadFormEditor()
+    {
+        if (_document is null) return;
+        EnsureFormEditor();
+        _formEditor!.LoadDocument(_document, _records, _documentStringEncoding);
+        _formEditor.SetDataRootPath(_dataRootOverride);
+    }
+
+    private async Task ChangeDataRootAsync(string dataRoot)
+    {
+        _dataRootOverride = dataRoot;
+        if (_formEditor is not null) _formEditor.SetDataRootPath(dataRoot);
+        if (_document is null) return;
+
+        using CancellationTokenSource tokenSource = new();
+        await ConfigureReferenceResolverAsync(tokenSource.Token);
+    }
+
+    private async Task ConfigureReferenceResolverAsync(CancellationToken token)
+    {
+        if (_formEditor is null || _document is null)
+        {
+            return;
+        }
+
+        _formEditor.SetReferenceResolver(null);
+        if (!IffReferenceResolver.Supports(_document))
+        {
+            _formEditor.SetDataRootPath(_dataRootOverride);
+            return;
+        }
+
+        try
+        {
+            IIffReferenceResolver? resolver = await IffReferenceResolver.CreateAsync(
+                _document,
+                _container,
+                _directoryPath,
+                txtIffDirectory.Text,
+                _document.Region,
+                _documentStringEncoding,
+                _schemaProvider,
+                token,
+                _dataRootOverride);
+            _formEditor.SetReferenceResolver(resolver);
+            if (resolver is null) _formEditor.SetDataRootPath(_dataRootOverride);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidDataException
+            or ArgumentException or NotSupportedException)
+        {
+            AppLogger.Instance.Log(LogSource, $"Could not prepare IFF reference previews: {ex.Message}", AppLogLevel.Warning);
+            _formEditor.SetReferenceResolver(null);
+        }
+    }
+
+    private async Task RefreshSchemaViewAsync(CancellationToken token)
+    {
+        BuildColumns();
+        LoadFormEditor();
+        await ConfigureReferenceResolverAsync(token);
+    }
+
+    private void RefreshFormEditor(bool selectLast = false)
+    {
+        if (_formEditor is null) return;
+        _formEditor.RefreshRecords();
+        if (selectLast) _formEditor.SelectLastRecord();
+    }
+
+    private void SetEditorView(bool showFormView)
+    {
+        _showFormView = showFormView;
+        if (_document is null)
+        {
+            gridRecords.Visible = false;
+            if (_formEditor is not null) _formEditor.Visible = false;
+            lblNoFileSelected.Visible = true;
+        }
+        else
+        {
+            EnsureFormEditor();
+            lblNoFileSelected.Visible = false;
+            _formEditor!.Visible = showFormView;
+            gridRecords.Visible = !showFormView;
+            if (showFormView)
+            {
+                _formEditor.RefreshRecords();
+                _formEditor.BringToFront();
+            }
+            else gridRecords.BringToFront();
+        }
+        if (_toolbarFormView is not null) _toolbarFormView.Checked = showFormView;
+        if (_toolbarGridView is not null) _toolbarGridView.Checked = !showFormView;
+        UpdateToolbarState();
     }
 
     private void BuildColumns()
@@ -405,7 +638,8 @@ public partial class FrmIFFManager : Form
         _visibleFields.Clear();
         if (_document?.Schema is { } schema)
         {
-            _visibleFields.AddRange(schema.Fields.Where(field => field.IsVisible));
+            _visibleFields.AddRange(schema.Fields.Where(field =>
+                field.IsVisible && !IffSchemaCoverage.IsCatchAllRawRecord(field, _document.RecordSize)));
         }
         gridRecords.Columns.Clear();
         gridRecords.Columns.Add(new DataGridViewTextBoxColumn { Name = "Record", HeaderText = "#", ReadOnly = true, Width = 70, Resizable = DataGridViewTriState.True });
@@ -466,17 +700,13 @@ public partial class FrmIFFManager : Form
         catch (Exception ex) { ShowError(ex); gridRecords.InvalidateRow(e.RowIndex); }
     }
 
-    private void GridRecords_CellDoubleClick(object? sender, DataGridViewCellEventArgs e)
+    private async Task SaveRawFieldAsync(IffSchema schema, IffFieldDefinition selectedField,
+        int selectedRecordIndex)
     {
-        if (e.RowIndex < 0 || e.RowIndex >= _records.Count || e.ColumnIndex <= 0 ||
-            e.ColumnIndex > VisibleFields.Count || _document?.Schema is not { } schema) return;
-        IffField field = VisibleFields[e.ColumnIndex - 1];
-        if (field.Type != IffFieldType.Raw) return;
-        using var dialog = new RawRecordColumnDialog(_document.RecordSize, field,
-            _records[e.RowIndex].Bytes, schema.DefaultStringSize);
-        if (dialog.ShowDialog(this) != DialogResult.OK) return;
+        if (_document is null) return;
         IffSchemaDefinition current = IffSchemaJson.FromSchema(_document.FileName, _document.Region, schema);
-        if (current.Fields.Any(existing => existing.Name.Equals(dialog.SelectedField.Name,
+        List<IffFieldDefinition> fields = RemoveCatchAllRawFields(current.Fields, _document.RecordSize).ToList();
+        if (fields.Any(existing => existing.Name.Equals(selectedField.Name,
             StringComparison.OrdinalIgnoreCase)))
         {
             MessageBox.Show(Strings.IFFManager_DuplicateColumnName, Strings.IFFManager_Error,
@@ -485,10 +715,7 @@ public partial class FrmIFFManager : Form
         }
         try
         {
-            int rawIndex = current.Fields.ToList().FindIndex(existing =>
-                existing.Name.Equals(field.Name, StringComparison.OrdinalIgnoreCase));
-            var fields = current.Fields.ToList();
-            fields.Insert(rawIndex < 0 ? fields.Count : rawIndex, dialog.SelectedField);
+            fields = AddFieldFromRawRecordWindow(fields, _document.RecordSize, selectedField).ToList();
             IffSchemaDefinition updated = current with { Fields = fields };
             IffSchemaJson.ValidateDefinition(updated, _document.RecordSize);
             _schemaProvider.Save(updated);
@@ -497,12 +724,24 @@ public partial class FrmIFFManager : Form
                 Schema = IffSchemaJson.ToSchema(updated, _document.RecordSize),
                 SchemaWarning = null
             };
-            BuildColumns();
+            await RefreshSchemaViewAsync(CancellationToken.None);
+            SelectRecordIndex(selectedRecordIndex);
             lblStatus.Text = Strings.IFFManager_Saved;
         }
         catch (Exception ex) when (ex is InvalidDataException or IOException or UnauthorizedAccessException)
         {
             ShowError(ex);
+        }
+    }
+
+    private void SelectRecordIndex(int recordIndex)
+    {
+        if (recordIndex < 0 || recordIndex >= _records.Count) return;
+        if (_formEditor is not null) _formEditor.SelectRecord(recordIndex);
+        if (gridRecords.RowCount > recordIndex)
+        {
+            gridRecords.CurrentCell = gridRecords.Rows[recordIndex].Cells[0];
+            gridRecords.Rows[recordIndex].Selected = true;
         }
     }
 
@@ -577,7 +816,7 @@ public partial class FrmIFFManager : Form
         return palette[index % palette.Length];
     }
 
-    private void GridRecords_MouseWheel(object? sender, MouseEventArgs e)
+    private async void GridRecords_MouseWheel(object? sender, MouseEventArgs e)
     {
         bool changeOffset = ModifierKeys.HasFlag(Keys.Control);
         bool changeWidth = ModifierKeys.HasFlag(Keys.Alt);
@@ -624,7 +863,7 @@ public partial class FrmIFFManager : Form
                 Schema = IffSchemaJson.ToSchema(updated, _document.RecordSize),
                 SchemaWarning = null
             };
-            BuildColumns();
+            await RefreshSchemaViewAsync(CancellationToken.None);
             gridRecords.Columns[Math.Min(hit.ColumnIndex, gridRecords.Columns.Count - 1)].Selected = true;
             lblStatus.Text = Strings.IFFManager_Saved;
         }
@@ -710,6 +949,11 @@ public partial class FrmIFFManager : Form
     {
         try
         {
+            if (_showFormView && _formEditor?.HasPendingChanges == true && !_formEditor.ApplyChanges())
+            {
+                return false;
+            }
+
             if (gridRecords.IsCurrentCellInEditMode && !gridRecords.EndEdit())
             {
                 return false;
@@ -763,8 +1007,11 @@ public partial class FrmIFFManager : Form
     {
         _records.Clear(); _visibleFields.Clear(); _document = null; _entry = null; _structureDirty = false;
         gridRecords.RowCount = 0; gridRecords.Columns.Clear(); gridRecords.Visible = false;
+        _formEditor?.ClearDocument();
+        if (_formEditor is not null) _formEditor.Visible = false;
         lblSchemaCoverage.Visible = false;
         lblNoFileSelected.Visible = true; btnSave.Enabled = false; btnAddRow.Enabled = false; btnDeleteRows.Enabled = false; btnAddColumn.Enabled = false;
+        UpdateToolbarState();
     }
 
     private void UpdateDirtyState()
@@ -772,6 +1019,26 @@ public partial class FrmIFFManager : Form
         bool dirty = _structureDirty || _containerEncodingDirty || _records.Any(item => item.IsDirty);
         btnSave.Enabled = CanSaveDocument && !_isSaving;
         Text = Strings.Iff_Title + (dirty ? " *" : string.Empty);
+        UpdateToolbarState();
+    }
+
+    private void UpdateToolbarState()
+    {
+        if (_toolbarOpenArchive is null) return;
+        bool hasDocument = _document is not null;
+        bool canEdit = CanEditDocument;
+        _toolbarOpenArchive.Enabled = true;
+        _toolbarSave!.Enabled = CanSaveDocument && !_isSaving;
+        _toolbarAddRow!.Enabled = canEdit;
+        _toolbarDeleteRows!.Enabled = canEdit && (_showFormView
+            ? _formEditor?.SelectedRecordIndex >= 0
+            : gridRecords.SelectedRows.Count > 0);
+        _toolbarManageSchema!.Enabled = hasDocument;
+        _toolbarRawRecord!.Enabled = hasDocument && SelectedRecordIndex() >= 0;
+        _toolbarFormView!.Enabled = hasDocument;
+        _toolbarGridView!.Enabled = hasDocument;
+        _toolbarFormView.Checked = _showFormView;
+        _toolbarGridView.Checked = !_showFormView;
     }
 
     private void btnAddRow_Click(object sender, EventArgs e)
@@ -790,6 +1057,7 @@ public partial class FrmIFFManager : Form
         _structureDirty = true;
         gridRecords.RowCount = _records.Count;
         gridRecords.CurrentCell = gridRecords.Rows[^1].Cells[0];
+        RefreshFormEditor(selectLast: true);
         UpdateDirtyState();
         AppLogger.Instance.Log(LogSource, $"Added row {_records.Count - 1} to '{_entry?.Name}'.");
     }
@@ -809,16 +1077,74 @@ public partial class FrmIFFManager : Form
         foreach (int index in indices) _records.RemoveAt(index);
         _structureDirty = true;
         gridRecords.RowCount = _records.Count;
+        RefreshFormEditor();
         UpdateDirtyState();
         AppLogger.Instance.Log(LogSource, $"Deleted {indices.Length} rows from '{_entry?.Name}'.");
     }
 
-    private void btnAddColumn_Click(object sender, EventArgs e)
+    private void DeleteSelectedFormRecord()
+    {
+        AppLogger.Instance.Log(LogSource, "Delete form record button clicked.");
+        if (_formEditor is null || !CanEditDocument) return;
+        int index = _formEditor.SelectedRecordIndex;
+        if (index < 0 || index >= _records.Count) return;
+        _records.RemoveAt(index);
+        _structureDirty = true;
+        gridRecords.RowCount = _records.Count;
+        RefreshFormEditor();
+        UpdateDirtyState();
+        AppLogger.Instance.Log(LogSource, $"Deleted row {index} from '{_entry?.Name}'.");
+    }
+
+    private void CopySelectedFormRecord()
+    {
+        AppLogger.Instance.Log(LogSource, "Copy form record button clicked.");
+        if (_document is not { } document || _formEditor is null || !CanEditDocument) return;
+        int index = _formEditor.SelectedRecordIndex;
+        if (index < 0 || index >= _records.Count) return;
+        if (_records.Count >= ushort.MaxValue)
+        {
+            MessageBox.Show(Strings.IFFManager_MaximumRows, Strings.IFFManager_Error,
+                MessageBoxButtons.OK, MessageBoxIcon.Error);
+            return;
+        }
+
+        _records.Add(IffRecord.CreateCopy(_records.Count, _records[index].Bytes, document.Schema));
+        _structureDirty = true;
+        gridRecords.RowCount = _records.Count;
+        RefreshFormEditor(selectLast: true);
+        UpdateDirtyState();
+        AppLogger.Instance.Log(LogSource, $"Copied row {index} to {_records.Count - 1} in '{_entry?.Name}'.");
+    }
+
+    private int SelectedRecordIndex()
+    {
+        if (_showFormView) return _formEditor?.SelectedRecordIndex ?? -1;
+        if (gridRecords.CurrentCell?.RowIndex is int current && current >= 0 && current < _records.Count) return current;
+        return gridRecords.SelectedRows.Cast<DataGridViewRow>()
+            .Select(row => row.Index)
+            .FirstOrDefault(index => index >= 0 && index < _records.Count, -1);
+    }
+
+    private async Task OpenRawRecordWindowAsync()
+    {
+        if (_document?.Schema is not { } schema) return;
+        int recordIndex = SelectedRecordIndex();
+        if (recordIndex < 0 || recordIndex >= _records.Count) return;
+
+        using var dialog = new RawRecordColumnDialog(_document.RecordSize, _records[recordIndex].Bytes,
+            schema.DefaultStringSize, schema, _documentStringEncoding, schema.DefaultLongStringSize);
+        if (dialog.ShowDialog(this) != DialogResult.OK) return;
+        await SaveRawFieldAsync(schema, dialog.SelectedField, recordIndex);
+    }
+
+    private async void btnAddColumn_Click(object sender, EventArgs e)
     {
         if (_document?.Schema is not { } schema) return;
         IffSchemaDefinition current = IffSchemaJson.FromSchema(_document.FileName, _document.Region, schema);
         using var dialog = new IffSchemaManagerDialog(_document.RecordSize, current.Fields,
-            current.DefaultStringSize, IffSchemaPreferences.LoadTemplateSchemas());
+            current.DefaultStringSize, IffSchemaPreferences.LoadTemplateSchemas(), CurrentIffFileNames(),
+            current.DefaultLongStringSize);
         if (dialog.ShowDialog(this) != DialogResult.OK) return;
         if (dialog.Fields.Count == 0)
         {
@@ -832,20 +1158,53 @@ public partial class FrmIFFManager : Form
             var updated = current with
             {
                 IsEditable = true,
-                Fields = dialog.Fields.ToArray(),
-                DefaultStringSize = dialog.DefaultStringSize
+                Fields = RemoveCatchAllRawFields(dialog.Fields, _document.RecordSize).ToArray(),
+                DefaultStringSize = dialog.DefaultStringSize,
+                DefaultLongStringSize = dialog.DefaultLongStringSize
             };
             _schemaProvider.Save(updated);
             _document = _document with { Schema = IffSchemaJson.ToSchema(updated, _document.RecordSize), SchemaWarning = null };
-            BuildColumns();
+            await RefreshSchemaViewAsync(CancellationToken.None);
             btnSave.Enabled = true;
             btnAddRow.Enabled = true;
+            UpdateToolbarState();
             AppLogger.Instance.Log(LogSource, $"Saved JSON schema for '{_document.FileName}' ({_document.Region}).");
         }
         catch (Exception ex)
         {
             ShowError(ex);
         }
+    }
+
+    private IReadOnlyList<string> CurrentIffFileNames() =>
+        lstIffFiles.Items.Cast<object>()
+            .Select(Convert.ToString)
+            .Where(name => !string.IsNullOrWhiteSpace(name))
+            .Select(name => name!)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(name => name, StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+
+    private static IEnumerable<IffFieldDefinition> RemoveCatchAllRawFields(
+        IEnumerable<IffFieldDefinition> fields, int recordSize) =>
+        fields.Where(field => !(field.Type == IffFieldType.Raw && !field.IsEditable &&
+                                field.Offset == 0 && field.Width == recordSize &&
+                                field.Name.Equals("Raw record", StringComparison.OrdinalIgnoreCase)));
+
+    internal static IReadOnlyList<IffFieldDefinition> AddFieldFromRawRecordWindow(
+        IEnumerable<IffFieldDefinition> currentFields, int recordSize, IffFieldDefinition selectedField)
+    {
+        List<IffFieldDefinition> fields = RemoveCatchAllRawFields(currentFields, recordSize)
+            .Select((field, index) => (field, index))
+            .OrderBy(item => item.field.Offset)
+            .ThenBy(item => item.index)
+            .Select(item => item.field)
+            .ToList();
+        int insertIndex = fields.FindIndex(existing =>
+            existing.Offset > selectedField.Offset ||
+            existing.Offset == selectedField.Offset && existing.Width > selectedField.Width);
+        fields.Insert(insertIndex < 0 ? fields.Count : insertIndex, selectedField);
+        return fields;
     }
 
     private static void ShowError(Exception ex)

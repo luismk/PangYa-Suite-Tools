@@ -28,14 +28,68 @@ public sealed class JsonSchemaTests : IDisposable
         [
             new("Second", 4, 4, IffFieldType.FixedString, IsVisible: false),
             new("First", 0, 4, IffFieldType.UInt32, IsVisible: true)
-        ], DefaultStringSize: 7);
+        ], DefaultStringSize: 7, DefaultLongStringSize: 321);
 
         IffSchemaDefinition result = IffSchemaJson.Deserialize(IffSchemaJson.Serialize(definition));
 
         Assert.Equal(7, result.DefaultStringSize);
+        Assert.Equal(321, result.DefaultLongStringSize);
         Assert.Equal(["Second", "First"], result.Fields.Select(field => field.Name));
         Assert.False(result.Fields[0].IsVisible);
         Assert.True(result.Fields[1].IsVisible);
+    }
+
+    [Fact]
+    public void Json_RoundTripsOptionalFormMetadata()
+    {
+        var definition = new IffSchemaDefinition(1, "Data.iff", "JP", 16, true,
+        [
+            new("Name", 0, 8, IffFieldType.FixedString),
+            new("Active", 8, 1, IffFieldType.Boolean)
+        ], DefaultStringSize: 8, Ui: new IffSchemaUiDefinition(
+        [
+            new IffFormTabDefinition("Basic Info",
+            [
+                new IffFormFieldDefinition("Name", "Display Name", "text", Order: 1),
+                new IffFormFieldDefinition("Active", "Active", "checkbox", Order: 2)
+            ])
+        ]));
+
+        IffSchema schema = IffSchemaJson.ToSchema(IffSchemaJson.Deserialize(IffSchemaJson.Serialize(definition)), 16);
+
+        IffFormTabDefinition tab = Assert.Single(schema.Ui!.Tabs);
+        Assert.Equal("Basic Info", tab.Name);
+        Assert.Equal(["Name", "Active"], tab.Fields.Select(field => field.Field));
+        Assert.Equal("Display Name", tab.Fields[0].Label);
+    }
+
+    [Fact]
+    public void Json_RoundTripsOptionalReferenceMetadata()
+    {
+        var definition = new IffSchemaDefinition(1, "SetItem.iff", "TH", 8, true,
+        [
+            new("Item1", 0, 4, IffFieldType.ItemIdReference,
+                Reference: new IffFieldReferenceDefinition("Item.iff", "ItemId", "Name", "Icon",
+                    PickerEnabled: true)),
+            new("Icon", 4, 16, IffFieldType.Icon, IconPath: "ui/shop_myroom"),
+            new("Sound", 20, 16, IffFieldType.Sound, SoundPath: "sound/effect"),
+            new("Count", 36, 2, IffFieldType.UInt16)
+        ]);
+
+        IffSchema schema = IffSchemaJson.ToSchema(IffSchemaJson.Deserialize(IffSchemaJson.Serialize(definition)), 40);
+
+        Assert.Equal(IffFieldType.ItemIdReference, schema.Fields[0].Type);
+        IffFieldReference reference = schema.Fields[0].Reference!;
+        Assert.Equal("Item.iff", reference.TargetFile);
+        Assert.Equal("ItemId", reference.TargetKeyField);
+        Assert.Equal("Name", reference.DisplayField);
+        Assert.Equal("Icon", reference.IconField);
+        Assert.True(reference.PickerEnabled);
+        Assert.Equal(IffFieldType.Icon, schema.Fields[1].Type);
+        Assert.Equal("ui/shop_myroom", schema.Fields[1].IconPath);
+        Assert.Equal(IffFieldType.Sound, schema.Fields[2].Type);
+        Assert.Equal("sound/effect", schema.Fields[2].SoundPath);
+        Assert.Null(schema.Fields[3].Reference);
     }
 
     [Fact]
@@ -52,8 +106,20 @@ public sealed class JsonSchemaTests : IDisposable
         IffSchema schema = IffSchemaJson.ToSchema(IffSchemaJson.Deserialize(json), 4);
 
         Assert.Equal(4, schema.DefaultStringSize);
+        Assert.Equal(512, schema.DefaultLongStringSize);
+        Assert.Null(schema.Ui);
         Assert.True(schema.Fields[0].IsVisible);
         Assert.False(schema.Fields[1].IsVisible);
+        Assert.Null(schema.Fields[0].Reference);
+    }
+
+    [Fact]
+    public void EmbeddedPartSchema_ProvidesFormTabs()
+    {
+        IffSchema schema = new EmbeddedIffSchemaProvider().Resolve("Part.iff", "TH", 512).Schema!;
+
+        Assert.Equal(["Basic Info", "TikiShop", "Part", "Desc Info", "Ability Info"],
+            schema.Ui!.Tabs.Select(tab => tab.Name));
     }
 
     [Fact]
@@ -90,6 +156,75 @@ public sealed class JsonSchemaTests : IDisposable
             valid with { Fields = [valid.Fields[0] with { Offset = 8 }] }, 8));
         Assert.Throws<InvalidDataException>(() => IffSchemaJson.ValidateDefinition(
             valid with { Fields = [new("Flag", 0, 4, IffFieldType.BooleanBitField, BitMask: 3)] }, 8));
+        Assert.Throws<InvalidDataException>(() => IffSchemaJson.ValidateDefinition(
+            valid with { Fields = [new("Reference", 0, 4, IffFieldType.ItemIdReference)] }, 8));
+        Assert.Throws<InvalidDataException>(() => IffSchemaJson.ValidateDefinition(
+            valid with
+            {
+                Fields =
+                [
+                    new("Icon", 0, 4, IffFieldType.Icon, IconPath: @"..\ui")
+                ]
+            }, 8));
+        Assert.Throws<InvalidDataException>(() => IffSchemaJson.ValidateDefinition(
+            valid with
+            {
+                Fields =
+                [
+                    new("Icon", 0, 4, IffFieldType.Icon, IconPath: Path.GetFullPath("ui"))
+                ]
+            }, 8));
+        Assert.Throws<InvalidDataException>(() => IffSchemaJson.ValidateDefinition(
+            valid with
+            {
+                Fields =
+                [
+                    new("Name", 0, 4, IffFieldType.FixedString, IconPath: "ui")
+                ]
+            }, 8));
+        Assert.Throws<InvalidDataException>(() => IffSchemaJson.ValidateDefinition(
+            valid with
+            {
+                Fields =
+                [
+                    new("Sound", 0, 4, IffFieldType.Sound, SoundPath: @"..\sound")
+                ]
+            }, 8));
+        Assert.Throws<InvalidDataException>(() => IffSchemaJson.ValidateDefinition(
+            valid with
+            {
+                Fields =
+                [
+                    new("Sound", 0, 4, IffFieldType.Sound, SoundPath: Path.GetFullPath("sound"))
+                ]
+            }, 8));
+        Assert.Throws<InvalidDataException>(() => IffSchemaJson.ValidateDefinition(
+            valid with
+            {
+                Fields =
+                [
+                    new("Name", 0, 4, IffFieldType.FixedString, SoundPath: "sound")
+                ]
+            }, 8));
+    }
+
+    [Fact]
+    public void BitFields_CanOccupyOneToFourBytes()
+    {
+        IffSchemaDefinition valid = Schema("Item.iff", "TH", "Value");
+
+        foreach (int width in new[] { 1, 2, 3, 4 })
+        {
+            IffSchemaJson.ValidateDefinition(valid with
+            {
+                Fields = [new($"Bits{width}", 0, width, IffFieldType.BitField, BitMask: 1)]
+            }, 8);
+        }
+
+        Assert.Throws<InvalidDataException>(() => IffSchemaJson.ValidateDefinition(valid with
+        {
+            Fields = [new("TooWide", 0, 5, IffFieldType.BitField, BitMask: 1)]
+        }, 8));
     }
 
     [Fact]
@@ -134,6 +269,52 @@ public sealed class JsonSchemaTests : IDisposable
     }
 
     [Fact]
+    public void HeaderSchemaCandidates_PreferExactThenFamilyAndHeaderOverFilename()
+    {
+        Directory.CreateDirectory(_directory);
+        var provider = new DirectoryIffSchemaProvider(_directory);
+        provider.Save(new IffSchemaDefinition(1, "Data.JP.iff", "Global", 4, true,
+            [new("Family", 0, 4, IffFieldType.UInt32)]));
+        provider.Save(new IffSchemaDefinition(1, "Data.JP.iff", "Global_30447", 4, true,
+            [new("Exact", 0, 4, IffFieldType.UInt32)]));
+        provider.Save(new IffSchemaDefinition(1, "Data.JP.iff", "JP", 4, true,
+            [new("Filename", 0, 4, IffFieldType.UInt32)]));
+
+        using (var stream = new MemoryStream(IffBytes(30447, 11)))
+        using (IffReader exact = IffReader.Open(stream, "Data.JP.iff", new(SchemaProvider: provider)))
+        {
+            Assert.Equal("Global_30447", exact.Info.Region);
+            Assert.Equal("Exact", Assert.Single(exact.Info.Schema!.Fields).Name);
+            Assert.Equal(40, exact.Info.Schema.DefaultStringSize);
+            Assert.Equal(512, exact.Info.Schema.DefaultLongStringSize);
+        }
+
+        File.Delete(provider.GetSchemaPath("Data.JP.iff", "Global_30447"));
+        using var familyStream = new MemoryStream(IffBytes(30447, 11));
+        using IffReader family = IffReader.Open(familyStream, "Data.JP.iff", new(SchemaProvider: provider));
+        Assert.Equal("Family", Assert.Single(family.Info.Schema!.Fields).Name);
+    }
+
+    [Fact]
+    public void UnknownHeader_UsesFilenameButKnownGlobalWithoutSchemaUsesRawFallback()
+    {
+        Directory.CreateDirectory(_directory);
+        var provider = new DirectoryIffSchemaProvider(_directory);
+        provider.Save(new IffSchemaDefinition(1, "Data.JP.iff", "JP", 4, true,
+            [new("Japanese", 0, 4, IffFieldType.UInt32)]));
+
+        using (var stream = new MemoryStream(IffBytes(999, 11)))
+        using (IffReader filename = IffReader.Open(stream, "Data.JP.iff", new(SchemaProvider: provider)))
+            Assert.Equal("Japanese", Assert.Single(filename.Info.Schema!.Fields).Name);
+
+        using var globalStream = new MemoryStream(IffBytes(30447, 11));
+        using IffReader global = IffReader.Open(globalStream, "Data.JP.iff", new(SchemaProvider: provider));
+        Assert.Equal("Global_30447", global.Info.Region);
+        Assert.False(global.Info.Schema!.IsEditable);
+        Assert.Equal(IffFieldType.Raw, Assert.Single(global.Info.Schema.Fields).Type);
+    }
+
+    [Fact]
     public void EmbeddedDefaults_SeedMissingFilesWithoutOverwritingUserEdits()
     {
         var embedded = new EmbeddedIffSchemaProvider();
@@ -161,7 +342,7 @@ public sealed class JsonSchemaTests : IDisposable
         {
             IffFieldType.Boolean or IffFieldType.Byte => 1,
             IffFieldType.UInt16 or IffFieldType.Int16 => 2,
-            IffFieldType.UInt32 or IffFieldType.Int32 or IffFieldType.Single => 4,
+            IffFieldType.UInt32 or IffFieldType.ItemIdReference or IffFieldType.Int32 or IffFieldType.Single => 4,
             IffFieldType.DateTime => 16,
             IffFieldType.BitField or IffFieldType.BooleanBitField => 4,
             _ => 8

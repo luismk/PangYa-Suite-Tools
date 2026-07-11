@@ -8,20 +8,26 @@ internal sealed class IffSchemaManagerDialog : Form
     private readonly int _recordSize;
     private readonly List<IffFieldDefinition> _fields;
     private readonly IReadOnlyList<IffSchemaDefinition> _templateSchemas;
+    private readonly IReadOnlyList<string> _availableIffFiles;
     private readonly ListBox _list = new() { Dock = DockStyle.Fill, DrawMode = DrawMode.OwnerDrawFixed };
     private readonly NumericUpDown _defaultStringSize = new() { Minimum = 1, Dock = DockStyle.Fill };
+    private readonly NumericUpDown _defaultLongStringSize = new() { Minimum = 1, Maximum = 65535, Dock = DockStyle.Fill };
 
     public IReadOnlyList<IffFieldDefinition> Fields => _fields;
     public int DefaultStringSize => decimal.ToInt32(_defaultStringSize.Value);
+    public int DefaultLongStringSize => decimal.ToInt32(_defaultLongStringSize.Value);
 
     public IffSchemaManagerDialog(int recordSize, IEnumerable<IffFieldDefinition> fields, int defaultStringSize = 32,
-        IReadOnlyList<IffSchemaDefinition>? templateSchemas = null)
+        IReadOnlyList<IffSchemaDefinition>? templateSchemas = null,
+        IReadOnlyList<string>? availableIffFiles = null, int defaultLongStringSize = 512)
     {
         _recordSize = recordSize;
-        _fields = [.. fields];
+        _fields = [.. fields.Where(field => !IsCatchAllRaw(field, recordSize))];
         _templateSchemas = templateSchemas ?? [];
+        _availableIffFiles = availableIffFiles ?? [];
         _defaultStringSize.Maximum = recordSize;
         _defaultStringSize.Value = Math.Clamp(defaultStringSize, 1, recordSize);
+        _defaultLongStringSize.Value = Math.Clamp(defaultLongStringSize, 1, 65535);
         _list.DrawItem += DrawFieldItem;
         Text = Strings.IFFManager_ManageColumnsTitle;
         StartPosition = FormStartPosition.CenterParent;
@@ -45,13 +51,17 @@ internal sealed class IffSchemaManagerDialog : Form
         up.Click += (_, _) => MoveField(-1);
         down.Click += (_, _) => MoveField(1);
         sort.Click += (_, _) => SortFieldsByOffset();
-        save.Click += (_, _) => DialogResult = DialogResult.OK;
+        save.Click += (_, _) => SaveIfValid(showMessage: true);
         buttons.Controls.AddRange([add, clone, edit, remove, up, down, sort, save, cancel]);
-        var settings = new TableLayoutPanel { Dock = DockStyle.Top, Height = 38, ColumnCount = 2, Padding = new Padding(6) };
+        var settings = new TableLayoutPanel { Dock = DockStyle.Top, Height = 38, ColumnCount = 4, Padding = new Padding(6) };
+        settings.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        settings.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 90));
         settings.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
         settings.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 90));
         settings.Controls.Add(new Label { Text = Strings.IFFManager_DefaultStringSize, AutoSize = true, Anchor = AnchorStyles.Left }, 0, 0);
         settings.Controls.Add(_defaultStringSize, 1, 0);
+        settings.Controls.Add(new Label { Text = Strings.IFFManager_DefaultLongStringSize, AutoSize = true, Anchor = AnchorStyles.Left }, 2, 0);
+        settings.Controls.Add(_defaultLongStringSize, 3, 0);
         Controls.Add(_list);
         Controls.Add(settings);
         Controls.Add(buttons);
@@ -71,7 +81,8 @@ internal sealed class IffSchemaManagerDialog : Form
             initialOffset: initialOffset,
             previousFieldEnd: previousIndex >= 0
                 ? checked(_fields[previousIndex].Offset + _fields[previousIndex].Width)
-                : null);
+                : null,
+            availableIffFiles: _availableIffFiles, defaultLongStringSize: DefaultLongStringSize);
         if (dialog.ShowDialog(this) != DialogResult.OK) return;
         if (!ValidateName(dialog.FieldDefinition.Name, -1)) return;
         int destination = previousIndex + 1;
@@ -83,7 +94,8 @@ internal sealed class IffSchemaManagerDialog : Form
     private void CloneField()
     {
         var currentSchema = new IffSchemaDefinition(IffSchemaJson.CurrentVersion,
-            Strings.IFFManager_CurrentSchema, "*", _recordSize, true, _fields, DefaultStringSize);
+            Strings.IFFManager_CurrentSchema, "*", _recordSize, true, _fields, DefaultStringSize,
+            DefaultLongStringSize: DefaultLongStringSize);
         using var picker = new IffFieldTemplateDialog(_recordSize, [currentSchema, .. _templateSchemas]);
         if (picker.ShowDialog(this) != DialogResult.OK) return;
         IffFieldDefinition source = picker.SelectedField;
@@ -92,7 +104,8 @@ internal sealed class IffSchemaManagerDialog : Form
             source with { Name = source.Name + " Copy" }, DefaultStringSize,
             previousFieldEnd: index >= 0
                 ? checked(_fields[index].Offset + _fields[index].Width)
-                : null);
+                : null,
+            availableIffFiles: _availableIffFiles, defaultLongStringSize: DefaultLongStringSize);
         if (dialog.ShowDialog(this) != DialogResult.OK || !ValidateName(dialog.FieldDefinition.Name, -1)) return;
         int destination = index < 0 ? _fields.Count : index + 1;
         _fields.Insert(destination, dialog.FieldDefinition);
@@ -124,14 +137,10 @@ internal sealed class IffSchemaManagerDialog : Form
 
     internal static IffFieldDefinition[] SortByOffset(IEnumerable<IffFieldDefinition> fields) =>
         fields.Select((field, index) => (field, index))
-            .OrderBy(item => IsRawRecord(item.field) ? 1 : 0)
-            .ThenBy(item => item.field.Offset)
+            .OrderBy(item => item.field.Offset)
             .ThenBy(item => item.index)
             .Select(item => item.field)
             .ToArray();
-
-    private static bool IsRawRecord(IffFieldDefinition field) =>
-        field.Type == IffFieldType.Raw && field.Name.Equals("Raw record", StringComparison.OrdinalIgnoreCase);
 
     private void EditField()
     {
@@ -142,7 +151,8 @@ internal sealed class IffSchemaManagerDialog : Form
             ? checked(_fields[index - 1].Offset + _fields[index - 1].Width)
             : null;
         using var dialog = new CustomIffColumnDialog(_recordSize, selected,
-            previousFieldEnd: previousFieldEnd);
+            previousFieldEnd: previousFieldEnd,
+            availableIffFiles: _availableIffFiles, defaultLongStringSize: DefaultLongStringSize);
         if (dialog.ShowDialog(this) != DialogResult.OK || !ValidateName(dialog.FieldDefinition.Name, index)) return;
         try
         {
@@ -256,13 +266,16 @@ internal sealed class IffSchemaManagerDialog : Form
     {
         IffFieldType type = field.Type switch
         {
-            IffFieldType.UInt32 when width == 2 => IffFieldType.UInt16,
-            IffFieldType.UInt32 or IffFieldType.UInt16 when width == 1 => IffFieldType.Byte,
+            IffFieldType.UInt32 or IffFieldType.ItemIdReference when width == 2 => IffFieldType.UInt16,
+            IffFieldType.UInt32 or IffFieldType.ItemIdReference or IffFieldType.UInt16 when width == 1 => IffFieldType.Byte,
+            IffFieldType.ItemIdReference when width == 4 => IffFieldType.ItemIdReference,
             IffFieldType.Int32 when width == 2 => IffFieldType.Int16,
-            IffFieldType.FixedString or IffFieldType.Raw or IffFieldType.ByteRangeBoolean => field.Type,
+            IffFieldType.FixedString or IffFieldType.LongString or IffFieldType.Icon or IffFieldType.Sound or IffFieldType.Raw or IffFieldType.ByteRangeBoolean => field.Type,
             IffFieldType.ZeroBoolean when width is 1 or 2 or 4 => field.Type,
-            IffFieldType.BooleanBitField when width is 1 or 2 or 4 &&
-                field.BitMask is uint mask && (mask & ~(width == 1 ? byte.MaxValue : width == 2 ? ushort.MaxValue : uint.MaxValue)) == 0 => field.Type,
+            IffFieldType.BitField when width is >= 1 and <= 4 &&
+                field.BitMask is uint bitMask && (bitMask & ~BitFieldWidthMask(width)) == 0 => field.Type,
+            IffFieldType.BooleanBitField when width is >= 1 and <= 4 &&
+                field.BitMask is uint mask && (mask & ~BitFieldWidthMask(width)) == 0 => field.Type,
             _ => IffFieldType.Raw
         };
         bool keepBitDefinition = type is IffFieldType.BitField or IffFieldType.BooleanBitField;
@@ -270,11 +283,20 @@ internal sealed class IffSchemaManagerDialog : Form
         {
             Width = width,
             Type = type,
-            EncodingCodePage = type == IffFieldType.FixedString ? field.EncodingCodePage : null,
+            EncodingCodePage = type is IffFieldType.FixedString or IffFieldType.LongString or IffFieldType.Icon or IffFieldType.Sound ? field.EncodingCodePage : null,
             BitMask = keepBitDefinition ? field.BitMask : null,
             BitShift = keepBitDefinition ? field.BitShift : 0
         };
     }
+
+    private static uint BitFieldWidthMask(int width) => width switch
+    {
+        1 => byte.MaxValue,
+        2 => ushort.MaxValue,
+        3 => 0x00FF_FFFFu,
+        4 => uint.MaxValue,
+        _ => 0
+    };
 
     private void RemoveField()
     {
@@ -282,6 +304,25 @@ internal sealed class IffSchemaManagerDialog : Form
         if (index < 0) return;
         _fields.RemoveAt(index);
         RefreshList();
+    }
+
+    internal bool SaveIfValid(bool showMessage)
+    {
+        try
+        {
+            var definition = new IffSchemaDefinition(IffSchemaJson.CurrentVersion, "Validation.iff", "*",
+                _recordSize, true, _fields, DefaultStringSize);
+            IffSchemaJson.ValidateDefinition(definition, _recordSize);
+            DialogResult = DialogResult.OK;
+            return true;
+        }
+        catch (Exception ex) when (ex is InvalidDataException or ArgumentException or OverflowException)
+        {
+            if (showMessage)
+                MessageBox.Show(ex.Message, Strings.IFFManager_Error,
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            return false;
+        }
     }
 
     private bool ValidateName(string name, int excludedIndex)

@@ -30,18 +30,27 @@ public sealed class IffReader : IDisposable, IAsyncDisposable
             if (computed <= 0 || computed > options.MaximumRecordSize) throw new InvalidDataException("The IFF record size is invalid or exceeds the configured limit.");
             size = checked((int)computed);
         }
-        string schemaRegion = options.SchemaRegion
-            ?? IffRegionDetector.FromFileName(fileName)
-            ?? header.Region;
+        IffFormatProfile? profile = header.FormatProfile;
+        string? fileNameRegion = IffRegionDetector.FromFileName(fileName) ?? options.FallbackSchemaRegion;
+        IReadOnlyList<string> schemaRegions = options.SchemaRegion is { } explicitRegion
+            ? [explicitRegion]
+            : profile?.SchemaRegions ?? (fileNameRegion is null ? ["Unknown"] : [fileNameRegion]);
+        string schemaRegion = options.SchemaRegion ?? profile?.Variant ?? fileNameRegion ?? "Unknown";
         IffSchemaResolution resolution = size == 0
             ? new IffSchemaResolution(null)
-            : (options.SchemaProvider ?? new EmbeddedIffSchemaProvider()).Resolve(fileName, schemaRegion, size);
+            : (options.SchemaProvider ?? new EmbeddedIffSchemaProvider()).Resolve(fileName, schemaRegions, size);
         IffSchema? schema = resolution.Schema;
+        if (schema is not null && profile is not null)
+            schema = schema with
+            {
+                DefaultStringSize = profile.DefaultStringSize,
+                DefaultLongStringSize = profile.DefaultLongStringSize
+            };
         if (size > 0 && schema is null)
         {
             IffField rawRecord = new("Raw record", 0, size, IffFieldType.Raw, false, IsVisible: false);
             schema = new IffSchema(Path.GetFileNameWithoutExtension(fileName), size, [rawRecord], false,
-                Math.Min(32, size));
+                profile?.DefaultStringSize ?? Math.Min(32, size), DefaultLongStringSize: profile?.DefaultLongStringSize ?? 512);
         }
         Info = new IffDocumentInfo(fileName, schemaRegion, size, schema, header, resolution.Warning);
         _stream = stream;

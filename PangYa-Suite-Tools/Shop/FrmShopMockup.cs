@@ -365,13 +365,9 @@ internal sealed class ShopCanvas : Control
 
     private async Task ChangeIconAsync(ShopCatalogItem item)
     {
-        using var dialog = new OpenFileDialog
-        {
-            InitialDirectory = Path.GetDirectoryName(item.IconPath),
-            Filter = Strings.Shop_IconFilter,
-            Title = Strings.Shop_SelectIcon,
-        };
+        using var dialog = FileDialogFactory.CreateIconOpenDialog(Path.GetDirectoryName(item.IconPath));
         if (dialog.ShowDialog(FindForm()) != DialogResult.OK) return;
+        FileDialogFactory.RememberDirectory(FileDialogKind.Icon, dialog.FileName);
         string selectedPath = Path.GetFullPath(dialog.FileName);
         string rootPrefix = _assets.DataRoot.TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
         if (!selectedPath.StartsWith(rootPrefix, StringComparison.OrdinalIgnoreCase))

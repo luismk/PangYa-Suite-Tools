@@ -6,6 +6,76 @@ namespace PangyaAPI.Tests;
 
 public sealed class IffStreamingTests
 {
+    public static TheoryData<ushort, byte, string, string, int> HeaderProfiles => new()
+    {
+        { 0, 11, "TH", "TH", 40 }, { 32322, 11, "TH", "TH", 40 },
+        { 0, 12, "JP", "JP", 64 }, { 30319, 12, "JP", "JP", 64 },
+        { 18, 12, "JP", "JP", 64 }, { 26998, 12, "JP", "JP", 64 },
+        { 30447, 11, "Global_30447", "Global", 40 },
+        { 30087, 12, "Global_30087", "Global", 40 },
+        { 30425, 12, "Global_30425", "Global", 40 },
+        { 57, 13, "Global_57", "Global", 40 },
+        { 548, 11, "Japan", "JP", 64 }, { 52428, 11, "Japan_52428", "JP", 64 },
+        { 8960, 11, "Japan_8960", "JP", 64 }, { 30312, 13, "Japan_30312", "JP", 64 },
+        { 30395, 12, "Korea_30395", "KR", 40 }
+    };
+
+    [Theory]
+    [MemberData(nameof(HeaderProfiles))]
+    public void HeaderProfile_MapsRevisionMagicAndStringDefaults(
+        ushort revision, byte magic, string variant, string family, int stringSize)
+    {
+        IffFormatProfile profile = Assert.IsType<IffFormatProfile>(
+            IffHeader.DetectFormatProfile(revision, magic));
+        Assert.Equal(variant, profile.Variant);
+        Assert.Equal(family, profile.SchemaRegions[^1]);
+        Assert.Equal(stringSize, profile.DefaultStringSize);
+        Assert.Equal(512, profile.DefaultLongStringSize);
+    }
+
+    [Theory]
+    [InlineData(548, 10)]
+    [InlineData(548, 14)]
+    [InlineData(999, 11)]
+    public void HeaderProfile_RejectsUnknownValues(ushort revision, byte magic) =>
+        Assert.Null(IffHeader.DetectFormatProfile(revision, magic));
+
+    [Theory]
+    [InlineData(0, 11, "TH")]
+    [InlineData(0, 12, "JP")]
+    [InlineData(30312, 13, "Japan_30312")]
+    [InlineData(57, 13, "Global_57")]
+    [InlineData(30395, 12, "Korea_30395")]
+    public void Reader_ReportsExactRegionFromHeader(ushort revision, byte magic, string expectedRegion)
+    {
+        byte[] bytes = BuildIff("Test.iff", 1, 1);
+        BitConverter.GetBytes(revision).CopyTo(bytes, 2);
+        bytes[4] = magic;
+        using var stream = new MemoryStream(bytes, writable: false);
+        using IffReader reader = IffReader.Open(stream, "Test.iff");
+
+        Assert.Equal(expectedRegion, reader.Info.Region);
+    }
+
+    [Fact]
+    public void Reader_UsesContainerRegionFallbackOnlyWhenHeaderAndEntryNameAreUnknown()
+    {
+        byte[] unknownHeader = BuildIff("ClubSet.iff", 1, 1);
+        BitConverter.GetBytes((ushort)999).CopyTo(unknownHeader, 2);
+        using var unknownStream = new MemoryStream(unknownHeader, writable: false);
+        using IffReader fallbackReader = IffReader.Open(unknownStream, "ClubSet.iff",
+            new(FallbackSchemaRegion: "TH"));
+        Assert.Equal("TH", fallbackReader.Info.Region);
+
+        byte[] knownHeader = BuildIff("ClubSet.iff", 1, 1);
+        BitConverter.GetBytes((ushort)30312).CopyTo(knownHeader, 2);
+        knownHeader[4] = 13;
+        using var knownStream = new MemoryStream(knownHeader, writable: false);
+        using IffReader headerReader = IffReader.Open(knownStream, "ClubSet.iff",
+            new(FallbackSchemaRegion: "TH"));
+        Assert.Equal("Japan_30312", headerReader.Info.Region);
+    }
+
     [Fact]
     public void EmbeddedJsonSchema_ResolvesKnownRegion()
     {
@@ -30,6 +100,21 @@ public sealed class IffStreamingTests
     }
 
     [Fact]
+    public void LongString_RoundTripsWithoutChangingNeighboringBytes()
+    {
+        var field = new IffField("Description", 1, 8, IffFieldType.LongString, Encoding: Encoding.ASCII);
+        byte[] record = [0xAA, 0, 0, 0, 0, 0, 0, 0, 0, 0xBB];
+
+        field.SetValue(record, "PangYa");
+
+        Assert.Equal("PangYa", field.GetValue(record));
+        Assert.Equal(0xAA, record[0]);
+        Assert.Equal(0xBB, record[^1]);
+        Assert.Equal(0, record[7]);
+        Assert.Throws<ArgumentException>(() => field.SetValue(record, "12345678"));
+    }
+
+    [Fact]
     public void ByteRangeBoolean_UsesAndClearsTheEntireRange()
     {
         var field = new IffField("Custom flag", 1, 3, IffFieldType.ByteRangeBoolean);
@@ -40,6 +125,19 @@ public sealed class IffStreamingTests
         Assert.Equal([0xFF, 0, 0, 0, 0xFF], record);
         field.SetValue(record, true);
         Assert.Equal([0xFF, 1, 0, 0, 0xFF], record);
+    }
+
+    [Fact]
+    public void ItemIdReference_UsesUInt32Storage()
+    {
+        var field = new IffField("Item", 1, 4, IffFieldType.ItemIdReference,
+            Reference: new IffFieldReference("Item.iff"));
+        byte[] record = [0xFF, 0, 0, 0, 0, 0xFF];
+
+        field.SetValue(record, 0x12345678u);
+
+        Assert.Equal([0xFF, 0x78, 0x56, 0x34, 0x12, 0xFF], record);
+        Assert.Equal(0x12345678u, field.GetValue(record));
     }
 
     [Fact]
@@ -56,6 +154,50 @@ public sealed class IffStreamingTests
         field.SetValue(record, "パンヤ", shiftJis);
         int terminator = Array.IndexOf(record, (byte)0);
         Assert.Equal("パンヤ", shiftJis.GetString(record, 0, terminator));
+    }
+
+    [Fact]
+    public void Icon_UsesFixedStringStorage()
+    {
+        var field = new IffField("Icon", 0, 16, IffFieldType.Icon, Encoding: Encoding.ASCII, IconPath: "ui/shop_myroom");
+        byte[] record = new byte[16];
+
+        field.SetValue(record, "item_icon", Encoding.ASCII);
+
+        Assert.Equal("item_icon", field.GetValue(record, Encoding.ASCII));
+        Assert.Equal((byte)0, record["item_icon".Length]);
+    }
+
+    [Fact]
+    public void Sound_UsesFixedStringStorage()
+    {
+        var field = new IffField("Sound", 0, 16, IffFieldType.Sound, Encoding: Encoding.ASCII, SoundPath: "sound/effect");
+        byte[] record = new byte[16];
+
+        field.SetValue(record, "hit", Encoding.ASCII);
+
+        Assert.Equal("hit", field.GetValue(record, Encoding.ASCII));
+        Assert.Equal((byte)0, record["hit".Length]);
+    }
+
+    [Fact]
+    public void TryGetValue_ReturnsFalseForMissingFieldsWithoutThrowing()
+    {
+        var schema = new IffSchema("Test", 8,
+            [new IffField("Name", 0, 8, IffFieldType.FixedString, Encoding: Encoding.ASCII)]);
+        IffRecord record = IffRecord.CreateBlank(0, 8, schema);
+        record.SetValue("Name", "Club", Encoding.ASCII);
+
+        Assert.True(record.TryGetValue("Name", out object? value, Encoding.ASCII));
+        Assert.Equal("Club", value);
+        Assert.False(record.TryGetValue("ItemId", out object? missing, Encoding.ASCII));
+        Assert.Null(missing);
+        Assert.True(record.TryGetField("Name", out IffField? field));
+        Assert.NotNull(field);
+        Assert.Equal("Name", field.Name);
+        Assert.False(record.TryGetField("ItemId", out IffField? missingField));
+        Assert.Null(missingField);
+        Assert.Throws<KeyNotFoundException>(() => record.GetValue("ItemId", Encoding.ASCII));
     }
 
     [Fact]
@@ -150,7 +292,7 @@ public sealed class IffStreamingTests
             object value = field.Type switch
             {
                 IffFieldType.Boolean => true,
-                IffFieldType.FixedString => "A",
+                IffFieldType.FixedString or IffFieldType.Icon or IffFieldType.Sound => "A",
                 IffFieldType.DateTime => new DateTime(2026, 7, 4, 12, 34, 56, DateTimeKind.Unspecified),
                 _ => 1
             };
@@ -205,6 +347,29 @@ public sealed class IffStreamingTests
         Assert.Throws<ArgumentOutOfRangeException>(() => Set("Character Serial", 256));
 
         void Set(string name, object value) => schema.Fields.Single(field => field.Name == name).SetValue(record, value);
+    }
+
+    [Fact]
+    public void BitFields_ReadAndWriteOneToFourByteWidths()
+    {
+        foreach (int width in new[] { 1, 2, 3, 4 })
+        {
+            byte[] record = Enumerable.Repeat((byte)0xFF, 4).ToArray();
+            uint mask = width == 4 ? 0x00FF_0000u : 0x0000_00F0u;
+            int shift = width == 4 ? 16 : 4;
+            var field = new IffField($"Bits{width}", 0, width, IffFieldType.BitField,
+                BitMask: mask, BitShift: shift);
+
+            field.SetValue(record, 0x05);
+
+            Assert.Equal(0x05u, field.GetValue(record));
+            uint raw = 0;
+            for (int index = 0; index < width; index++)
+                raw |= (uint)record[index] << (index * 8);
+            uint widthMask = width == 4 ? uint.MaxValue : (1u << (width * 8)) - 1;
+            uint expected = (widthMask & ~mask) | (0x05u << shift);
+            Assert.Equal(expected, raw);
+        }
     }
 
     [Fact]

@@ -139,14 +139,15 @@
       "name": "Icon",
       "offset": 49,
       "width": 40,
-      "type": "FixedString",
+      "type": "Icon",
       "isEditable": true,
       "encodingCodePage": 28591,
       "minimum": null,
       "maximum": null,
       "bitMask": null,
       "bitShift": 0,
-      "isVisible": true
+      "isVisible": true,
+      "iconPath": "ui/shop_myroom"
     },
     {
       "name": "Price",
@@ -464,131 +465,191 @@
       "name": "Item1",
       "offset": 148,
       "width": 4,
-      "type": "UInt32",
+      "type": "ItemIdReference",
       "isEditable": true,
       "encodingCodePage": null,
       "minimum": null,
       "maximum": null,
       "bitMask": null,
       "bitShift": 0,
-      "isVisible": true
+      "isVisible": true,
+      "reference": {
+        "targetFile": "Item.iff",
+        "targetKeyField": "ItemId",
+        "displayField": "Name",
+        "iconField": "Icon"
+      }
     },
     {
       "name": "Item2",
       "offset": 152,
       "width": 4,
-      "type": "UInt32",
+      "type": "ItemIdReference",
       "isEditable": true,
       "encodingCodePage": null,
       "minimum": null,
       "maximum": null,
       "bitMask": null,
       "bitShift": 0,
-      "isVisible": true
+      "isVisible": true,
+      "reference": {
+        "targetFile": "Item.iff",
+        "targetKeyField": "ItemId",
+        "displayField": "Name",
+        "iconField": "Icon"
+      }
     },
     {
       "name": "Item3",
       "offset": 156,
       "width": 4,
-      "type": "UInt32",
+      "type": "ItemIdReference",
       "isEditable": true,
       "encodingCodePage": null,
       "minimum": null,
       "maximum": null,
       "bitMask": null,
       "bitShift": 0,
-      "isVisible": true
+      "isVisible": true,
+      "reference": {
+        "targetFile": "Item.iff",
+        "targetKeyField": "ItemId",
+        "displayField": "Name",
+        "iconField": "Icon"
+      }
     },
     {
       "name": "Item4",
       "offset": 160,
       "width": 4,
-      "type": "UInt32",
+      "type": "ItemIdReference",
       "isEditable": true,
       "encodingCodePage": null,
       "minimum": null,
       "maximum": null,
       "bitMask": null,
       "bitShift": 0,
-      "isVisible": true
+      "isVisible": true,
+      "reference": {
+        "targetFile": "Item.iff",
+        "targetKeyField": "ItemId",
+        "displayField": "Name",
+        "iconField": "Icon"
+      }
     },
     {
       "name": "Item5",
       "offset": 164,
       "width": 4,
-      "type": "UInt32",
+      "type": "ItemIdReference",
       "isEditable": true,
       "encodingCodePage": null,
       "minimum": null,
       "maximum": null,
       "bitMask": null,
       "bitShift": 0,
-      "isVisible": true
+      "isVisible": true,
+      "reference": {
+        "targetFile": "Item.iff",
+        "targetKeyField": "ItemId",
+        "displayField": "Name",
+        "iconField": "Icon"
+      }
     },
     {
       "name": "Item6",
       "offset": 168,
       "width": 4,
-      "type": "UInt32",
+      "type": "ItemIdReference",
       "isEditable": true,
       "encodingCodePage": null,
       "minimum": null,
       "maximum": null,
       "bitMask": null,
       "bitShift": 0,
-      "isVisible": true
+      "isVisible": true,
+      "reference": {
+        "targetFile": "Item.iff",
+        "targetKeyField": "ItemId",
+        "displayField": "Name",
+        "iconField": "Icon"
+      }
     },
     {
       "name": "Item7",
       "offset": 172,
       "width": 4,
-      "type": "UInt32",
+      "type": "ItemIdReference",
       "isEditable": true,
       "encodingCodePage": null,
       "minimum": null,
       "maximum": null,
       "bitMask": null,
       "bitShift": 0,
-      "isVisible": true
+      "isVisible": true,
+      "reference": {
+        "targetFile": "Item.iff",
+        "targetKeyField": "ItemId",
+        "displayField": "Name",
+        "iconField": "Icon"
+      }
     },
     {
       "name": "Item8",
       "offset": 176,
       "width": 4,
-      "type": "UInt32",
+      "type": "ItemIdReference",
       "isEditable": true,
       "encodingCodePage": null,
       "minimum": null,
       "maximum": null,
       "bitMask": null,
       "bitShift": 0,
-      "isVisible": true
+      "isVisible": true,
+      "reference": {
+        "targetFile": "Item.iff",
+        "targetKeyField": "ItemId",
+        "displayField": "Name",
+        "iconField": "Icon"
+      }
     },
     {
       "name": "Item9",
       "offset": 180,
       "width": 4,
-      "type": "UInt32",
+      "type": "ItemIdReference",
       "isEditable": true,
       "encodingCodePage": null,
       "minimum": null,
       "maximum": null,
       "bitMask": null,
       "bitShift": 0,
-      "isVisible": true
+      "isVisible": true,
+      "reference": {
+        "targetFile": "Item.iff",
+        "targetKeyField": "ItemId",
+        "displayField": "Name",
+        "iconField": "Icon"
+      }
     },
     {
       "name": "Item10",
       "offset": 184,
       "width": 4,
-      "type": "UInt32",
+      "type": "ItemIdReference",
       "isEditable": true,
       "encodingCodePage": null,
       "minimum": null,
       "maximum": null,
       "bitMask": null,
       "bitShift": 0,
-      "isVisible": true
+      "isVisible": true,
+      "reference": {
+        "targetFile": "Item.iff",
+        "targetKeyField": "ItemId",
+        "displayField": "Name",
+        "iconField": "Icon"
+      }
     },
     {
       "name": "Item1Count",

@@ -4,12 +4,15 @@ using System.Text;
 
 namespace PangyaAPI.IFF;
 
-public enum IffFieldType { Boolean, Byte, UInt16, Int16, UInt32, Int32, Single, BitField, BooleanBitField, ZeroBoolean, FixedString, DateTime, Raw, ByteRangeBoolean }
+public enum IffFieldType { Boolean, Byte, UInt16, Int16, UInt32, Int32, Single, BitField, BooleanBitField, ZeroBoolean, FixedString, LongString, DateTime, Raw, ByteRangeBoolean, ItemIdReference, Icon, Sound }
 
 public sealed record IffField(
     string Name, int Offset, int Width, IffFieldType Type, bool IsEditable = true,
     Encoding? Encoding = null, long? Minimum = null, long? Maximum = null,
-    uint? BitMask = null, int BitShift = 0, bool IsVisible = true)
+    uint? BitMask = null, int BitShift = 0, bool IsVisible = true,
+    IffFieldReference? Reference = null,
+    string? IconPath = null,
+    string? SoundPath = null)
 {
     public object GetValue(ReadOnlySpan<byte> record, Encoding? stringEncoding = null)
     {
@@ -21,13 +24,13 @@ public sealed record IffField(
             IffFieldType.Byte => value[0],
             IffFieldType.UInt16 => BinaryPrimitives.ReadUInt16LittleEndian(value),
             IffFieldType.Int16 => BinaryPrimitives.ReadInt16LittleEndian(value),
-            IffFieldType.UInt32 => BinaryPrimitives.ReadUInt32LittleEndian(value),
+            IffFieldType.UInt32 or IffFieldType.ItemIdReference => BinaryPrimitives.ReadUInt32LittleEndian(value),
             IffFieldType.Int32 => BinaryPrimitives.ReadInt32LittleEndian(value),
             IffFieldType.Single => BinaryPrimitives.ReadSingleLittleEndian(value),
             IffFieldType.BitField => ReadBitField(value),
             IffFieldType.BooleanBitField => ReadBooleanBitField(value),
             IffFieldType.ZeroBoolean => ReadUnsigned(value) == 0,
-            IffFieldType.FixedString => DecodeString(value, stringEncoding),
+            IffFieldType.FixedString or IffFieldType.LongString or IffFieldType.Icon or IffFieldType.Sound => DecodeString(value, stringEncoding),
             IffFieldType.DateTime => DecodeDate(value),
             IffFieldType.ByteRangeBoolean => value.IndexOfAnyExcept((byte)0) >= 0,
             _ => Convert.ToHexString(value)
@@ -45,13 +48,21 @@ public sealed record IffField(
             case IffFieldType.Byte: target[0] = checked((byte)CheckedInteger(input)); break;
             case IffFieldType.UInt16: BinaryPrimitives.WriteUInt16LittleEndian(target, checked((ushort)CheckedInteger(input))); break;
             case IffFieldType.Int16: BinaryPrimitives.WriteInt16LittleEndian(target, checked((short)CheckedInteger(input))); break;
-            case IffFieldType.UInt32: BinaryPrimitives.WriteUInt32LittleEndian(target, checked((uint)CheckedInteger(input))); break;
+            case IffFieldType.UInt32:
+            case IffFieldType.ItemIdReference:
+                BinaryPrimitives.WriteUInt32LittleEndian(target, checked((uint)CheckedInteger(input)));
+                break;
             case IffFieldType.Int32: BinaryPrimitives.WriteInt32LittleEndian(target, checked((int)CheckedInteger(input))); break;
             case IffFieldType.Single: BinaryPrimitives.WriteSingleLittleEndian(target, Convert.ToSingle(input, CultureInfo.InvariantCulture)); break;
             case IffFieldType.BitField: WriteBitField(target, input); break;
             case IffFieldType.BooleanBitField: WriteBooleanBitField(target, input); break;
             case IffFieldType.ZeroBoolean: throw new InvalidOperationException($"Derived field '{Name}' is read-only.");
-            case IffFieldType.FixedString: EncodeString(target, Convert.ToString(input, CultureInfo.InvariantCulture) ?? string.Empty, stringEncoding); break;
+            case IffFieldType.FixedString:
+            case IffFieldType.LongString:
+            case IffFieldType.Icon:
+            case IffFieldType.Sound:
+                EncodeString(target, Convert.ToString(input, CultureInfo.InvariantCulture) ?? string.Empty, stringEncoding);
+                break;
             case IffFieldType.DateTime: EncodeDate(target, input); break;
             case IffFieldType.Raw: WriteRaw(target, input); break;
             case IffFieldType.ByteRangeBoolean:
@@ -82,7 +93,7 @@ public sealed record IffField(
     private uint ReadBitField(ReadOnlySpan<byte> value)
     {
         ValidateBitField(value.Length);
-        return (BinaryPrimitives.ReadUInt32LittleEndian(value) & BitMask!.Value) >> BitShift;
+        return (ReadUnsigned(value) & BitMask!.Value) >> BitShift;
     }
 
     private bool ReadBooleanBitField(ReadOnlySpan<byte> value)
@@ -93,15 +104,15 @@ public sealed record IffField(
 
     private void WriteBitField(Span<byte> target, object? input)
     {
-        ValidateBitField(target.Length, requireUInt32: true);
+        ValidateBitField(target.Length);
         uint mask = BitMask!.Value;
         uint maximum = mask >> BitShift;
         long converted = CheckedInteger(input);
         if (converted < 0 || (ulong)converted > maximum)
             throw new ArgumentOutOfRangeException(Name, converted, $"'{Name}' must be between 0 and {maximum}.");
-        uint current = BinaryPrimitives.ReadUInt32LittleEndian(target);
+        uint current = ReadUnsigned(target);
         uint replacement = ((uint)converted << BitShift) & mask;
-        BinaryPrimitives.WriteUInt32LittleEndian(target, (current & ~mask) | replacement);
+        WriteUnsigned(target, (current & ~mask) | replacement);
     }
 
     private void WriteBooleanBitField(Span<byte> target, object? input)
@@ -113,32 +124,40 @@ public sealed record IffField(
         WriteUnsigned(target, replacement);
     }
 
-    private void ValidateBitField(int width, bool requireSingleBit = false, bool requireUInt32 = false)
+    private void ValidateBitField(int width, bool requireSingleBit = false)
     {
-        uint widthMask = width switch { 1 => byte.MaxValue, 2 => ushort.MaxValue, 4 => uint.MaxValue, _ => 0 };
-        if (widthMask == 0 || requireUInt32 && width != sizeof(uint) || BitMask is not uint mask || mask == 0 ||
+        uint widthMask = BitFieldWidthMask(width);
+        if (widthMask == 0 || BitMask is not uint mask || mask == 0 ||
             (mask & ~widthMask) != 0 || BitShift is < 0 or > 31 || (mask >> BitShift) == 0 ||
             requireSingleBit && (mask & (mask - 1)) != 0)
             throw new InvalidDataException($"Field '{Name}' has an invalid bit-field definition.");
     }
 
-    private static uint ReadUnsigned(ReadOnlySpan<byte> value) => value.Length switch
+    private static uint BitFieldWidthMask(int width) => width switch
     {
-        1 => value[0],
-        2 => BinaryPrimitives.ReadUInt16LittleEndian(value),
-        4 => BinaryPrimitives.ReadUInt32LittleEndian(value),
-        _ => throw new InvalidDataException("Bit fields must occupy one, two, or four bytes.")
+        1 => byte.MaxValue,
+        2 => ushort.MaxValue,
+        3 => 0x00FF_FFFFu,
+        4 => uint.MaxValue,
+        _ => 0
     };
+
+    private static uint ReadUnsigned(ReadOnlySpan<byte> value)
+    {
+        if (value.Length is < 1 or > 4)
+            throw new InvalidDataException("Bit fields must occupy one to four bytes.");
+        uint result = 0;
+        for (int index = 0; index < value.Length; index++)
+            result |= (uint)value[index] << (index * 8);
+        return result;
+    }
 
     private static void WriteUnsigned(Span<byte> target, uint value)
     {
-        switch (target.Length)
-        {
-            case 1: target[0] = checked((byte)value); break;
-            case 2: BinaryPrimitives.WriteUInt16LittleEndian(target, checked((ushort)value)); break;
-            case 4: BinaryPrimitives.WriteUInt32LittleEndian(target, value); break;
-            default: throw new InvalidDataException("Bit fields must occupy one, two, or four bytes.");
-        }
+        if (target.Length is < 1 or > 4)
+            throw new InvalidDataException("Bit fields must occupy one to four bytes.");
+        for (int index = 0; index < target.Length; index++)
+            target[index] = (byte)(value >> (index * 8));
     }
 
     private long CheckedInteger(object? input)
@@ -202,9 +221,18 @@ public sealed record IffField(
     }
 }
 
+public sealed record IffFieldReference(
+    string TargetFile,
+    string TargetKeyField = "ItemId",
+    string DisplayField = "Name",
+    string IconField = "Icon",
+    bool? PickerEnabled = null);
+
 public sealed record IffSchema(
     string Name,
     int MinimumRecordSize,
     IReadOnlyList<IffField> Fields,
     bool IsEditable = true,
-    int DefaultStringSize = 32);
+    int DefaultStringSize = 32,
+    IffSchemaUiDefinition? Ui = null,
+    int DefaultLongStringSize = 512);

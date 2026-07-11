@@ -22,16 +22,55 @@ namespace PangYa_Suite_Tools
         // Conjunto de entries atualmente "no escopo" (pasta selecionada na árvore), antes do filtro de pesquisa
         private List<PakFileEntry> _scopedEntries = [];
         private sealed record RegionOption(string Label, uint[] Keys);
-        private bool isInitializingLanguages = true;
-        private bool _isInitializingEncodings = true;
+        private int _selectedFilenameEncodingCodePage = PakFilenameEncodingPreferences.DefaultCodePage;
+        private bool _isInitializingFilenameEncoding;
         private CancellationTokenSource? _operationCancellation;
+        private TableLayoutPanel? _rootLayout;
+        private TableLayoutPanel? _toolbarLayout;
+        private ToolStrip? _pakOperationsToolbar;
+        private ToolStrip? _openedPakFileToolbar;
+        private ToolStrip? _settingsToolbar;
+        private ToolStripLabel? _pakOperationsLabel;
+        private ToolStripLabel? _fileOperationsLabel;
+        private ToolStripLabel? _toolbarAuthorLabel;
+        private ToolStripButton? _toolbarFilenameEncoding;
+        private ToolStripButton? _toolbarBatchExtract;
+        private ToolStripButton? _toolbarUpdatePak;
+        private ToolStripButton? _toolbarExtractAll;
+        private ToolStripButton? _toolbarChangePakKey;
+        private ToolStripButton? _toolbarExtractSelected;
+        private ToolStripButton? _toolbarRenameSelected;
+        private ToolStripButton? _toolbarRemoveSelected;
+        private readonly ToolStripStatusLabel _filenameEncodingStatusLabel = new()
+        {
+            Margin = new Padding(10, 0, 0, 0)
+        };
+        private readonly List<ToolStripItem> _operationToolbarItems = [];
+        private readonly List<ToolStripButton> _officeToolbarButtons = [];
+        private readonly List<ToolStripItem> _requiresLoadedPakToolbarItems = [];
+        private bool _showToolbarText = true;
+        private bool _operationInProgress;
+        private bool _isApplyingTreeSelection;
+        private bool _isClearingTreeChecks;
+        private enum ToolbarIconKind
+        {
+            Folder,
+            Update,
+            ExtractAll,
+            Key,
+            Encoding,
+            ExtractSelected,
+            Rename,
+            Remove
+        }
         public FrmPakMaker()
         {
             InitializeComponent();
-            InitializeLanguageComboBox();
             SetupCustomComponents();
             LoadSetupOptions();
             SetupContextMenu(); // Inicializa o menu de contexto da ListView
+            SetupToolbarLayout();
+            ApplyLocalization();
             CleanupOldTempDragFolders(); // Remove resíduos de exportações de drag-out de execuções anteriores
             LocalizationManager.CultureChanged += LocalizationManager_CultureChanged;
             Disposed += (_, _) =>
@@ -56,47 +95,14 @@ namespace PangYa_Suite_Tools
             };
         }
 
-
-        private void InitializeLanguageComboBox()
-        {
-            cboLanguage.ComboBox.DisplayMember = "Key";
-            cboLanguage.ComboBox.ValueMember = "Value";
- 
-			cboLanguage.Items.Add(new KeyValuePair<string, string>(Strings.Common_PortugueseBrazil, LocalizationManager.PortugueseBrazil));
-            cboLanguage.Items.Add(new KeyValuePair<string, string>(Strings.Common_EnglishUS, LocalizationManager.English));
-            cboLanguage.Items.Add(new KeyValuePair<string, string>(Strings.Common_Swedish, LocalizationManager.Swedish));
-            cboLanguage.Items.Add(new KeyValuePair<string, string>(Strings.Common_Japonese, LocalizationManager.Japonese));
-			cboLanguage.Items.Add(new KeyValuePair<string, string>(Strings.Common_French, LocalizationManager.French));
-            cboLanguage.SelectedIndex = LocalizationManager.CurrentCultureIndex;
-
-            isInitializingLanguages = false;
-
-            // Executa a primeira tradução com base na seleção inicial
-            ApplyLocalization();
-        }
-
-        private void cboLanguage_SelectedIndexChanged(object? sender, EventArgs e)
-        {
-            if (isInitializingLanguages) return;
-
-            if (cboLanguage.SelectedItem is KeyValuePair<string, string> selectedItem)
-            {
-                LocalizationManager.SetCulture(selectedItem.Value);
-            }
-        }
-
         private void LocalizationManager_CultureChanged(object? sender, EventArgs e)
         {
-            isInitializingLanguages = true;
-            cboLanguage.SelectedIndex = LocalizationManager.CurrentCultureIndex;
-            isInitializingLanguages = false;
             ApplyLocalization();
         }
 
         private void ApplyLocalization()
         {
             Text = Strings.Pak_Title;
-            lblLanguage.Text = Strings.Common_Language;
             lblFilenameEncoding.Text = Strings.Pak_FilenameEncoding;
             lblFilenameEncoding.ToolTipText = Strings.Pak_FilenameEncodingTooltip;
             cboFilenameEncoding.ToolTipText = Strings.Pak_FilenameEncodingTooltip;
@@ -168,6 +174,8 @@ namespace PangYa_Suite_Tools
                 _menuRemoveFolder.Text = Strings.PakMaker_RemoveThisFolderFromPAK;
             if (_menuRename != null)
                 _menuRename.Text = Strings.PakMaker_RenameThisPAK;
+
+            ApplyToolbarLocalization();
         }
 
         private void SetupCustomComponents()
@@ -184,7 +192,9 @@ namespace PangYa_Suite_Tools
             lstEntries.DoubleClick += LstEntries_DoubleClick;
             lstEntries.AfterLabelEdit += LstEntries_AfterLabelEdit;
             lstEntries.KeyDown += LstEntries_KeyDown;
+            lstEntries.ItemSelectionChanged += LstEntries_ItemSelectionChanged;
             tvFolders.AfterSelect += TvFolders_AfterSelect;
+            tvFolders.AfterCheck += TvFolders_AfterCheck;
             txtSearch.TextChanged += (s, e) => ApplyDisplayFilter();
 
             // Permite arrastar arquivos para dentro da lista de entries, para injetar/atualizar no PAK já carregado
@@ -204,6 +214,359 @@ namespace PangYa_Suite_Tools
             tvFolders.LabelEdit = true; // Permite alterar o texto do nó nativamente
             tvFolders.AfterLabelEdit += TvFolders_AfterLabelEdit; // Evento executado pós-edição 
         }
+
+        private void SetupToolbarLayout()
+        {
+            SuspendLayout();
+
+            int originalClientHeight = ClientSize.Height;
+            _rootLayout = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                ColumnCount = 1,
+                RowCount = 3,
+                Margin = Padding.Empty,
+                Padding = Padding.Empty
+            };
+            _rootLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+            _rootLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            _rootLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+            _rootLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+
+            _toolbarLayout = new TableLayoutPanel
+            {
+                AutoSize = true,
+                AutoSizeMode = AutoSizeMode.GrowAndShrink,
+                ColumnCount = 1,
+                Dock = DockStyle.Fill,
+                Margin = Padding.Empty,
+                Padding = Padding.Empty,
+                RowCount = 2
+            };
+            _toolbarLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+            for (int row = 0; row < _toolbarLayout.RowCount; row++)
+                _toolbarLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+
+            _pakOperationsToolbar = CreateToolbar(officeStyle: true);
+            _openedPakFileToolbar = CreateToolbar(officeStyle: true);
+            _settingsToolbar = CreateToolbar(officeStyle: false);
+
+            _pakOperationsLabel = AddSectionLabel(_pakOperationsToolbar);
+            _toolbarBatchExtract = AddOperationButton(_pakOperationsToolbar, btnBatchExtract_Click, ToolbarIconKind.Folder, requiresLoadedPak: false);
+            _toolbarExtractAll = AddOperationButton(_pakOperationsToolbar, btnExtractAll_Click, ToolbarIconKind.ExtractAll);
+            _toolbarChangePakKey = AddOperationButton(_pakOperationsToolbar, btnChangeKey_Click, ToolbarIconKind.Key);
+            _toolbarFilenameEncoding = AddOperationButton(_pakOperationsToolbar, (_, _) => ShowFilenameEncodingDialog(), ToolbarIconKind.Encoding, requiresLoadedPak: false);
+
+            _fileOperationsLabel = AddSectionLabel(_openedPakFileToolbar);
+            _toolbarUpdatePak = AddOperationButton(_openedPakFileToolbar, btnUpdatePak_Click, ToolbarIconKind.Update);
+            _toolbarExtractSelected = AddOperationButton(_openedPakFileToolbar, btnExtractSelected_Click, ToolbarIconKind.ExtractSelected);
+            _toolbarRenameSelected = AddOperationButton(_openedPakFileToolbar, (s, e) => BeginSelectedFileRename(), ToolbarIconKind.Rename);
+            _toolbarRemoveSelected = AddOperationButton(_openedPakFileToolbar, btnRemoveSelected_Click, ToolbarIconKind.Remove);
+
+            label1.Visible = false;
+            txtNewAuthorPak.Visible = false;
+            MoveCreatePakOptionsUp();
+            label2.Visible = false;
+            txtUpdateAuthor.Width = 130;
+            _toolbarAuthorLabel = new ToolStripLabel();
+            _settingsToolbar.Items.Add(_toolbarAuthorLabel);
+            _settingsToolbar.Items.Add(new ToolStripControlHost(txtUpdateAuthor)
+            {
+                AutoSize = false,
+                Size = new Size(130, 23)
+            });
+
+            lblNewKey.Visible = false;
+            cboNewRegion.Visible = false;
+
+            statusStrip1.Items.Remove(lblFilenameEncoding);
+            statusStrip1.Items.Remove(cboFilenameEncoding);
+            statusStrip1.Items.Remove(lblLanguage);
+            statusStrip1.Items.Remove(cboLanguage);
+            if (!statusStrip1.Items.Contains(_filenameEncodingStatusLabel))
+            {
+                int pakKeyIndex = statusStrip1.Items.IndexOf(lblPakKey);
+                statusStrip1.Items.Insert(pakKeyIndex + 1, _filenameEncodingStatusLabel);
+            }
+
+            _toolbarLayout.Controls.Add(_pakOperationsToolbar, 0, 0);
+            _toolbarLayout.Controls.Add(_settingsToolbar, 0, 1);
+
+            Controls.Remove(tabControl1);
+            Controls.Remove(statusStrip1);
+            Controls.Remove(ckSecurityPak);
+
+            tabControl1.Dock = DockStyle.Fill;
+            statusStrip1.Dock = DockStyle.Fill;
+            _rootLayout.Controls.Add(_toolbarLayout, 0, 0);
+            _rootLayout.Controls.Add(tabControl1, 0, 1);
+            _rootLayout.Controls.Add(statusStrip1, 0, 2);
+            Controls.Add(_rootLayout);
+
+            if (!tabCreate.Controls.Contains(ckSecurityPak))
+            {
+                ckSecurityPak.Location = new Point(20, btnCreatePak.Bottom + 12);
+                tabCreate.Controls.Add(ckSecurityPak);
+            }
+
+            EmphasizeOpenPakEntryPoint();
+            InstallOpenedPakFileToolbar();
+            HideLegacyActionButtons();
+            UpdateToolbarEnabledState();
+            _toolbarLayout.PerformLayout();
+            ClientSize = new Size(ClientSize.Width, originalClientHeight + _toolbarLayout.PreferredSize.Height);
+            PerformLayout();
+            ResizeExtractListArea();
+            ResumeLayout(true);
+        }
+
+        private void EmphasizeOpenPakEntryPoint()
+        {
+            txtPakPath.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            txtPakPath.Width = Math.Max(320, tabExtract.ClientSize.Width - txtPakPath.Left - btnBrowsePak.Width - 24);
+
+            btnBrowsePak.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btnBrowsePak.Location = new Point(txtPakPath.Right + 10, txtPakPath.Top - 2);
+            btnBrowsePak.Size = new Size(104, 28);
+            btnBrowsePak.BackColor = Color.FromArgb(0, 122, 204);
+            btnBrowsePak.ForeColor = Color.White;
+            btnBrowsePak.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            btnBrowsePak.UseVisualStyleBackColor = false;
+
+            groupHeader.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            groupHeader.Width = tabExtract.ClientSize.Width - (groupHeader.Left * 2);
+            lblCurrentPath.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            lstEntries.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            tvFolders.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
+        }
+
+        private void MoveCreatePakOptionsUp()
+        {
+            const int delta = 36;
+            foreach (Control control in new Control[]
+            {
+                lblVol,
+                cboVersion,
+                lblComp,
+                cboCompressType,
+                lblLevel,
+                numCompressLevel,
+                lblReg,
+                cboRegion,
+                btnCreatePak
+            })
+            {
+                control.Location = new Point(control.Left, control.Top - delta);
+            }
+        }
+
+        private void InstallOpenedPakFileToolbar()
+        {
+            if (_openedPakFileToolbar == null)
+                return;
+
+            _openedPakFileToolbar.Dock = DockStyle.None;
+            _openedPakFileToolbar.Location = new Point(txtPakPath.Left, txtPakPath.Bottom + 8);
+            _openedPakFileToolbar.Width = tabExtract.ClientSize.Width - (txtPakPath.Left * 2);
+            _openedPakFileToolbar.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            tabExtract.Controls.Add(_openedPakFileToolbar);
+            tabExtract.Controls.SetChildIndex(_openedPakFileToolbar, 0);
+
+            _openedPakFileToolbar.PerformLayout();
+            int toolbarBottom = _openedPakFileToolbar.Bottom + 8;
+            int delta = Math.Max(0, toolbarBottom - groupHeader.Top);
+            if (delta == 0)
+                return;
+
+            MoveExtractControlDown(groupHeader, delta);
+            MoveExtractControlDown(lblSearch, delta);
+            MoveExtractControlDown(txtSearch, delta);
+            MoveExtractControlDown(lblCurrentPath, delta);
+            MoveExtractControlDown(tvFolders, delta);
+            MoveExtractControlDown(lstEntries, delta);
+        }
+
+        private static void MoveExtractControlDown(Control control, int delta)
+        {
+            control.Location = new Point(control.Left, control.Top + delta);
+        }
+
+        private static ToolStrip CreateToolbar(bool officeStyle) => new()
+        {
+            Dock = DockStyle.Fill,
+            GripStyle = ToolStripGripStyle.Hidden,
+            ImageScalingSize = officeStyle ? new Size(32, 32) : new Size(20, 20),
+            LayoutStyle = ToolStripLayoutStyle.HorizontalStackWithOverflow,
+            Padding = officeStyle ? new Padding(3, 3, 3, 4) : Padding.Empty,
+            Stretch = true
+        };
+
+        private ToolStripLabel AddSectionLabel(ToolStrip toolbar)
+        {
+            var label = new ToolStripLabel
+            {
+                Font = new Font(Font, FontStyle.Bold),
+                Margin = new Padding(8, 1, 4, 2)
+            };
+            toolbar.Items.Add(label);
+            return label;
+        }
+
+        private ToolStripButton AddOperationButton(
+            ToolStrip toolbar,
+            EventHandler clickHandler,
+            ToolbarIconKind iconKind,
+            bool requiresLoadedPak = true)
+        {
+            var button = new ToolStripButton
+            {
+                AutoSize = false,
+                DisplayStyle = ToolStripItemDisplayStyle.ImageAndText,
+                Image = CreateToolbarIcon(iconKind),
+                ImageScaling = ToolStripItemImageScaling.None,
+                Margin = new Padding(2, 1, 2, 2),
+                TextImageRelation = TextImageRelation.ImageAboveText
+            };
+            button.Click += clickHandler;
+            toolbar.Items.Add(button);
+            _operationToolbarItems.Add(button);
+            _officeToolbarButtons.Add(button);
+            if (requiresLoadedPak)
+                _requiresLoadedPakToolbarItems.Add(button);
+            ApplyToolbarButtonDisplay(button);
+            return button;
+        }
+
+        private void ApplyToolbarTextVisibility()
+        {
+            foreach (ToolStripButton button in _officeToolbarButtons)
+                ApplyToolbarButtonDisplay(button);
+
+            _pakOperationsToolbar?.PerformLayout();
+            _openedPakFileToolbar?.PerformLayout();
+            if (_openedPakFileToolbar != null)
+                _openedPakFileToolbar.Width = tabExtract.ClientSize.Width - (txtPakPath.Left * 2);
+        }
+
+        private void ApplyToolbarButtonDisplay(ToolStripButton button)
+        {
+            button.DisplayStyle = _showToolbarText
+                ? ToolStripItemDisplayStyle.ImageAndText
+                : ToolStripItemDisplayStyle.Image;
+            button.TextImageRelation = TextImageRelation.ImageAboveText;
+            button.Size = _showToolbarText ? new Size(92, 62) : new Size(54, 48);
+        }
+
+        private static Bitmap CreateToolbarIcon(ToolbarIconKind iconKind)
+        {
+            var bitmap = new Bitmap(32, 32);
+            using Graphics g = Graphics.FromImage(bitmap);
+            g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            g.Clear(Color.Transparent);
+
+            using var primary = new SolidBrush(Color.FromArgb(0, 122, 204));
+            using var green = new SolidBrush(Color.FromArgb(40, 167, 69));
+            using var amber = new SolidBrush(Color.FromArgb(255, 193, 7));
+            using var red = new SolidBrush(Color.FromArgb(220, 53, 69));
+            using var purple = new SolidBrush(Color.FromArgb(111, 66, 193));
+            using var white = new SolidBrush(Color.White);
+            using var dark = new Pen(Color.FromArgb(70, 70, 70), 2F);
+            using var whitePen = new Pen(Color.White, 2.3F)
+            {
+                StartCap = System.Drawing.Drawing2D.LineCap.Round,
+                EndCap = System.Drawing.Drawing2D.LineCap.Round
+            };
+
+            switch (iconKind)
+            {
+                case ToolbarIconKind.Folder:
+                    g.FillRectangle(amber, 3, 10, 26, 17);
+                    g.FillRectangle(amber, 5, 6, 10, 6);
+                    g.DrawRectangle(dark, 3, 10, 26, 17);
+                    break;
+                case ToolbarIconKind.Update:
+                    g.FillEllipse(amber, 5, 5, 22, 22);
+                    g.DrawArc(whitePen, 8, 8, 16, 16, 30, 260);
+                    g.FillPolygon(white, [new Point(22, 8), new Point(27, 8), new Point(24, 13)]);
+                    break;
+                case ToolbarIconKind.ExtractAll:
+                    g.FillRectangle(green, 5, 5, 22, 22);
+                    g.DrawLine(whitePen, 16, 8, 16, 22);
+                    g.DrawLine(whitePen, 10, 16, 16, 22);
+                    g.DrawLine(whitePen, 22, 16, 16, 22);
+                    break;
+                case ToolbarIconKind.Key:
+                    g.FillEllipse(purple, 5, 10, 12, 12);
+                    g.DrawEllipse(whitePen, 8, 13, 6, 6);
+                    g.DrawLine(whitePen, 16, 16, 28, 16);
+                    g.DrawLine(whitePen, 23, 16, 23, 21);
+                    break;
+                case ToolbarIconKind.Encoding:
+                    g.FillRectangle(primary, 5, 6, 22, 20);
+                    using (var font = new Font("Segoe UI", 8F, FontStyle.Bold, GraphicsUnit.Pixel))
+                    {
+                        g.DrawString("ABC", font, white, new PointF(8, 9));
+                        g.DrawString("01", font, white, new PointF(11, 18));
+                    }
+                    break;
+                case ToolbarIconKind.ExtractSelected:
+                    g.FillRectangle(primary, 7, 4, 18, 24);
+                    g.FillPolygon(white, [new Point(16, 23), new Point(9, 15), new Point(14, 15), new Point(14, 8), new Point(18, 8), new Point(18, 15), new Point(23, 15)]);
+                    break;
+                case ToolbarIconKind.Rename:
+                    g.FillRectangle(primary, 5, 9, 22, 14);
+                    g.DrawLine(whitePen, 9, 16, 23, 16);
+                    g.DrawLine(whitePen, 11, 12, 11, 20);
+                    break;
+                case ToolbarIconKind.Remove:
+                    g.FillEllipse(red, 5, 5, 22, 22);
+                    g.DrawLine(whitePen, 11, 11, 21, 21);
+                    g.DrawLine(whitePen, 21, 11, 11, 21);
+                    break;
+            }
+
+            return bitmap;
+        }
+
+        private void HideLegacyActionButtons()
+        {
+            btnExtractSelected.Visible = false;
+            btnRemoveSelected.Visible = false;
+            btnBatchExtract.Visible = false;
+            btnUpdatePak.Visible = false;
+            btnExtractAll.Visible = false;
+            btnChangeKey.Visible = false;
+        }
+
+        private void ResizeExtractListArea()
+        {
+            int bottom = tabExtract.ClientSize.Height - tabExtract.Padding.Bottom;
+            tvFolders.Height = Math.Max(180, bottom - tvFolders.Top);
+            lstEntries.Height = Math.Max(180, bottom - lstEntries.Top);
+        }
+
+        private void ApplyToolbarLocalization()
+        {
+            if (_pakOperationsLabel != null) _pakOperationsLabel.Text = Strings.PakMaker_PakOperations;
+            if (_fileOperationsLabel != null) _fileOperationsLabel.Text = Strings.PakMaker_FileOperations;
+            if (_toolbarAuthorLabel != null) _toolbarAuthorLabel.Text = Strings.PakMaker_Author;
+            if (_toolbarFilenameEncoding != null)
+            {
+                _toolbarFilenameEncoding.Text = TrimToolbarLabel(Strings.Pak_FilenameEncoding);
+                _toolbarFilenameEncoding.ToolTipText = Strings.Pak_FilenameEncodingTooltip;
+            }
+            if (_toolbarBatchExtract != null) _toolbarBatchExtract.Text = Strings.Pak_BatchExtract;
+            if (_toolbarUpdatePak != null) _toolbarUpdatePak.Text = Strings.Pak_Update;
+            if (_toolbarExtractAll != null) _toolbarExtractAll.Text = Strings.Pak_ExtractAll;
+            if (_toolbarChangePakKey != null) _toolbarChangePakKey.Text = Strings.Pak_ChangeKey;
+            if (_toolbarExtractSelected != null) _toolbarExtractSelected.Text = Strings.Pak_ExtractSelected;
+            if (_toolbarRenameSelected != null) _toolbarRenameSelected.Text = Strings.Pak_RenameSelected;
+            if (_toolbarRemoveSelected != null) _toolbarRemoveSelected.Text = Strings.Pak_RemoveSelected;
+            foreach (ToolStripButton button in _officeToolbarButtons)
+                button.ToolTipText = button.Text;
+        }
+
+        private static string TrimToolbarLabel(string text) => text.Trim().TrimEnd(':');
 
         /// <summary>
         /// Inicializa o menu de contexto específico para a TreeView de pastas.
@@ -252,7 +615,7 @@ namespace PangYa_Suite_Tools
                 if (!string.IsNullOrEmpty(fileDir) && !Directory.Exists(fileDir))
                     Directory.CreateDirectory(fileDir);
 
-                _currentReader.ExtractEntry(entry, outPath);
+                _currentReader.ExtractEntry(entry, outPath, writeManifest: false);
             }
 
             // Devolve apenas os itens que ficaram no nível raiz da pasta temp (arquivos e/ou subpastas)
@@ -304,7 +667,7 @@ namespace PangYa_Suite_Tools
                     string suggestedName = Path.GetFileName(entry.Name.Replace('/', '\\'));
                     string outPath = Path.Combine(tempSessionDir, suggestedName);
 
-                    _currentReader.ExtractEntry(entry, outPath);
+                    _currentReader.ExtractEntry(entry, outPath, writeManifest: false);
                     filesToDrop.Add(outPath);
                 }
             });
@@ -384,7 +747,7 @@ namespace PangYa_Suite_Tools
                         Directory.CreateDirectory(fileDir);
                     }
 
-                    _currentReader.ExtractEntry(entry, outPath);
+                    _currentReader.ExtractEntry(entry, outPath, writeManifest: false);
                 }
 
                 string firstLevelDir = Path.Combine(tempSessionDir, selectedFolderName);
@@ -499,44 +862,158 @@ namespace PangYa_Suite_Tools
             cboRegion.DisplayMember = "Label";
             cboRegion.SelectedIndex = 0;
 
-            // Combo de chave/região destino, usado na troca de chave XTEA (aba de extração)
-            cboNewRegion.DataSource = PakKeys.All
-                .Select(x => new RegionOption(x.Label, x.Keys))
-                .ToList();
-            cboNewRegion.DisplayMember = "Label";
-            cboNewRegion.SelectedIndex = 0;
         }
 
         private void InitializeFilenameEncodingComboBox()
         {
-            IReadOnlyList<PakEncodingOption> encodings =
-                PakFilenameEncodingPreferences.GetAvailableEncodings();
-            int savedCodePage = PakFilenameEncodingPreferences.LoadCodePage();
+            List<PakEncodingOption> encodings =
+                PakFilenameEncodingPreferences.GetAvailableEncodings().ToList();
+            PakEncodingOption selectedEncoding = SelectFilenameEncodingOption(
+                encodings,
+                PakFilenameEncodingPreferences.LoadCodePage());
+            _selectedFilenameEncodingCodePage = selectedEncoding.CodePage;
 
-            _isInitializingEncodings = true;
+            _isInitializingFilenameEncoding = true;
             cboFilenameEncoding.ComboBox.DisplayMember = nameof(PakEncodingOption.Label);
             cboFilenameEncoding.ComboBox.ValueMember = nameof(PakEncodingOption.CodePage);
-            cboFilenameEncoding.ComboBox.DataSource = encodings.ToList();
-            cboFilenameEncoding.ComboBox.SelectedItem =
-                encodings.First(option => option.CodePage == savedCodePage);
-            _isInitializingEncodings = false;
+            cboFilenameEncoding.ComboBox.DataSource = null;
+            cboFilenameEncoding.ComboBox.Items.Clear();
+            cboFilenameEncoding.ComboBox.Items.AddRange(encodings.Cast<object>().ToArray());
+            SelectFilenameEncodingComboItem(cboFilenameEncoding.ComboBox, selectedEncoding.CodePage);
+            _isInitializingFilenameEncoding = false;
         }
 
         private Encoding SelectedFilenameEncoding =>
-            cboFilenameEncoding.SelectedItem is PakEncodingOption option
-                ? PakFilenameEncodingPreferences.GetEncoding(option.CodePage)
-                : PakFilenameEncodingPreferences.GetEncoding(
-                    PakFilenameEncodingPreferences.DefaultCodePage);
+            PakFilenameEncodingPreferences.GetEncoding(_selectedFilenameEncodingCodePage);
 
         private void cboFilenameEncoding_SelectedIndexChanged(object? sender, EventArgs e)
         {
-            if (_isInitializingEncodings ||
+            if (_isInitializingFilenameEncoding ||
                 cboFilenameEncoding.SelectedItem is not PakEncodingOption option)
                 return;
 
+            SetFilenameEncoding(option);
+        }
+
+        private void ShowFilenameEncodingDialog()
+        {
+            List<PakEncodingOption> encodings =
+                PakFilenameEncodingPreferences.GetAvailableEncodings().ToList();
+            _selectedFilenameEncodingCodePage = PakFilenameEncodingPreferences.LoadCodePage();
+            PakEncodingOption selectedEncoding = SelectFilenameEncodingOption(
+                encodings,
+                _selectedFilenameEncodingCodePage);
+
+            using var dialog = new Form
+            {
+                AutoScaleMode = AutoScaleMode.Font,
+                ClientSize = new Size(430, 126),
+                FormBorderStyle = FormBorderStyle.FixedDialog,
+                MaximizeBox = false,
+                MinimizeBox = false,
+                StartPosition = FormStartPosition.CenterParent,
+                Text = TrimToolbarLabel(Strings.Pak_FilenameEncoding)
+            };
+
+            var label = new Label
+            {
+                AutoSize = false,
+                Location = new Point(12, 12),
+                Size = new Size(406, 34),
+                Text = Strings.Pak_FilenameEncodingTooltip
+            };
+
+            var combo = new ComboBox
+            {
+                DropDownStyle = ComboBoxStyle.DropDownList,
+                DropDownWidth = 390,
+                Location = new Point(12, 52),
+                Size = new Size(406, 23),
+                DisplayMember = nameof(PakEncodingOption.Label),
+                ValueMember = nameof(PakEncodingOption.CodePage)
+            };
+            combo.Items.AddRange(encodings.Cast<object>().ToArray());
+            SelectFilenameEncodingComboItem(combo, selectedEncoding.CodePage);
+
+            var cancelButton = new Button
+            {
+                DialogResult = DialogResult.Cancel,
+                Location = new Point(262, 88),
+                Size = new Size(75, 26),
+                Text = Strings.Options_Cancel
+            };
+
+            var okButton = new Button
+            {
+                DialogResult = DialogResult.OK,
+                Location = new Point(343, 88),
+                Size = new Size(75, 26),
+                Text = Strings.Common_OK
+            };
+
+            dialog.Controls.Add(label);
+            dialog.Controls.Add(combo);
+            dialog.Controls.Add(cancelButton);
+            dialog.Controls.Add(okButton);
+            dialog.AcceptButton = okButton;
+            dialog.CancelButton = cancelButton;
+
+            if (dialog.ShowDialog(this) == DialogResult.OK &&
+                combo.SelectedItem is PakEncodingOption selected)
+            {
+                SetFilenameEncoding(selected);
+            }
+        }
+
+        private void SetFilenameEncoding(PakEncodingOption option)
+        {
+            _selectedFilenameEncodingCodePage = option.CodePage;
             PakFilenameEncodingPreferences.SaveCodePage(option.CodePage);
+
+            if (cboFilenameEncoding.SelectedItem is not PakEncodingOption selected ||
+                selected.CodePage != option.CodePage)
+            {
+                _isInitializingFilenameEncoding = true;
+                SelectFilenameEncodingComboItem(cboFilenameEncoding.ComboBox, option.CodePage);
+                _isInitializingFilenameEncoding = false;
+            }
+
             if (_currentReader != null)
                 lblStatus.Text = Strings.Pak_EncodingAppliesNextLoad;
+            UpdateDisplayedFilenameEncoding();
+        }
+
+        private static void SelectFilenameEncodingComboItem(ComboBox combo, int codePage)
+        {
+            int fallbackIndex = -1;
+            for (int index = 0; index < combo.Items.Count; index++)
+            {
+                if (combo.Items[index] is not PakEncodingOption option)
+                    continue;
+
+                if (option.CodePage == PakFilenameEncodingPreferences.DefaultCodePage)
+                    fallbackIndex = index;
+
+                if (option.CodePage == codePage)
+                {
+                    combo.SelectedIndex = index;
+                    return;
+                }
+            }
+
+            if (fallbackIndex >= 0)
+                combo.SelectedIndex = fallbackIndex;
+            else if (combo.Items.Count > 0)
+                combo.SelectedIndex = 0;
+        }
+
+        private static PakEncodingOption SelectFilenameEncodingOption(
+            IReadOnlyList<PakEncodingOption> encodings,
+            int codePage)
+        {
+            return encodings.FirstOrDefault(option => option.CodePage == codePage)
+                ?? encodings.FirstOrDefault(option => option.CodePage == PakFilenameEncodingPreferences.DefaultCodePage)
+                ?? encodings.First();
         }
 
         private void FrmPakMaker_DragEnter(object? sender, DragEventArgs e)
@@ -585,40 +1062,7 @@ namespace PangYa_Suite_Tools
                     }
                     else
                     {
-                        var itemsToInject = new List<PakInjectItem>();
-
-                        // Usa o Tag do nó selecionado (caminho real da pasta) em vez de
-                        // fazer parsing do FullPath exibido — evita falhas com subpastas/idiomas.
-                        string virtualTargetFolder = "";
-                        if (tvFolders.SelectedNode != null)
-                        {
-                            string folderTag = tvFolders.SelectedNode.Tag as string ?? "";
-                            virtualTargetFolder = folderTag.Replace('\\', '/').Trim('/');
-                            if (!string.IsNullOrEmpty(virtualTargetFolder))
-                                virtualTargetFolder += "/";
-                        }
-
-                        foreach (string path in files)
-                        {
-                            if (File.Exists(path))
-                            {
-                                itemsToInject.Add(new PakInjectItem(path, null));
-                            }
-                            else if (Directory.Exists(path))
-                            {
-                                string[] allFiles = Directory.GetFiles(path, "*.*", SearchOption.AllDirectories);
-                                foreach (string file in allFiles)
-                                {
-                                    string fileRelativeName = Path.GetFileName(path) + "/" +
-                                                              Path.GetRelativePath(path, file).Replace('\\', '/');
-
-                                    fileRelativeName = fileRelativeName.Trim('/');
-                                    string finalVirtualPath = virtualTargetFolder + fileRelativeName;
-
-                                    itemsToInject.Add(new PakInjectItem(file, finalVirtualPath));
-                                }
-                            }
-                        }
+                        List<PakInjectItem> itemsToInject = BuildPakInjectItems(files, GetSelectedArchiveFolder());
 
                         if (itemsToInject.Count == 0)
                         {
@@ -651,9 +1095,10 @@ namespace PangYa_Suite_Tools
         // ─── ABA 1: LEITURA E EXTRAÇÃO ─────────────────────────────────────────
         private void btnBrowsePak_Click(object? sender, EventArgs e)
         {
-            using var openFileDialog = new OpenFileDialog { Filter = Strings.Pak_OpenFileFilter };
+            using var openFileDialog = FileDialogFactory.CreatePakOpenDialog();
             if (openFileDialog.ShowDialog() == DialogResult.OK)
             {
+                FileDialogFactory.RememberDirectory(FileDialogKind.Pak, openFileDialog.FileName);
                 txtPakPath.Text = openFileDialog.FileName;
                 LoadPak(openFileDialog.FileName);
             }
@@ -678,6 +1123,7 @@ namespace PangYa_Suite_Tools
                 _currentReader = reader;
                 reader.Parse();
                 UpdateDisplayedPakKey();
+                UpdateToolbarEnabledState();
                 if (reader.LocationKeys?.SequenceEqual(PakKeys.SS) == true)
                 {
                     AppLogger.Instance.Log("PAK Manager",
@@ -699,6 +1145,10 @@ namespace PangYa_Suite_Tools
             {
                 AppLogger.Instance.Log("PAK Manager", $"Failed to load '{path}': {ex}", AppLogLevel.Error);
                 MessageBox.Show($"{Strings.PakMaker_ErrorOpeningPAKFile}\n{ex.Message}", Strings.PakMaker_Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                _currentReader?.Dispose();
+                _currentReader = null;
+                UpdateDisplayedPakKey();
+                UpdateToolbarEnabledState();
             }
         }
 
@@ -797,9 +1247,87 @@ namespace PangYa_Suite_Tools
 
             txtSearch.Clear();
             ApplyDisplayFilter();
-            foreach (ListViewItem item in lstEntries.Items) item.Selected = true;
+            _isApplyingTreeSelection = true;
+            try
+            {
+                foreach (ListViewItem item in lstEntries.Items) item.Selected = true;
+            }
+            finally
+            {
+                _isApplyingTreeSelection = false;
+                UpdateToolbarEnabledState();
+            }
             AppLogger.Instance.Log("PAK Manager",
                 $"Selected folder '{(string.IsNullOrEmpty(folderTag) ? "/" : folderTag)}' and {_scopedEntries.Count} files below it.");
+        }
+
+        private void TvFolders_AfterCheck(object? sender, TreeViewEventArgs e)
+        {
+            if (_currentReader == null || e.Node == null || _isClearingTreeChecks || !e.Node.Checked)
+                return;
+
+            string folderTag = e.Node.Tag as string ?? RootFolderTag;
+            SelectVisibleEntriesUnderFolder(folderTag);
+        }
+
+        private void LstEntries_ItemSelectionChanged(object? sender, ListViewItemSelectionChangedEventArgs e)
+        {
+            UpdateToolbarEnabledState();
+
+            if (_isApplyingTreeSelection || _isClearingTreeChecks || !e.IsSelected || lstEntries.SelectedItems.Count != 1)
+                return;
+
+            if (lstEntries.SelectedItems[0].Tag is PakFileEntry { Type: not PakFileEntryType.Directory })
+                ClearFolderChecks();
+        }
+
+        private void SelectVisibleEntriesUnderFolder(string folderTag)
+        {
+            string normalizedFolder = folderTag.Replace('\\', '/').Trim('/');
+            string prefix = string.IsNullOrEmpty(normalizedFolder) ? string.Empty : normalizedFolder + "/";
+
+            _isApplyingTreeSelection = true;
+            try
+            {
+                foreach (ListViewItem item in lstEntries.Items)
+                {
+                    if (item.Tag is not PakFileEntry entry || entry.Type == PakFileEntryType.Directory)
+                        continue;
+
+                    string entryName = entry.Name.Replace('\\', '/');
+                    if (string.IsNullOrEmpty(prefix) ||
+                        entryName.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                    {
+                        item.Selected = true;
+                    }
+                }
+            }
+            finally
+            {
+                _isApplyingTreeSelection = false;
+                UpdateToolbarEnabledState();
+            }
+        }
+
+        private void ClearFolderChecks()
+        {
+            _isClearingTreeChecks = true;
+            try
+            {
+                foreach (TreeNode node in tvFolders.Nodes)
+                    ClearFolderChecks(node);
+            }
+            finally
+            {
+                _isClearingTreeChecks = false;
+            }
+        }
+
+        private static void ClearFolderChecks(TreeNode node)
+        {
+            node.Checked = false;
+            foreach (TreeNode child in node.Nodes)
+                ClearFolderChecks(child);
         }
 
         private async void TvFolders_AfterLabelEdit(object? sender, NodeLabelEditEventArgs e)
@@ -1049,6 +1577,7 @@ namespace PangYa_Suite_Tools
             }
 
             lstEntries.EndUpdate();
+            UpdateToolbarEnabledState();
         }
 
         /// <summary>Duplo clique numa pasta dentro da lista navega para ela na árvore.</summary>
@@ -1087,6 +1616,7 @@ namespace PangYa_Suite_Tools
             if (keys is not { Length: > 0 })
             {
                 lblPakKey.Text = string.Empty;
+                UpdateDisplayedFilenameEncoding();
                 return;
             }
 
@@ -1094,6 +1624,14 @@ namespace PangYa_Suite_Tools
                 .FirstOrDefault(candidate => candidate.Keys.SequenceEqual(keys)).Label
                 ?? Strings.Pak_CustomKey;
             lblPakKey.Text = $"{Strings.Pak_KeyUsed} {keyName}";
+            UpdateDisplayedFilenameEncoding();
+        }
+
+        private void UpdateDisplayedFilenameEncoding()
+        {
+            Encoding encoding = _currentReader?.FileNameEncoding ?? SelectedFilenameEncoding;
+            _filenameEncodingStatusLabel.Text =
+                $"{TrimToolbarLabel(Strings.Pak_FilenameEncoding)}: {encoding.WebName} ({encoding.CodePage})";
         }
 
         private CancellationTokenSource BeginOperation()
@@ -1101,6 +1639,8 @@ namespace PangYa_Suite_Tools
             _operationCancellation?.Dispose();
             _operationCancellation = new CancellationTokenSource();
             btnCancelOperation.Enabled = true;
+            _operationInProgress = true;
+            UpdateToolbarEnabledState();
             return _operationCancellation;
         }
 
@@ -1108,8 +1648,34 @@ namespace PangYa_Suite_Tools
         {
             if (!ReferenceEquals(_operationCancellation, operation)) return;
             btnCancelOperation.Enabled = false;
+            _operationInProgress = false;
             _operationCancellation.Dispose();
             _operationCancellation = null;
+            UpdateToolbarEnabledState();
+        }
+
+        private void UpdateToolbarEnabledState()
+        {
+            void Apply()
+            {
+                bool hasLoadedPak = _currentReader != null;
+                bool canUsePak = hasLoadedPak && !_operationInProgress;
+                bool hasSelection = lstEntries.SelectedItems.Count > 0;
+                bool hasSingleSelection = lstEntries.SelectedItems.Count == 1;
+
+                foreach (ToolStripItem item in _requiresLoadedPakToolbarItems)
+                    item.Enabled = canUsePak;
+
+                if (_toolbarBatchExtract != null) _toolbarBatchExtract.Enabled = !_operationInProgress;
+                btnBatchExtract.Enabled = !_operationInProgress;
+                if (_toolbarExtractSelected != null) _toolbarExtractSelected.Enabled = canUsePak && hasSelection;
+                if (_toolbarRenameSelected != null) _toolbarRenameSelected.Enabled = canUsePak && hasSingleSelection;
+                if (_toolbarRemoveSelected != null) _toolbarRemoveSelected.Enabled = canUsePak && hasSelection;
+
+            }
+
+            if (InvokeRequired) Invoke(Apply);
+            else Apply();
         }
 
         private void btnCancelOperation_Click(object? sender, EventArgs e)
@@ -1267,6 +1833,7 @@ namespace PangYa_Suite_Tools
                 {
                     int total = entries.Count;
                     int done = 0;
+                    var extractedFiles = new List<(PakFileEntry Entry, string OutputPath)>();
 
                     foreach (var entry in entries)
                     {
@@ -1292,11 +1859,14 @@ namespace PangYa_Suite_Tools
                         }
 
                         // Extrai o arquivo na sua nova posição simplificada
-                        _currentReader!.ExtractEntry(entry, outPath);
+                        _currentReader!.ExtractEntry(entry, outPath, writeManifest: false);
+                        extractedFiles.Add((entry, outPath));
 
                         done++;
                         ReportProgress(done, total, Strings.PakMaker_ExtractingSelectedItemS_2);
                     }
+
+                    PakExtractionSidecar.WriteManifest(extractedFiles);
                 });
 
                 lblStatus.Text = Strings.PakMaker_Ready;
@@ -1373,16 +1943,20 @@ namespace PangYa_Suite_Tools
                 {
                     int total = entries.Count;
                     int done = 0;
+                    var extractedFiles = new List<(PakFileEntry Entry, string OutputPath)>();
 
                     foreach (var entry in entries)
                     {
                         operation.Token.ThrowIfCancellationRequested();
                         string outPath = exactPathForSingle ?? Path.Combine(destinationDir, entry.Name.Replace('/', '\\'));
-                        _currentReader!.ExtractEntry(entry, outPath);
+                        _currentReader!.ExtractEntry(entry, outPath, writeManifest: false);
+                        extractedFiles.Add((entry, outPath));
 
                         done++;
                         ReportProgress(done, total, Strings.PakMaker_ExtractingSelectedItemS_2);
                     }
+
+                    PakExtractionSidecar.WriteManifest(extractedFiles);
                 });
 
                 lblStatus.Text = Strings.PakMaker_Ready;
@@ -1440,6 +2014,7 @@ namespace PangYa_Suite_Tools
             progressBar1.Value = 0;
 
             int paksProcessados = 0;
+            List<(PakFileEntry Entry, string OutputPath)> extractedFiles = [];
 
             foreach (var pakPath in pakFiles)
             {
@@ -1460,7 +2035,13 @@ namespace PangYa_Suite_Tools
 
                         using var batchReader = new PakReader(pakPath, filenameEncoding, AppLogger.Instance);
                         batchReader.Parse(sharedKeys);
-                        batchReader.Extract("*", specificDestFolder, cancellationToken: operation.Token);
+                        batchReader.Extract("*", specificDestFolder, cancellationToken: operation.Token, writeManifest: false);
+                        lock (extractedFiles)
+                        {
+                            extractedFiles.AddRange(batchReader.Entries
+                                .Where(entry => entry.Type != PakFileEntryType.Directory)
+                                .Select(entry => (entry, Path.Combine(specificDestFolder, entry.Name.Replace('/', '\\')))));
+                        }
                     });
                 }
                 catch (OperationCanceledException)
@@ -1482,6 +2063,9 @@ namespace PangYa_Suite_Tools
             btnBatchExtract.Enabled = true;
             bool wasCancelled = operation.IsCancellationRequested;
             EndOperation(operation);
+
+            if (!wasCancelled)
+                PakExtractionSidecar.WriteManifest(extractedFiles);
 
             if (!wasCancelled)
                 MessageBox.Show($"{paksProcessados} {Strings.PakMaker_PAKPackagesExtractedSuccessfullyTo}\n{targetBaseDir}", Strings.PakMaker_ProcessingComplete, MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -1574,15 +2158,12 @@ namespace PangYa_Suite_Tools
                 return;
             }
 
-            using var openFileDialog = new OpenFileDialog
-            {
-                Title = Strings.PakMaker_SelectTheFilesToUpdateInject,
-                Multiselect = true
-            };
+            using var openFileDialog = FileDialogFactory.CreatePakInjectFilesDialog();
 
             if (openFileDialog.ShowDialog() != DialogResult.OK) return;
+            FileDialogFactory.RememberDirectory(FileDialogKind.PakInject, openFileDialog.FileNames.FirstOrDefault());
 
-            var items = openFileDialog.FileNames.Select(f => new PakInjectItem(f, null)).ToList();
+            List<PakInjectItem> items = BuildPakInjectItems(openFileDialog.FileNames, GetSelectedArchiveFolder());
             await InjectFilesIntoCurrentPakAsync(items);
 
         }
@@ -1663,33 +2244,16 @@ namespace PangYa_Suite_Tools
 
             string[] dropped = (string[])e.Data.GetData(DataFormats.FileDrop)!;
 
-            var items = new List<PakInjectItem>();
-            foreach (var path in dropped)
+            List<PakInjectItem> items;
+            try
             {
-                if (File.Exists(path))
-                {
-                    // Arquivo solto: sem pasta explícita, cai no fallback de busca por nome existente
-                    items.Add(new PakInjectItem(path, null));
-                }
-                else if (Directory.Exists(path))
-                {
-                    try
-                    {
-                        string baseFolder = path; // a própria pasta arrastada é a "raiz" da estrutura relativa
-                        foreach (var filePath in Directory.GetFiles(baseFolder, "*", SearchOption.AllDirectories))
-                        {
-                            string relativeToBase = Path.GetRelativePath(baseFolder, filePath);
-                            string relFolder = Path.GetDirectoryName(relativeToBase) ?? "";
-
-                            items.Add(new PakInjectItem(filePath, relFolder));
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show($"{Strings.PakMaker_ErrorReadingFolder} '{path}':\n{ex.Message}",
-                            Strings.PakMaker_Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
-                }
+                items = BuildPakInjectItems(dropped, GetSelectedArchiveFolder());
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"{Strings.PakMaker_ErrorReadingFolder}\n{ex.Message}",
+                    Strings.PakMaker_Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
             }
 
             if (items.Count == 0)
@@ -1701,6 +2265,55 @@ namespace PangYa_Suite_Tools
 
             await InjectFilesIntoCurrentPakAsync(items);
         }
+
+        private string GetSelectedArchiveFolder()
+        {
+            string folderTag = tvFolders.SelectedNode?.Tag as string ?? string.Empty;
+            return NormalizeArchiveFolder(folderTag);
+        }
+
+        private static List<PakInjectItem> BuildPakInjectItems(IEnumerable<string> paths, string selectedFolder)
+        {
+            string targetFolder = NormalizeArchiveFolder(selectedFolder);
+            var items = new List<PakInjectItem>();
+
+            foreach (string path in paths)
+            {
+                if (File.Exists(path))
+                {
+                    items.Add(new PakInjectItem(path, targetFolder));
+                    continue;
+                }
+
+                if (!Directory.Exists(path)) continue;
+
+                string trimmedPath = path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                string rootFolderName = Path.GetFileName(trimmedPath);
+                string injectedRoot = CombineArchiveFolders(targetFolder, rootFolderName);
+
+                foreach (string filePath in Directory.GetFiles(path, "*", SearchOption.AllDirectories))
+                {
+                    string relativePath = Path.GetRelativePath(path, filePath);
+                    string relativeFolder = Path.GetDirectoryName(relativePath) ?? string.Empty;
+                    items.Add(new PakInjectItem(filePath,
+                        CombineArchiveFolders(injectedRoot, relativeFolder)));
+                }
+            }
+
+            return items;
+        }
+
+        private static string CombineArchiveFolders(string left, string right)
+        {
+            string normalizedLeft = NormalizeArchiveFolder(left);
+            string normalizedRight = NormalizeArchiveFolder(right);
+            if (string.IsNullOrEmpty(normalizedLeft)) return normalizedRight;
+            if (string.IsNullOrEmpty(normalizedRight)) return normalizedLeft;
+            return $"{normalizedLeft}/{normalizedRight}";
+        }
+
+        private static string NormalizeArchiveFolder(string folder) =>
+            (folder ?? string.Empty).Replace('\\', '/').Trim('/');
 
         // ─── REMOVER ─────────────────────────────────────────────────────────────
 
@@ -1923,7 +2536,7 @@ namespace PangYa_Suite_Tools
                             CompressLevel = (byte)numCompressLevel.Value,
                             // Se não for Raw e selectedKeys vier nulo por falha de seleção, aplica o fallback JP
                             LocationKeys = selectedKeys ?? (selectedVersion == PakFileEntryVersion.Raw ? Array.Empty<uint>() : PakKeys.JP),
-                            Author = txtNewAuthorPak.Text, // Assinatura do PAK
+                            Author = txtUpdateAuthor.Text, // Assinatura do PAK
                             FileNameEncoding = SelectedFilenameEncoding,
                             LogSink = AppLogger.Instance
                         };
@@ -1971,12 +2584,9 @@ namespace PangYa_Suite_Tools
                 return;
             }
 
-            RegionOption? selectedRegion = cboNewRegion.SelectedItem as RegionOption;
+            RegionOption? selectedRegion = ShowChangeKeyDialog();
             if (selectedRegion == null)
-            {
-                MessageBox.Show(Strings.PakMaker_SelectTheTargetRegionKey, Strings.PakMaker_Warning, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
-            }
 
             uint[] newKeys = selectedRegion.Keys;
 
@@ -2040,6 +2650,64 @@ namespace PangYa_Suite_Tools
                 btnChangeKey.Enabled = true;
                 EndOperation(operation);
             }
+        }
+
+        private RegionOption? ShowChangeKeyDialog()
+        {
+            using var dialog = new Form
+            {
+                AutoScaleMode = AutoScaleMode.Font,
+                ClientSize = new Size(360, 118),
+                FormBorderStyle = FormBorderStyle.FixedDialog,
+                MaximizeBox = false,
+                MinimizeBox = false,
+                StartPosition = FormStartPosition.CenterParent,
+                Text = Strings.Pak_ChangeKey
+            };
+
+            var label = new Label
+            {
+                AutoSize = false,
+                Location = new Point(12, 14),
+                Size = new Size(336, 20),
+                Text = Strings.PakMaker_SelectTheTargetRegionKey
+            };
+
+            var combo = new ComboBox
+            {
+                DropDownStyle = ComboBoxStyle.DropDownList,
+                Location = new Point(12, 40),
+                Size = new Size(336, 23),
+                DisplayMember = nameof(RegionOption.Label),
+                DataSource = PakKeys.All.Select(key => new RegionOption(key.Label, key.Keys)).ToList()
+            };
+
+            var cancelButton = new Button
+            {
+                DialogResult = DialogResult.Cancel,
+                Location = new Point(192, 80),
+                Size = new Size(75, 26),
+                Text = Strings.Options_Cancel
+            };
+
+            var okButton = new Button
+            {
+                DialogResult = DialogResult.OK,
+                Location = new Point(273, 80),
+                Size = new Size(75, 26),
+                Text = Strings.Common_OK
+            };
+
+            dialog.Controls.Add(label);
+            dialog.Controls.Add(combo);
+            dialog.Controls.Add(cancelButton);
+            dialog.Controls.Add(okButton);
+            dialog.AcceptButton = okButton;
+            dialog.CancelButton = cancelButton;
+
+            return dialog.ShowDialog(this) == DialogResult.OK
+                ? combo.SelectedItem as RegionOption
+                : null;
         }
 
 
