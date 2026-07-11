@@ -555,6 +555,9 @@ public sealed class LocalizationTests : IDisposable
                 Assert.Equal(Strings.IFFManager_ContainerKey,
                     PrivateField<ToolStripStatusLabel>(iff, "lblContainerKey").Text);
                 Assert.Equal(Strings.Common_OK, options.Controls.Find("btnOK", true).Single().Text);
+                Assert.True(options.Controls.Find("chkRegisterFile", true).Single().Enabled);
+                Assert.True(options.Controls.Find("chkShellContext", true).Single().Enabled);
+                Assert.False(options.Controls.Find("lblAdminWarning", true).Single().Visible);
                 Assert.Equal(Strings.PakMaker_Author, pak.Controls.Find("label1", true).Single().Text);
                 Assert.Equal(Strings.PakMaker_Author, pak.Controls.Find("label2", true).Single().Text);
                 Assert.Equal(Strings.Pak_SecurityPak, pak.Controls.Find("ckSecurityPak", true).Single().Text);
