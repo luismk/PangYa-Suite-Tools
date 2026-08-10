@@ -23,7 +23,7 @@ namespace PangyaAPI.Network.Repository
                 m_si.Name,
                 m_si.IpAddress,
                 m_si.Port,
-                m_si.tipo,
+                (short)m_si.tipo,
                 m_si.MaxUsers,
                 m_si.ConnectedUsers,
                 m_si.rate.pang,

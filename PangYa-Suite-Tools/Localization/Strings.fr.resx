@@ -1079,6 +1079,18 @@ Déclencheur :</value>
   <data name="WftViewer_InvalidCodePoint" xml:space="preserve"><value>Entrez un point de code hexadécimal pris en charge par la police chargée (U+0020 à U+FFFF).</value></data>
   <data name="WftViewer_DefaultSample" xml:space="preserve"><value>PangYa 123!&#xD;&#xA;Le rapide renard brun.</value></data>
   <data name="WftViewer_InvalidExtension" xml:space="preserve"><value>Seuls les fichiers de police PangYa .wft sont pris en charge.</value></data>
+  <data name="WftViewer_Export" xml:space="preserve"><value>Exporter en TTF</value></data>
+  <data name="WftViewer_CancelExport" xml:space="preserve"><value>Annuler l’exportation</value></data>
+  <data name="WftViewer_ExportDialogTitle" xml:space="preserve"><value>Détails de la police TrueType</value></data>
+  <data name="WftViewer_ExportFamily" xml:space="preserve"><value>Famille de police</value></data>
+  <data name="WftViewer_ExportStyle" xml:space="preserve"><value>Style</value></data>
+  <data name="WftViewer_InvalidFamily" xml:space="preserve"><value>Saisissez un nom de famille de 128 caractères maximum.</value></data>
+  <data name="WftViewer_ExportTitle" xml:space="preserve"><value>Exporter une police TrueType Windows</value></data>
+  <data name="WftViewer_ExportFileFilter" xml:space="preserve"><value>Polices TrueType (*.ttf)|*.ttf</value></data>
+  <data name="WftViewer_ExportProgressFormat" xml:space="preserve"><value>Conversion des glyphes : {0:N0}/{1:N0}</value></data>
+  <data name="WftViewer_ExportSuccessFormat" xml:space="preserve"><value>Police TrueType enregistrée sous {0}.</value></data>
+  <data name="WftViewer_ExportFailed" xml:space="preserve"><value>Impossible d’exporter la police TrueType : {0}</value></data>
+  <data name="WftViewer_ExportCanceled" xml:space="preserve"><value>Exportation de la police TrueType annulée.</value></data>
   <data name="UpdateList_CreateZipPackages" xml:space="preserve"><value>Créer les paquets ZIP</value></data>
   <data name="UpdateList_PackagingFiles" xml:space="preserve"><value>Création des paquets des fichiers client...</value></data>
   <data name="UpdateList_PackagingProgressFormat" xml:space="preserve"><value>Création des paquets ZIP : {0}/{1}</value></data>

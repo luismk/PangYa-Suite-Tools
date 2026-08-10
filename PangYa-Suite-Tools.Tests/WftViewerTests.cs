@@ -2,7 +2,9 @@ using PangyaAPI.WFT;
 using PangYa_Suite_Tools.Localization;
 using System.Buffers.Binary;
 using System.Drawing;
+using System.Drawing.Text;
 using System.Runtime.ExceptionServices;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using Xunit;
 
@@ -89,6 +91,50 @@ public sealed class WftViewerTests : IDisposable
     }
 
     [Fact]
+    public void Viewer_ExportsInstallableTrueTypeFontAndReleasesDestination()
+    {
+        string path = CreateFont((0x0020, [0, 0], 1), (0x0041, [0x80, 0x40], 2));
+        string output = Path.Combine(_directory, "TestPixels.ttf");
+
+        RunSta(() =>
+        {
+            using var viewer = new FrmWftViewer();
+            Wait(viewer.LoadFileAsync(path));
+            Assert.True(viewer.ExportEnabled);
+
+            Wait(viewer.ExportFileAsync(output,
+                new WftTrueTypeExportOptions("PangYa Test Pixels")));
+
+            Assert.True(File.Exists(output));
+            Assert.Contains(Path.GetFileName(output), viewer.StatusText);
+            using var fonts = new PrivateFontCollection();
+            fonts.AddFontFile(output);
+            Assert.Contains(fonts.Families,
+                family => family.Name.Equals("PangYa Test Pixels", StringComparison.Ordinal));
+            Assert.True(AddFontResourceEx(output, 0x10, 0) > 0);
+            Assert.True(RemoveFontResourceEx(output, 0x10, 0));
+        });
+
+        string renamed = output + ".renamed";
+        File.Move(output, renamed);
+        Assert.True(File.Exists(renamed));
+    }
+
+    [Fact]
+    public void ExportDialog_DefaultsFamilyAndRegularStyle()
+    {
+        RunSta(() =>
+        {
+            using var dialog = new WftExportOptionsDialog("pangya_font");
+            var family = dialog.Controls.Find("txtWftExportFamily", true).OfType<TextBox>().Single();
+            var style = dialog.Controls.Find("cboWftExportStyle", true).OfType<ComboBox>().Single();
+            Assert.Equal("pangya_font", family.Text);
+            Assert.Equal(0, style.SelectedIndex);
+            Assert.Equal("Regular", style.Text);
+        });
+    }
+
+    [Fact]
     public void ViewerAndMenu_RefreshAllSupportedCultures()
     {
         RunSta(() =>
@@ -109,6 +155,9 @@ public sealed class WftViewerTests : IDisposable
                 Assert.Equal(Strings.Menu_FontViewer,
                     menu.Controls.Find("btnOpenFontViewer", true).Single().Text);
                 Assert.Contains("*.wft", Strings.WftViewer_FileFilter,
+                    StringComparison.OrdinalIgnoreCase);
+                Assert.False(string.IsNullOrWhiteSpace(Strings.WftViewer_Export));
+                Assert.Contains("*.ttf", Strings.WftViewer_ExportFileFilter,
                     StringComparison.OrdinalIgnoreCase);
             }
         });
@@ -150,6 +199,23 @@ public sealed class WftViewerTests : IDisposable
         thread.Join();
         if (failure is not null) ExceptionDispatchInfo.Capture(failure).Throw();
     }
+
+    private static void Wait(Task task)
+    {
+        while (!task.IsCompleted)
+        {
+            Application.DoEvents();
+            Thread.Sleep(1);
+        }
+        task.GetAwaiter().GetResult();
+    }
+
+    [DllImport("gdi32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    private static extern int AddFontResourceEx(string fileName, uint flags, nint reserved);
+
+    [DllImport("gdi32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool RemoveFontResourceEx(string fileName, uint flags, nint reserved);
 
     public void Dispose()
     {

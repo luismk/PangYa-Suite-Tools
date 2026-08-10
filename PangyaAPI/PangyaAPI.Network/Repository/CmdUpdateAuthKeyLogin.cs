@@ -33,7 +33,7 @@ namespace PangyaAPI.Network.Repository
             using var context = createContext();
             var rowsAffected = context.AuthKeyLogins
                 .Where(authKey => authKey.Uid == checked((int)m_uid))
-                .ExecuteUpdate(setters => setters.SetProperty(authKey => authKey.Valid, m_valid));
+                .ExecuteUpdate(setters => setters.SetProperty(authKey => authKey.Valid, (short)m_valid));
             var r = responseFromRowsAffected(rowsAffected);
             checkResponse(r, "nao conseguiu pegar o Auth Server Key do Server[UID=" + (m_uid) + "]");
             return r;

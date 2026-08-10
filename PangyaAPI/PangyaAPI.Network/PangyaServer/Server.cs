@@ -86,12 +86,11 @@ namespace PangyaAPI.Network.PangyaServer
         {
             try
             {
-                //Log Dev
-                ConsoleEx.Log();
-
                 m_session_manager = manager;
                 m_configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
                 m_logger = (loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory))).CreateLogger(GetType().FullName ?? GetType().Name);
+
+                ConsoleEx.Log(GetType().Name);
 
                 m_state = ServerState.Uninitialized;
 

@@ -90,26 +90,27 @@ namespace PangyaAPI.Network.PangyaSession
 
             m_connection_timeout = false;
 
-            m_ip = "";
-            m_ip_maked = false;
+            // Keep the last resolved address available for disconnect logging. A
+            // pooled session resets this cache when it is assigned a new endpoint.
+            make_ip();
 
             m_use_ctx.clear();
 
             m_sock?.Dispose();
-            m_sock = null;   // ✅ RECOMENDADO!
+            m_sock = null;
+            m_addr = null;
 
             return true;
         }
 
         public string getIP()
         {
-
-            if (!m_ip_maked || (m_addr.Port != 0 && string.Compare(m_ip, "0.0.0.0") == 0))
+            if (!m_ip_maked || (m_addr?.Port > 0 && string.Compare(m_ip, "0.0.0.0") == 0))
             {
                 make_ip();
             }
 
-            return m_ip;
+            return string.IsNullOrWhiteSpace(m_ip) ? "0.0.0.0" : m_ip;
         }
 
         public void @lock()
@@ -291,21 +292,23 @@ namespace PangyaAPI.Network.PangyaSession
 
         public void make_ip()
         {
+            var endpoint = m_addr;
 
-            if (!m_ip_maked || (m_addr.Port != 0 && string.Compare(m_ip, "0.0.0.0") == 0))
+            if (endpoint == null)
             {
-                try
-                {
-                    m_ip = m_addr.Address.ToString();
-                    m_ip_maked = true;
-                }
-                catch
-                {
+                if (string.IsNullOrWhiteSpace(m_ip))
+                    m_ip = "0.0.0.0";
 
-                    throw new exception("Erro ao converter SOCKADDR_IN para string doted mode(IP). Session::make_ip()", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.SESSION,
-                        1, 0));
-                }
+                m_ip_maked = true;
+                return;
             }
+
+            var address = endpoint.Address;
+            if (address.IsIPv4MappedToIPv6)
+                address = address.MapToIPv4();
+
+            m_ip = address.ToString();
+            m_ip_maked = true;
         }
 
         public bool isConnectedToSend()

@@ -1,6 +1,7 @@
 ﻿using PangyaAPI.Network.Models;
 using PangyaAPI.Network.PangyaPacket;
 using PangyaAPI.Utilities.BinaryModels;
+using System.Collections.Generic;
 
 namespace PangyaAPI.Network.PangyaUnit
 {
@@ -19,6 +20,7 @@ namespace PangyaAPI.Network.PangyaUnit
         public virtual void authCmdNewMailArrivedMailBox(uint _player_uid, int _mail_id) { }
         public virtual void authCmdNewRate(uint _tipo, uint _qntd) { }
         public virtual void authCmdReloadGlobalSystem(uint _tipo) { }
+        public virtual void authCmdGameServerRegistered(IReadOnlyList<int> serverIds) { }
 
         //criados no server.cs
         public virtual void authCmdInfoPlayerOnline(uint _req_server_uid, uint _player_uid) { }

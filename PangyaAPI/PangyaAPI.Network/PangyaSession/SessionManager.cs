@@ -64,6 +64,8 @@ namespace PangyaAPI.Network.PangyaSession
                 pSession._Packet_Handle_Base = _Packet_Handle;//trata e lida com jogador 
                 pSession.m_sock = socket;
                 pSession.m_addr = address;
+                pSession.m_ip = "0.0.0.0";
+                pSession.m_ip_maked = false;
                 pSession.m_key = key;
                 pSession.m_oid = index;
                 pSession.m_time_start = pSession.m_tick = Environment.TickCount;

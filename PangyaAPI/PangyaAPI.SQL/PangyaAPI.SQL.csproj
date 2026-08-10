@@ -23,15 +23,6 @@
     <PackageReference Include="Npgsql" Version="10.0.0" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Remove="Base\database.cs" />
-    <Compile Remove="Manager\ctx_db.cs" />
-    <Compile Remove="Manager\DbFactory.cs" />
-    <Compile Remove="Manager\exec_query.cs" />
-    <Compile Remove="Manager\mssql.cs" />
-    <Compile Remove="Manager\mysql.cs" />
-    <Compile Remove="Manager\postgresql.cs" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\PangyaAPI.Utilities\PangyaAPI.Utilities.csproj" />
   </ItemGroup>
 </Project>

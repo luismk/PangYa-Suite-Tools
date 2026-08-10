@@ -1,0 +1,21 @@
+﻿using System;
+using System.Collections.Generic;
+
+namespace PangyaAPI.SQL;
+
+public partial class PangyaPapelShopItem
+{
+    public long Index { get; set; }
+
+    public string Nome { get; set; }
+
+    public int Typeid { get; set; }
+
+    public int Probabilidade { get; set; }
+
+    public int Numero { get; set; }
+
+    public byte Tipo { get; set; }
+
+    public byte Active { get; set; }
+}

@@ -669,5 +669,17 @@ internal static class Strings
     public static string WftViewer_InvalidCodePoint => ResourceManager.GetString(nameof(WftViewer_InvalidCodePoint), Culture) ?? "";
     public static string WftViewer_DefaultSample => ResourceManager.GetString(nameof(WftViewer_DefaultSample), Culture) ?? "";
     public static string WftViewer_InvalidExtension => ResourceManager.GetString(nameof(WftViewer_InvalidExtension), Culture) ?? "";
+    public static string WftViewer_Export => ResourceManager.GetString(nameof(WftViewer_Export), Culture) ?? "";
+    public static string WftViewer_CancelExport => ResourceManager.GetString(nameof(WftViewer_CancelExport), Culture) ?? "";
+    public static string WftViewer_ExportDialogTitle => ResourceManager.GetString(nameof(WftViewer_ExportDialogTitle), Culture) ?? "";
+    public static string WftViewer_ExportFamily => ResourceManager.GetString(nameof(WftViewer_ExportFamily), Culture) ?? "";
+    public static string WftViewer_ExportStyle => ResourceManager.GetString(nameof(WftViewer_ExportStyle), Culture) ?? "";
+    public static string WftViewer_InvalidFamily => ResourceManager.GetString(nameof(WftViewer_InvalidFamily), Culture) ?? "";
+    public static string WftViewer_ExportTitle => ResourceManager.GetString(nameof(WftViewer_ExportTitle), Culture) ?? "";
+    public static string WftViewer_ExportFileFilter => ResourceManager.GetString(nameof(WftViewer_ExportFileFilter), Culture) ?? "";
+    public static string WftViewer_ExportProgressFormat => ResourceManager.GetString(nameof(WftViewer_ExportProgressFormat), Culture) ?? "";
+    public static string WftViewer_ExportSuccessFormat => ResourceManager.GetString(nameof(WftViewer_ExportSuccessFormat), Culture) ?? "";
+    public static string WftViewer_ExportFailed => ResourceManager.GetString(nameof(WftViewer_ExportFailed), Culture) ?? "";
+    public static string WftViewer_ExportCanceled => ResourceManager.GetString(nameof(WftViewer_ExportCanceled), Culture) ?? "";
 }
 

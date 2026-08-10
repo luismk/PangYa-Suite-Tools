@@ -101,10 +101,23 @@ namespace PangyaAPI.SQL.EntityFramework
             var parameter = command.CreateParameter();
             parameter.ParameterName = value.Name;
             parameter.Direction = value.Direction;
-            parameter.Value = value.Value ?? DBNull.Value;
+            parameter.Value = NormalizeParameterValue(value.Value);
             if (value.SqlDbType.HasValue)
                 parameter.DbType = ToDbType(value.SqlDbType.Value);
             return parameter;
+        }
+
+        internal static object NormalizeParameterValue(object value)
+        {
+            return value switch
+            {
+                null => DBNull.Value,
+                sbyte signedByte => (short)signedByte,
+                ushort unsignedShort => (int)unsignedShort,
+                uint unsignedInteger => (long)unsignedInteger,
+                ulong unsignedLong => (decimal)unsignedLong,
+                _ => value
+            };
         }
 
         private static Response ReadResponse(DbDataReader reader)

@@ -1120,6 +1120,18 @@ Cancelar: Interromper a extração.</value></data>
   <data name="WftViewer_InvalidCodePoint" xml:space="preserve"><value>Digite um ponto de código hexadecimal compatível com a fonte carregada (U+0020 a U+FFFF).</value></data>
   <data name="WftViewer_DefaultSample" xml:space="preserve"><value>PangYa 123!&#xD;&#xA;A rápida raposa marrom.</value></data>
   <data name="WftViewer_InvalidExtension" xml:space="preserve"><value>Somente arquivos de fonte .wft do PangYa são compatíveis.</value></data>
+  <data name="WftViewer_Export" xml:space="preserve"><value>Exportar TTF</value></data>
+  <data name="WftViewer_CancelExport" xml:space="preserve"><value>Cancelar exportação</value></data>
+  <data name="WftViewer_ExportDialogTitle" xml:space="preserve"><value>Detalhes da fonte TrueType</value></data>
+  <data name="WftViewer_ExportFamily" xml:space="preserve"><value>Família da fonte</value></data>
+  <data name="WftViewer_ExportStyle" xml:space="preserve"><value>Estilo</value></data>
+  <data name="WftViewer_InvalidFamily" xml:space="preserve"><value>Digite um nome de família de fonte com no máximo 128 caracteres.</value></data>
+  <data name="WftViewer_ExportTitle" xml:space="preserve"><value>Exportar uma fonte TrueType do Windows</value></data>
+  <data name="WftViewer_ExportFileFilter" xml:space="preserve"><value>Fontes TrueType (*.ttf)|*.ttf</value></data>
+  <data name="WftViewer_ExportProgressFormat" xml:space="preserve"><value>Convertendo glifos: {0:N0}/{1:N0}</value></data>
+  <data name="WftViewer_ExportSuccessFormat" xml:space="preserve"><value>Fonte TrueType salva como {0}.</value></data>
+  <data name="WftViewer_ExportFailed" xml:space="preserve"><value>Falha ao exportar a fonte TrueType: {0}</value></data>
+  <data name="WftViewer_ExportCanceled" xml:space="preserve"><value>Exportação da fonte TrueType cancelada.</value></data>
   <data name="UpdateList_CreateZipPackages" xml:space="preserve"><value>Criar pacotes ZIP</value></data>
   <data name="UpdateList_PackagingFiles" xml:space="preserve"><value>Empacotando arquivos do cliente...</value></data>
   <data name="UpdateList_PackagingProgressFormat" xml:space="preserve"><value>Empacotando pacotes ZIP: {0}/{1}</value></data>

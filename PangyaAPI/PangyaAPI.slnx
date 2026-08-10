@@ -2,6 +2,8 @@
   <Project Path="PangyaAPI.IFF/PangyaAPI.IFF.csproj" />
   <Project Path="PangyaAPI.Network/PangyaAPI.Network.csproj" />
   <Project Path="PangyaAPI.Migrations.SqlServer/PangyaAPI.Migrations.SqlServer.csproj" />
+  <Project Path="PangyaAPI.Migrations.MySql/PangyaAPI.Migrations.MySql.csproj" />
+  <Project Path="PangyaAPI.Migrations.PostgreSql/PangyaAPI.Migrations.PostgreSql.csproj" />
   <Project Path="PangyaAPI.PAK/PangyaAPI.PAK.csproj" />
   <Project Path="PangyaAPI.SQL/PangyaAPI.SQL.csproj" />
   <Project Path="PangyaAPI.UI/PangyaAPI.UI.csproj" />

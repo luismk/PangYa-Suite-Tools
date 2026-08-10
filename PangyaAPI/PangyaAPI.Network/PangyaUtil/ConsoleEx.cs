@@ -56,16 +56,35 @@ namespace PangyaAPI.Network.PangyaUtil
 
         public static void Log()
         {
+            Log("PangYa Server");
+        }
+
+        public static void Log(string serverRole)
+        {
             BarSpace();
+            TextCentralize(FormatServerRole(serverRole));
+            TextCentralize("Credits: luismk");
+            TextCentralize("https://github.com/Robert-LTH/PangYa-Server");
             BarSpace();
-            BarSpace();
-            TextCentralize(" SERVIDOR DE DESENVOLVIMENTO PANGYA JP ");
-            TextCentralize(" Desenvolvido por Luis Lopes (github.com/luismk)");
-            TextCentralize(" Revisado e customizado por LuisMK (luizinrc@hotmail.com)");
-            TextCentralize(" Powered by C# .NET - Version: Beta");
-            BarSpace();
-            BarSpace();
-            BarSpace();
+        }
+
+        private static string FormatServerRole(string serverRole)
+        {
+            if (string.IsNullOrWhiteSpace(serverRole))
+                return "PangYa Server";
+
+            var value = serverRole.Trim();
+            if (value.Contains(' '))
+                return value;
+
+            var formatted = new System.Text.StringBuilder(value.Length + 4);
+            for (var index = 0; index < value.Length; index++)
+            {
+                if (index > 0 && char.IsUpper(value[index]) && char.IsLower(value[index - 1]))
+                    formatted.Append(' ');
+                formatted.Append(value[index]);
+            }
+            return formatted.ToString();
         }
 
         public static void InfoServer(string info)

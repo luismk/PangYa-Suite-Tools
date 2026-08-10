@@ -391,6 +391,23 @@ namespace PangyaAPI.Network.PangyaUnit
             }
         }
 
+        public virtual void requestGameServerRegistered(UnitPlayer _session, packet _packet)
+        {
+            if (!_session.getState())
+            {
+                throw new exception("[unit_auth_server_connect::requestGameServerRegistered][Error] player nao esta connectado.", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.UNIT_AUTH_SERVER_CONNECT,
+                    1, 0));
+            }
+            if (_packet == null)
+            {
+                throw new exception("[unit_auth_server_connect::requestGameServerRegistered][Error] _packet is null", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.UNIT_AUTH_SERVER_CONNECT,
+                    6, 0));
+            }
+
+            var serverIds = GameServerRegistrationNotification.ReadPayload(_packet);
+            m_owner_server.authCmdGameServerRegistered(serverIds);
+        }
+
         public virtual void requestInfoPlayerOnline(UnitPlayer _session, packet _packet)
         {
             if (!_session.getState())
@@ -807,6 +824,7 @@ namespace PangyaAPI.Network.PangyaUnit
             AddPacketHandler(0x0C, (uc, s, p) => uc.requestConfirmSendInfoPlayerOnline(m_session, p));
             AddPacketHandler(0x0D, (uc, s, p) => uc.requestSendCommandToOtherServer(m_session, p));
             AddPacketHandler(0x0E, (uc, s, p) => uc.requestSendReplyToOtherServer(m_session, p));
+            AddPacketHandler(GameServerRegistrationNotification.PacketId, (uc, s, p) => uc.requestGameServerRegistered(m_session, p));
 
 
             funcs_sv.addPacketCall((0x1), (object _arg1, ParamDispatch _arg2) =>

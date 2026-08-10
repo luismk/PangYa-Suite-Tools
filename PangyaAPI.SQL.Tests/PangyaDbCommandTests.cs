@@ -27,6 +27,31 @@ public sealed class PangyaDbCommandTests
             value => { Assert.Equal("@p1", value.Name); Assert.Equal("player", value.Value); });
     }
 
+    [Fact]
+    public void LegacyEmptyStringSentinelCallsProcedureWithoutParameters()
+    {
+        var fake = ConfigureFakeExecutor();
+        var command = new NoParameterTestCommand();
+
+        command.exec();
+
+        Assert.Equal("pangya.ProcGetCommands", fake.ProcedureName);
+        Assert.Empty(fake.Parameters);
+    }
+
+    private static FakeExecutor ConfigureFakeExecutor()
+    {
+        var fake = new FakeExecutor();
+        DatabaseConfiguration.Configure(new DatabaseOptions
+        {
+            Engine = "SQLSERVER",
+            ConnectionString = "Server=localhost;Database=pangya;Integrated Security=true;TrustServerCertificate=true",
+            LogCommands = false
+        });
+        DatabaseConfiguration.ConfigureExecutor(fake);
+        return fake;
+    }
+
     private sealed class FakeExecutor : IRelationalCommandExecutor
     {
         public string ProcedureName { get; private set; } = string.Empty;
@@ -53,5 +78,15 @@ public sealed class PangyaDbCommandTests
 
         protected override Response prepareConsulta()
             => procedure("pangya.TestProcedure", 42, "player");
+    }
+
+    private sealed class NoParameterTestCommand : Pangya_DB
+    {
+        protected override void lineResult(ctx_res result, uint index)
+        {
+        }
+
+        protected override Response prepareConsulta()
+            => procedure("pangya.ProcGetCommands", "");
     }
 }

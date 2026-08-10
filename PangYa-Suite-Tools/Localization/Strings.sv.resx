@@ -1117,6 +1117,18 @@ Avbryt: Stoppa extraheringen.</value></data>
   <data name="WftViewer_InvalidCodePoint" xml:space="preserve"><value>Ange en hexadecimal kodpunkt som stöds av det inlästa teckensnittet (U+0020 till U+FFFF).</value></data>
   <data name="WftViewer_DefaultSample" xml:space="preserve"><value>PangYa 123!&#xD;&#xA;Den snabba bruna räven.</value></data>
   <data name="WftViewer_InvalidExtension" xml:space="preserve"><value>Endast PangYa-teckensnitt med filändelsen .wft stöds.</value></data>
+  <data name="WftViewer_Export" xml:space="preserve"><value>Exportera TTF</value></data>
+  <data name="WftViewer_CancelExport" xml:space="preserve"><value>Avbryt export</value></data>
+  <data name="WftViewer_ExportDialogTitle" xml:space="preserve"><value>TrueType-teckensnittsdetaljer</value></data>
+  <data name="WftViewer_ExportFamily" xml:space="preserve"><value>Teckensnittsfamilj</value></data>
+  <data name="WftViewer_ExportStyle" xml:space="preserve"><value>Stil</value></data>
+  <data name="WftViewer_InvalidFamily" xml:space="preserve"><value>Ange ett teckensnittsfamiljenamn med högst 128 tecken.</value></data>
+  <data name="WftViewer_ExportTitle" xml:space="preserve"><value>Exportera ett Windows TrueType-teckensnitt</value></data>
+  <data name="WftViewer_ExportFileFilter" xml:space="preserve"><value>TrueType-teckensnitt (*.ttf)|*.ttf</value></data>
+  <data name="WftViewer_ExportProgressFormat" xml:space="preserve"><value>Konverterar glyfer: {0:N0}/{1:N0}</value></data>
+  <data name="WftViewer_ExportSuccessFormat" xml:space="preserve"><value>TrueType-teckensnittet sparades som {0}.</value></data>
+  <data name="WftViewer_ExportFailed" xml:space="preserve"><value>Det gick inte att exportera TrueType-teckensnittet: {0}</value></data>
+  <data name="WftViewer_ExportCanceled" xml:space="preserve"><value>Exporten av TrueType-teckensnittet avbröts.</value></data>
   <data name="UpdateList_CreateZipPackages" xml:space="preserve"><value>Skapa ZIP-paket</value></data>
   <data name="UpdateList_PackagingFiles" xml:space="preserve"><value>Paketerar klientfiler...</value></data>
   <data name="UpdateList_PackagingProgressFormat" xml:space="preserve"><value>Paketerar ZIP-paket: {0}/{1}</value></data>

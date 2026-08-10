@@ -32,14 +32,10 @@ namespace PangyaAPI.Utilities
 
         public static bool Send(this TcpClient client, byte[] buffer, int len = 0)
         {
-            try
-            {
-                return client.GetState() != TcpState.Unknown && client.GetStream().Send(buffer, 0, len);
-            }
-            catch (Exception e)
-            {
-                throw e;
-            }
+            if (client == null || buffer == null || len < 0 || len > buffer.Length || !client.Connected)
+                return false;
+
+            return client.GetStream().Send(buffer, 0, len);
         }
 
         public static bool Send(this NetworkStream stream, byte[] buffer, int offset, int len)

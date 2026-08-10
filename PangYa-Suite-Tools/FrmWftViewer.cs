@@ -11,6 +11,8 @@ internal sealed class FrmWftViewer : Form
     private readonly ToolStrip _toolbar = new();
     private readonly ToolStripButton _openButton = new();
     private readonly ToolStripButton _reloadButton = new();
+    private readonly ToolStripButton _exportButton = new();
+    private readonly ToolStripButton _cancelExportButton = new();
     private readonly ToolStripLabel _jumpLabel = new();
     private readonly ToolStripTextBox _jumpText = new() { Width = 82 };
     private readonly ToolStripButton _jumpButton = new();
@@ -34,6 +36,7 @@ internal sealed class FrmWftViewer : Form
     private WftFont? _font;
     private string? _currentPath;
     private CancellationTokenSource? _sampleCancellation;
+    private CancellationTokenSource? _exportCancellation;
     private int _sampleScale = 2;
     private int _loadGeneration;
     private bool _sampleInitialized;
@@ -59,6 +62,8 @@ internal sealed class FrmWftViewer : Form
         {
             if (_currentPath is not null) await LoadFileAsync(_currentPath);
         };
+        _exportButton.Click += async (_, _) => await BrowseExportAsync();
+        _cancelExportButton.Click += (_, _) => CancelExport();
         _jumpButton.Click += (_, _) => JumpToCodePoint();
         _jumpText.KeyDown += (_, e) =>
         {
@@ -80,6 +85,7 @@ internal sealed class FrmWftViewer : Form
     internal WftFont? LoadedFont => _font;
     internal ushort? SelectedCodePoint => _glyphGrid.SelectedCodePoint;
     internal string StatusText => _statusLabel.Text ?? string.Empty;
+    internal bool ExportEnabled => _exportButton.Enabled;
 
     private void ConfigureToolbar()
     {
@@ -87,8 +93,11 @@ internal sealed class FrmWftViewer : Form
         _toolbar.Dock = DockStyle.Top;
         _toolbar.Padding = new Padding(4, 2, 4, 2);
         _reloadButton.Enabled = false;
+        _exportButton.Enabled = false;
+        _cancelExportButton.Enabled = false;
         _toolbar.Items.AddRange([
-            _openButton, _reloadButton, new ToolStripSeparator(),
+            _openButton, _reloadButton, _exportButton, _cancelExportButton,
+            new ToolStripSeparator(),
             _jumpLabel, _jumpText, _jumpButton, new ToolStripSeparator(),
             _zoomLabel, _zoomOutButton, _zoomValue, _zoomInButton
         ]);
@@ -169,6 +178,7 @@ internal sealed class FrmWftViewer : Form
             _statusLabel.Text = string.Format(LocalizationManager.CurrentCulture,
                 Strings.WftViewer_LoadedFormat, Path.GetFileName(loaded.Path));
             _reloadButton.Enabled = true;
+            _exportButton.Enabled = true;
             _glyphGrid.SelectCodePoint(0x0041);
             QueueSampleRender();
             AppLogger.Instance.Log(LogSource, $"Loaded WFT font '{loaded.Path}'.");
@@ -188,7 +198,114 @@ internal sealed class FrmWftViewer : Form
             UseWaitCursor = false;
             _toolbar.Enabled = true;
             _reloadButton.Enabled = _font is not null;
+            _exportButton.Enabled = _font is not null;
         }
+    }
+
+    private async Task BrowseExportAsync()
+    {
+        WftFont? font = _font;
+        if (font is null || _currentPath is null) return;
+        string defaultFamily = Path.GetFileNameWithoutExtension(_currentPath);
+        using var optionsDialog = new WftExportOptionsDialog(defaultFamily);
+        if (optionsDialog.ShowDialog(this) != DialogResult.OK || optionsDialog.Options is null)
+            return;
+        using var saveDialog = new SaveFileDialog
+        {
+            Title = Strings.WftViewer_ExportTitle,
+            Filter = Strings.WftViewer_ExportFileFilter,
+            DefaultExt = "ttf",
+            AddExtension = true,
+            OverwritePrompt = true,
+            FileName = defaultFamily + ".ttf"
+        };
+        if (saveDialog.ShowDialog(this) == DialogResult.OK)
+            await ExportFileAsync(saveDialog.FileName, optionsDialog.Options);
+    }
+
+    internal async Task ExportFileAsync(string path, WftTrueTypeExportOptions options)
+    {
+        WftFont? font = _font;
+        if (font is null) throw new InvalidOperationException("A WFT font must be loaded first.");
+        ArgumentException.ThrowIfNullOrWhiteSpace(path);
+        ArgumentNullException.ThrowIfNull(options);
+        if (_exportCancellation is not null)
+            throw new InvalidOperationException("A font export is already in progress.");
+
+        string fullPath = Path.GetFullPath(path);
+        string? directory = Path.GetDirectoryName(fullPath);
+        if (string.IsNullOrEmpty(directory))
+            throw new ArgumentException("The destination must have a parent directory.", nameof(path));
+        string temporaryPath = Path.Combine(directory,
+            $".{Path.GetFileName(fullPath)}.{Guid.NewGuid():N}.tmp");
+        using var cancellation = new CancellationTokenSource();
+        _exportCancellation = cancellation;
+        SetExporting(true);
+        try
+        {
+            var progress = new Progress<WftTrueTypeExportProgress>(value =>
+            {
+                if (IsDisposed || cancellation.IsCancellationRequested) return;
+                _statusLabel.Text = string.Format(LocalizationManager.CurrentCulture,
+                    Strings.WftViewer_ExportProgressFormat, value.ProcessedGlyphRecords,
+                    value.TotalGlyphRecords);
+            });
+            await Task.Run(() =>
+            {
+                using var stream = new FileStream(temporaryPath, FileMode.CreateNew,
+                    FileAccess.Write, FileShare.None, 64 * 1024, FileOptions.SequentialScan);
+                WftTrueTypeExporter.Export(font, stream, options, cancellation.Token, progress);
+                stream.Flush(flushToDisk: true);
+            }, cancellation.Token);
+            cancellation.Token.ThrowIfCancellationRequested();
+            File.Move(temporaryPath, fullPath, overwrite: true);
+            _statusLabel.Text = string.Format(LocalizationManager.CurrentCulture,
+                Strings.WftViewer_ExportSuccessFormat, Path.GetFileName(fullPath));
+            AppLogger.Instance.Log(LogSource, $"Exported WFT font to '{fullPath}'.");
+        }
+        catch (OperationCanceledException)
+        {
+            _statusLabel.Text = Strings.WftViewer_ExportCanceled;
+            AppLogger.Instance.Log(LogSource, "WFT TrueType export canceled.");
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or
+                                   InvalidDataException or ArgumentException or
+                                   OverflowException or ObjectDisposedException)
+        {
+            _statusLabel.Text = string.Format(LocalizationManager.CurrentCulture,
+                Strings.WftViewer_ExportFailed, ex.Message);
+            AppLogger.Instance.Log(LogSource,
+                $"Could not export WFT font: {ex.GetType().Name}: {ex.Message}",
+                AppLogLevel.Error);
+            MessageBox.Show(this, _statusLabel.Text, Strings.Common_Error,
+                MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+        finally
+        {
+            try { if (File.Exists(temporaryPath)) File.Delete(temporaryPath); }
+            catch (IOException) { }
+            catch (UnauthorizedAccessException) { }
+            if (ReferenceEquals(_exportCancellation, cancellation)) _exportCancellation = null;
+            if (!IsDisposed) SetExporting(false);
+        }
+    }
+
+    private void SetExporting(bool exporting)
+    {
+        _openButton.Enabled = !exporting;
+        _reloadButton.Enabled = !exporting && _font is not null;
+        _exportButton.Enabled = !exporting && _font is not null;
+        _cancelExportButton.Enabled = exporting;
+        _jumpText.Enabled = !exporting;
+        _jumpButton.Enabled = !exporting;
+        _zoomOutButton.Enabled = !exporting;
+        _zoomInButton.Enabled = !exporting;
+    }
+
+    private void CancelExport()
+    {
+        try { _exportCancellation?.Cancel(); }
+        catch (ObjectDisposedException) { }
     }
 
     private void ReplaceFont(WftFont font)
@@ -327,6 +444,8 @@ internal sealed class FrmWftViewer : Form
             : $"{Strings.WftViewer_Title} — {Path.GetFileName(_currentPath)}";
         _openButton.Text = Strings.WftViewer_Open;
         _reloadButton.Text = Strings.UiEditor_Reload;
+        _exportButton.Text = Strings.WftViewer_Export;
+        _cancelExportButton.Text = Strings.WftViewer_CancelExport;
         _jumpLabel.Text = Strings.WftViewer_Jump;
         _jumpButton.Text = Strings.WftViewer_Go;
         _zoomLabel.Text = Strings.WftViewer_SampleZoom;
@@ -371,6 +490,7 @@ internal sealed class FrmWftViewer : Form
         {
             LocalizationManager.CultureChanged -= LocalizationManager_CultureChanged;
             _loadGeneration++;
+            CancelExport();
             CancelSampleRender();
             _glyphGrid.LoadFont(null);
             _font?.Dispose();

@@ -5,6 +5,6 @@
     <Nullable>enable</Nullable>
     <PackageId>PangyaAPI.WFT</PackageId>
     <Title>PangyaAPI WFT</Title>
-    <Description>Safely read and inspect PangYa WFNT bitmap font files and glyph data.</Description>
+    <Description>Safely read, inspect, and export PangYa WFNT bitmap fonts as Windows TrueType fonts.</Description>
   </PropertyGroup>
 </Project>

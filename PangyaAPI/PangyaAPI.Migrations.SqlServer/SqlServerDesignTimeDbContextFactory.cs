@@ -8,9 +8,9 @@ using PangyaAPI.SQL.EntityFramework;
 
 namespace PangyaAPI.Migrations.SqlServer
 {
-    public sealed class SqlServerDesignTimeDbContextFactory : IDesignTimeDbContextFactory<PangyaDbContext>
+    public sealed class SqlServerDesignTimeDbContextFactory : IDesignTimeDbContextFactory<PangyaSchemaDbContext>
     {
-        public PangyaDbContext CreateDbContext(string[] args)
+        public PangyaSchemaDbContext CreateDbContext(string[] args)
         {
             var configurationPath = FindConfigurationPath();
             var configuration = new ConfigurationBuilder()
@@ -35,9 +35,14 @@ namespace PangyaAPI.Migrations.SqlServer
             }
 
             DatabaseConnectionStringFactory.Validate(options);
-            var builder = new DbContextOptionsBuilder<PangyaDbContext>();
-            PangyaDbContextOptions.Configure(builder, options);
-            return new PangyaDbContext(builder.Options);
+            var builder = new DbContextOptionsBuilder<PangyaSchemaDbContext>();
+            builder.UseSqlServer(
+                DatabaseConnectionStringFactory.Create(options),
+                provider => provider
+                    .MigrationsAssembly(typeof(SqlServerDesignTimeDbContextFactory).Assembly.FullName)
+                    .EnableRetryOnFailure());
+            builder.EnableDetailedErrors();
+            return new PangyaSchemaDbContext(builder.Options);
         }
 
         private static string FindConfigurationPath()

@@ -109,6 +109,11 @@ namespace PangyaAPI.SQL
 
         public virtual response procedure(string _name, params object[] values)
         {
+            // Legacy repository commands use a single empty string to mean that a
+            // stored procedure has no arguments. Do not turn that sentinel into @p0.
+            if (values?.Length == 1 && values[0] is string value && value.Length == 0)
+                values = Array.Empty<object>();
+
             var parameters = values?.Select((value, index) =>
                 new RelationalParameter("@p" + index, value ?? DBNull.Value)).ToArray()
                 ?? Array.Empty<RelationalParameter>();

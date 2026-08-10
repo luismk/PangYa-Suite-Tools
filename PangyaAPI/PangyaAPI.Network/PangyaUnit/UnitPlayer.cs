@@ -49,14 +49,14 @@ namespace PangyaAPI.Network.PangyaUnit
             m_sock = new TcpClient();
             await m_sock.ConnectAsync(ip, port, cancellationToken).ConfigureAwait(false);
             m_addr = m_sock.Client.RemoteEndPoint as IPEndPoint;
+            m_ip = "0.0.0.0";
+            m_ip_maked = false;
             setState(true);
             setConnected(true);
         }
 
         public override bool clear()
         {
-            m_si = null;
-            this._Packet_Handle_Base = null;
             m_pi = new player_info();
             return base.clear();
         }

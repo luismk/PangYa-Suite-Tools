@@ -46,6 +46,7 @@ namespace PangyaAPI.Network.Repository
                 new[] { "@NICKNAME" }, new[] { System.Data.SqlDbType.NVarChar }, new object[] { m_nick });
 
             checkResponse(r, "nao conseguiu verificar se existe o nick: " + m_nick);
+            m_check = r.getResultSet().Count > 0;
             return r;
         }
 

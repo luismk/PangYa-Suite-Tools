@@ -1,11 +1,20 @@
 using Microsoft.EntityFrameworkCore;
 using PangyaAPI.SQL;
 using PangyaAPI.SQL.EntityFramework;
+using PangyaAPI.SQL.EntityFramework.Entities;
 
 namespace PangyaAPI.SQL.Tests;
 
 public sealed class EntityFrameworkConfigurationTests
 {
+    [Fact]
+    public void LightweightEntitiesMatchLegacySqlColumnTypes()
+    {
+        Assert.Equal(typeof(short), typeof(AccountEntity).GetProperty(nameof(AccountEntity.Logon))!.PropertyType);
+        Assert.Equal(typeof(string), typeof(AccountEntity).GetProperty(nameof(AccountEntity.GameServerId))!.PropertyType);
+        Assert.Equal(typeof(short), typeof(AuthKeyLoginEntity).GetProperty(nameof(AuthKeyLoginEntity.Valid))!.PropertyType);
+    }
+
     [Theory]
     [InlineData("SQLSERVER", "Server=localhost;Database=pangya;Integrated Security=true;TrustServerCertificate=true", "SqlServer")]
     [InlineData("MYSQL", "Server=localhost;Database=pangya;Uid=test;Pwd=test", "MySql")]

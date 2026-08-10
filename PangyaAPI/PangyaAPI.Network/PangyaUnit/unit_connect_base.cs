@@ -90,6 +90,7 @@ namespace PangyaAPI.Network.PangyaUnit
             }
             catch
             {
+                m_session.clear();
                 return false;
                 //throw new Exception("[UnitConnectBase::ConnectAndAssoc][Error] Falha ao conectar.", ex);
             }

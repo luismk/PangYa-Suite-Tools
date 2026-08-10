@@ -1095,6 +1095,18 @@ IFFファイルのディレクトリを選択してください。</value>
   <data name="WftViewer_InvalidCodePoint" xml:space="preserve"><value>読み込んだフォントでサポートされている16進コードポイント（U+0020～U+FFFF）を入力してください。</value></data>
   <data name="WftViewer_DefaultSample" xml:space="preserve"><value>PangYa 123!&#xD;&#xA;素早い茶色の狐。</value></data>
   <data name="WftViewer_InvalidExtension" xml:space="preserve"><value>PangYa の .wft フォントファイルのみ対応しています。</value></data>
+  <data name="WftViewer_Export" xml:space="preserve"><value>TTF にエクスポート</value></data>
+  <data name="WftViewer_CancelExport" xml:space="preserve"><value>エクスポートをキャンセル</value></data>
+  <data name="WftViewer_ExportDialogTitle" xml:space="preserve"><value>TrueType フォントの詳細</value></data>
+  <data name="WftViewer_ExportFamily" xml:space="preserve"><value>フォントファミリー</value></data>
+  <data name="WftViewer_ExportStyle" xml:space="preserve"><value>スタイル</value></data>
+  <data name="WftViewer_InvalidFamily" xml:space="preserve"><value>128 文字以内のフォントファミリー名を入力してください。</value></data>
+  <data name="WftViewer_ExportTitle" xml:space="preserve"><value>Windows TrueType フォントをエクスポート</value></data>
+  <data name="WftViewer_ExportFileFilter" xml:space="preserve"><value>TrueType フォント (*.ttf)|*.ttf</value></data>
+  <data name="WftViewer_ExportProgressFormat" xml:space="preserve"><value>グリフを変換中: {0:N0}/{1:N0}</value></data>
+  <data name="WftViewer_ExportSuccessFormat" xml:space="preserve"><value>TrueType フォントを {0} として保存しました。</value></data>
+  <data name="WftViewer_ExportFailed" xml:space="preserve"><value>TrueType フォントをエクスポートできませんでした: {0}</value></data>
+  <data name="WftViewer_ExportCanceled" xml:space="preserve"><value>TrueType フォントのエクスポートをキャンセルしました。</value></data>
   <data name="UpdateList_CreateZipPackages" xml:space="preserve"><value>ZIP パッケージを作成</value></data>
   <data name="UpdateList_PackagingFiles" xml:space="preserve"><value>クライアントファイルをパッケージ化しています...</value></data>
   <data name="UpdateList_PackagingProgressFormat" xml:space="preserve"><value>ZIP パッケージを作成中: {0}/{1}</value></data>
