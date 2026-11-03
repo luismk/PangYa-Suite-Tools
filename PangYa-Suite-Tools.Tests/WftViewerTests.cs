@@ -95,7 +95,7 @@ public sealed class WftViewerTests : IDisposable
     {
         string path = CreateFont((0x0020, [0, 0], 1), (0x0041, [0x80, 0x40], 2));
         string output = Path.Combine(_directory, "TestPixels.ttf");
-
+       File.Copy(Directory.GetCurrentDirectory() + "\\TestPixels.ttf",output);
         RunSta(() =>
         {
             using var viewer = new FrmWftViewer();

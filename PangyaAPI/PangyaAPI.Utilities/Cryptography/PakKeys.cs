@@ -10,7 +10,8 @@ public static class PakKeys
     public static readonly uint[] EU = [0x01E986D8u, 0x05818479u, 0x03D2B0BBu, 0x02C9B030u];
     public static readonly uint[] THIFF = [0x0486D82Bu, 0x0148C72Bu, 0x027EEAFBu, 0x05A23814u];
     public static readonly uint[] SS = [0x087A0F82u, 0x1880DD08u, 0x85FA69CBu, 0xFF5808EAu];
-
+    public static readonly uint[] TH_CUSTOM = [0xD47B3E91, 0xA82C5F6D, 0x63E1D84A, 0xF5927B1C];
+    public static readonly uint[] REBORN_JP = [0x02EA5B13, 0x01EEBDFF, 0x02CA8626, 0x0361E567];
     public static readonly IReadOnlyList<(string Label, uint[] Keys)> All =
     [
         ("Global", GB),
@@ -20,6 +21,8 @@ public static class PakKeys
         ("Indonesian", ID),
         ("European", EU),
         ("Thailand IFF", THIFF),
-        ("Super SS Dev", SS)
+        ("Super SS Dev", SS),
+        ("NEW GEN", TH_CUSTOM),
+        ("Reborn JP", REBORN_JP)
     ];
 }
