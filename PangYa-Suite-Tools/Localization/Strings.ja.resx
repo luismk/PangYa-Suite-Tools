@@ -1130,4 +1130,25 @@ IFFファイルのディレクトリを選択してください。</value>
   <data name="Pak_UnusualNamesSummary" xml:space="preserve"><value>通常と異なるエントリ名が {0} 件見つかりました。抽出または編集する前にファイル名エンコーディングを確認してください。対象は強調表示され、詳細はログに記録されました。</value></data>
   <data name="Pak_CompressionLevelUnknown" xml:space="preserve"><value>不明 (PAK には保存されません)</value></data>
   <data name="Pak_CompressionLevelSummaryFormat" xml:space="preserve"><value>圧縮レベル: {0}</value></data>
+  <data name="UpdateList_VerificationRootHint" xml:space="preserve"><value>検証する PangYa ルートフォルダーを選択してください</value></data>
+  <data name="UpdateList_SelectVerificationRoot" xml:space="preserve"><value>ファイルを検証する PangYa ルートフォルダーを選択してください</value></data>
+  <data name="UpdateList_VerifyFiles" xml:space="preserve"><value>ファイルを検証</value></data>
+  <data name="UpdateList_Filter" xml:space="preserve"><value>表示:</value></data>
+  <data name="UpdateList_FilterAll" xml:space="preserve"><value>すべて</value></data>
+  <data name="UpdateList_FilterIssues" xml:space="preserve"><value>問題のみ</value></data>
+  <data name="UpdateList_ColumnActualCrc" xml:space="preserve"><value>実際の CRC</value></data>
+  <data name="UpdateList_ColumnVerificationStatus" xml:space="preserve"><value>状態</value></data>
+  <data name="UpdateList_VerificationMatch" xml:space="preserve"><value>一致</value></data>
+  <data name="UpdateList_VerificationMismatch" xml:space="preserve"><value>チェックサム不一致</value></data>
+  <data name="UpdateList_VerificationMissing" xml:space="preserve"><value>ファイルなし</value></data>
+  <data name="UpdateList_VerificationInvalidPath" xml:space="preserve"><value>無効なパス</value></data>
+  <data name="UpdateList_VerificationReadError" xml:space="preserve"><value>読み取りエラー</value></data>
+  <data name="UpdateList_VerificationSummaryFormat" xml:space="preserve"><value>検証: 一致 {0} | 不一致 {1} | なし {2} | 無効 {3} | 読み取りエラー {4}</value></data>
+  <data name="UpdateList_VerificationStartedFormat" xml:space="preserve"><value>{0} 内のリスト記載ファイル {1} 件を検証しています</value></data>
+  <data name="UpdateList_VerificationProgressFormat" xml:space="preserve"><value>ファイルを検証中: {0}/{1}</value></data>
+  <data name="UpdateList_VerificationIssueFormat" xml:space="preserve"><value>検証の問題: {0} - {1} {2}</value></data>
+  <data name="UpdateList_VerificationCancelled" xml:space="preserve"><value>更新リストの検証をキャンセルしました。</value></data>
+  <data name="UpdateList_VerificationFailedFormat" xml:space="preserve"><value>更新リストの検証に失敗しました: {0}</value></data>
+  <data name="UpdateList_InvalidVerificationRoot" xml:space="preserve"><value>検証する前に更新リストを読み込み、有効な PangYa ルートフォルダーを選択してください。</value></data>
+  <data name="UiEditor_StartupWallpaper" xml:space="preserve"><value>起動時の壁紙</value></data>
 </root>

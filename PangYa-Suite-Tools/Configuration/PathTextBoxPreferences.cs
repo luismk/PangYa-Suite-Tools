@@ -6,6 +6,7 @@ internal enum PathTextBoxKind
     IffArchiveOrFolder,
     IffDataRoot,
     UpdateListViewerFile,
+    UpdateListVerificationRoot,
     UpdateListSourceFolder,
     UpdateListDestinationFolder,
     UpdateListExistingFile,

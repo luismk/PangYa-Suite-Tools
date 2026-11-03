@@ -1155,4 +1155,25 @@ Cancelar: Interromper a extração.</value></data>
   <data name="Pak_UnusualNamesSummary" xml:space="preserve"><value>Foram encontrados {0} nome(s) incomum(ns). Verifique a codificação antes de extrair ou editar. As entradas afetadas estão destacadas e os detalhes foram gravados no log.</value></data>
   <data name="Pak_CompressionLevelUnknown" xml:space="preserve"><value>Desconhecido (não armazenado no PAK)</value></data>
   <data name="Pak_CompressionLevelSummaryFormat" xml:space="preserve"><value>Nível de compressão: {0}</value></data>
+  <data name="UpdateList_VerificationRootHint" xml:space="preserve"><value>Selecione a pasta raiz do PangYa para verificar</value></data>
+  <data name="UpdateList_SelectVerificationRoot" xml:space="preserve"><value>Selecione a pasta raiz do PangYa cujos arquivos serão verificados</value></data>
+  <data name="UpdateList_VerifyFiles" xml:space="preserve"><value>Verificar arquivos</value></data>
+  <data name="UpdateList_Filter" xml:space="preserve"><value>Mostrar:</value></data>
+  <data name="UpdateList_FilterAll" xml:space="preserve"><value>Todos</value></data>
+  <data name="UpdateList_FilterIssues" xml:space="preserve"><value>Problemas</value></data>
+  <data name="UpdateList_ColumnActualCrc" xml:space="preserve"><value>CRC atual</value></data>
+  <data name="UpdateList_ColumnVerificationStatus" xml:space="preserve"><value>Status</value></data>
+  <data name="UpdateList_VerificationMatch" xml:space="preserve"><value>Corresponde</value></data>
+  <data name="UpdateList_VerificationMismatch" xml:space="preserve"><value>Checksum diferente</value></data>
+  <data name="UpdateList_VerificationMissing" xml:space="preserve"><value>Ausente</value></data>
+  <data name="UpdateList_VerificationInvalidPath" xml:space="preserve"><value>Caminho inválido</value></data>
+  <data name="UpdateList_VerificationReadError" xml:space="preserve"><value>Erro de leitura</value></data>
+  <data name="UpdateList_VerificationSummaryFormat" xml:space="preserve"><value>Verificação: {0} iguais | {1} diferentes | {2} ausentes | {3} inválidos | {4} erros de leitura</value></data>
+  <data name="UpdateList_VerificationStartedFormat" xml:space="preserve"><value>Verificando {1} arquivos listados em {0}</value></data>
+  <data name="UpdateList_VerificationProgressFormat" xml:space="preserve"><value>Verificando arquivos: {0}/{1}</value></data>
+  <data name="UpdateList_VerificationIssueFormat" xml:space="preserve"><value>Problema de verificação: {0} - {1} {2}</value></data>
+  <data name="UpdateList_VerificationCancelled" xml:space="preserve"><value>A verificação da lista de atualização foi cancelada.</value></data>
+  <data name="UpdateList_VerificationFailedFormat" xml:space="preserve"><value>A verificação da lista de atualização falhou: {0}</value></data>
+  <data name="UpdateList_InvalidVerificationRoot" xml:space="preserve"><value>Carregue uma lista de atualização e selecione uma pasta raiz válida do PangYa antes de verificar.</value></data>
+  <data name="UiEditor_StartupWallpaper" xml:space="preserve"><value>Fundo de inicialização</value></data>
 </root>
