@@ -29,7 +29,7 @@ public class CRC32
 
     public int GetCrc32(string file)
     {
-        Stream input = new MemoryStream(File.ReadAllBytes(file));
+        using Stream input = new MemoryStream(File.ReadAllBytes(file));
         return GetCrc32AndCopy(input, null);
     }
 
@@ -255,7 +255,10 @@ public class Crc32
 {
     private uint[] table;
 
-    public int CalculateFileCRC(string filePath)
+    public int CalculateFileCRC(string filePath) =>
+        CalculateFileCRC(filePath, CancellationToken.None);
+
+    public int CalculateFileCRC(string filePath, CancellationToken cancellationToken)
     {
         uint num = uint.MaxValue;
         using (FileStream fileStream = File.OpenRead(filePath))
@@ -264,6 +267,7 @@ public class Crc32
             int length;
             while ((length = fileStream.Read(array, 0, array.Length)) > 0)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 num = UpdateCRC(array, length, num);
             }
         }

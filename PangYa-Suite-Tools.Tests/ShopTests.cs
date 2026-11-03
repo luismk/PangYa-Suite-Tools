@@ -16,6 +16,23 @@ namespace PangYa_Suite_Tools.Tests;
 
 public sealed class ShopTests : IDisposable
 {
+    [Theory]
+    [InlineData("pos='5 7'", 5, 7, 10, 10)]
+    [InlineData("pos='5 7' size='0 0'", 5, 7, 0, 0)]
+    [InlineData("pos='5 7' size='20 30'", 5, 7, 20, 30)]
+    [InlineData("pos='5 7' rect='1 2 21 32'", 5, 7, 10, 10)]
+    [InlineData("position='5 7'", 5, 7, 0, 0)]
+    [InlineData("pos='invalid'", 0, 0, 0, 0)]
+    public void UiBoundsUseFreshDefaultForPositionOnlyItems(
+        string attributes, int x, int y, int width, int height)
+    {
+        var document = new XmlDocument();
+        document.LoadXml($"<item {attributes}/>");
+        var item = Assert.IsType<XmlElement>(document.DocumentElement);
+
+        Assert.Equal(new Rectangle(x, y, width, height), PangyaUiNode.ParseBounds(item));
+    }
+
     private readonly string _directory = Path.Combine(Path.GetTempPath(), "PangYaShopTests", Guid.NewGuid().ToString("N"));
 
     public ShopTests() => Directory.CreateDirectory(_directory);
@@ -298,6 +315,34 @@ public sealed class ShopTests : IDisposable
         PangyaUiNode item = Assert.Single(document.Nodes);
         Assert.Equal("Legacy tooltip :", item.Element.GetAttribute("caption"));
         Assert.Equal(new Rectangle(326, 261, 120, 20), item.Bounds);
+    }
+
+    [Fact]
+    public async Task UiDocument_RepairsDuplicateLegacyAttributesAndKeepsFirstValue()
+    {
+        string path = Path.Combine(_directory, "duplicate-attributes.xml");
+        await File.WriteAllTextAsync(path, """
+            <?xml version="1.0" encoding="utf-8"?>
+            <resource>
+              <!-- Preserve <item alias="comment-one" alias="comment-two">. -->
+              <item type="STATIC" name="tooltip" alias="primary" alias="secondary"
+                    caption="Legacy tooltip" rect="0 0 120 20"/>
+            </resource>
+            """, Encoding.UTF8);
+
+        PangyaUiDocument document = PangyaUiDocument.Load(path);
+
+        PangyaUiNode item = Assert.Single(document.Nodes);
+        Assert.Equal("primary", item.Element.GetAttribute("alias"));
+        Assert.Contains(document.Warnings, warning =>
+            warning.Contains("duplicate XML attribute 'alias'", StringComparison.Ordinal));
+
+        await document.SaveAtomicAsync();
+        string savedXml = await File.ReadAllTextAsync(path, Encoding.UTF8);
+        Assert.Contains("<item alias=\"comment-one\" alias=\"comment-two\">", savedXml,
+            StringComparison.Ordinal);
+        var strict = new XmlDocument { XmlResolver = null };
+        strict.LoadXml(savedXml);
     }
 
     [Fact]
@@ -612,6 +657,87 @@ public sealed class ShopTests : IDisposable
     }
 
     [Fact]
+    public void UiRenderer_ViewerClipsTintsAndScrollsInTwentyPixelRows()
+    {
+        string ui = Path.Combine(_directory, "ui");
+        Directory.CreateDirectory(ui);
+        using (var image = new Bitmap(40, 60))
+        {
+            using Graphics graphics = Graphics.FromImage(image);
+            graphics.Clear(Color.White);
+            graphics.FillRectangle(Brushes.Lime, 0, 20, 40, 40);
+            image.Save(Path.Combine(ui, "bands.png"), System.Drawing.Imaging.ImageFormat.Png);
+        }
+        string path = Path.Combine(ui, "viewer.xml");
+        File.WriteAllText(path, """
+            <resource><element type="FORM" size="60 50">
+              <item type="VIEWER" rect="5 5 25 25">
+                <param name="image" var="bands.png"/>
+                <param name="bgcolor" var="FFFF80FF"/>
+                <param name="use_wheel" var="true"/>
+              </item>
+            </element></resource>
+            """);
+        PangyaUiDocument document = PangyaUiDocument.Load(path);
+        PangyaUiNode form = Assert.Single(document.Nodes, node => node.IsForm);
+        PangyaUiNode viewer = Assert.Single(document.Nodes, node => node.Type == "VIEWER");
+        using var images = new PangyaFileImageProvider(_directory);
+        var renderer = new PangyaUiRenderer(images);
+        using var bitmap = new Bitmap(60, 50);
+        using Graphics canvas = Graphics.FromImage(bitmap);
+
+        Assert.Equal(2, renderer.GetViewerMaximumTopRow(viewer));
+        renderer.Render(canvas, document, form);
+        Assert.Equal(Color.FromArgb(255, 128, 255), Color.FromArgb(bitmap.GetPixel(10, 10).ToArgb()));
+        Assert.Equal(Color.FromArgb(46, 49, 55), Color.FromArgb(bitmap.GetPixel(25, 10).ToArgb()));
+
+        renderer.Render(canvas, document, form, new PangyaUiRenderOptions
+        {
+            ViewerTopRows = new Dictionary<PangyaUiNode, int> { [viewer] = 1 }
+        });
+        Assert.Equal(Color.FromArgb(0, 128, 0), Color.FromArgb(bitmap.GetPixel(10, 10).ToArgb()));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void UiRenderer_PreviewsLayoutBackgroundAndStaticCaption(bool useImage)
+    {
+        string imageDirectory = Path.Combine(_directory, "ui", "images");
+        Directory.CreateDirectory(imageDirectory);
+        SaveSolidImage(Path.Combine(imageDirectory, "green.png"), Color.Lime, 4, 4);
+        string path = Path.Combine(_directory, "ui", "layout.xml");
+        File.WriteAllText(path, $"""
+            <resource>
+              <element type="LAYOUT" name="layout">
+                <base width="80" height="40" color="FF0000" background="{(useImage ? "green.png" : "")}"/>
+                <item type="STATIC" name="label" rect="4 4 64 28" caption="Hello">
+                  <param name="color" var="FFFFFF"/>
+                </item>
+              </element>
+            </resource>
+            """);
+        PangyaUiDocument document = PangyaUiDocument.Load(path);
+        PangyaUiNode layout = Assert.Single(document.Nodes, node => node.IsForm);
+        PangyaUiNode label = Assert.Single(document.Nodes, node => node.Name == "label");
+        Assert.Equal(new Size(80, 40), document.CanvasSize);
+        Assert.Same(layout, label.FindContainingForm());
+
+        using var images = new PangyaFileImageProvider(_directory);
+        var renderer = new PangyaUiRenderer(images);
+        using var bitmap = new Bitmap(80, 40);
+        using Graphics graphics = Graphics.FromImage(bitmap);
+        renderer.Render(graphics, document, layout);
+
+        int background = (useImage ? Color.Lime : Color.Red).ToArgb();
+        Assert.Equal(background, bitmap.GetPixel(70, 32).ToArgb());
+        Assert.Equal(background, bitmap.GetPixel(1, 1).ToArgb());
+        Assert.True(Enumerable.Range(4, 24).Any(y =>
+            Enumerable.Range(4, 60).Any(x => bitmap.GetPixel(x, y).ToArgb() != background)));
+        Assert.Same(label, renderer.HitTest(document, layout, new Point(8, 8)));
+    }
+
+    [Fact]
     public void UiRenderer_UsesTheSameGeometryForPaintingAndHitTesting()
     {
         string imageDirectory = Path.Combine(_directory, "ui", "images");
@@ -732,6 +858,36 @@ public sealed class ShopTests : IDisposable
     }
 
     [Fact]
+    public void UiResourceCatalog_ConditionalIncludeTakesPrecedenceOnlyWhenEnabled()
+    {
+        Directory.CreateDirectory(_directory);
+        string entry = Path.Combine(_directory, "all.xml");
+        string variant = Path.Combine(_directory, "variant.xml");
+        File.WriteAllText(entry, """
+            <resource>
+              <!-- #ifdef JP -->
+              <element type="FRAME" name="panel" />
+              <element type="INCLUDE" name="variant.xml" />
+              <!-- #endif -->
+              <element type="BITMAP" name="icon" filename="default.png" />
+            </resource>
+            """);
+        File.WriteAllText(variant, """
+            <resource>
+              <element type="INCLUDE" name="all.xml" />
+              <element type="BITMAP" name="icon" filename="variant.png" />
+            </resource>
+            """);
+        PangyaUiResourceCatalog catalog = PangyaUiResourceCatalog.Load([entry, variant]);
+        var symbols = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        Assert.Equal("default.png", catalog.TryResolve("icon", "BITMAP", symbols)?
+            .Element.GetAttribute("filename"));
+        symbols.Add("JP");
+        Assert.Equal("variant.png", catalog.TryResolve("icon", "BITMAP", symbols)?
+            .Element.GetAttribute("filename"));
+    }
+
+    [Fact]
     public void UiCanvas_ResolvesCrossFileMacroAndFrameResources()
     {
         string uiDirectory = Path.Combine(_directory, "ui");
@@ -748,7 +904,7 @@ public sealed class ShopTests : IDisposable
                 <bfrm filename="frame"/>
               </element>
               <element type="MACROITEM" name="SHARED_MACRO">
-                <item type="AREA" name="macro_part" rect="0 0 8 8">
+                <item type="AREA" name="macro_part" rect="10 12 18 20">
                   <param name="bgimg" var="macro_blue.png"/>
                 </item>
               </element>
@@ -758,7 +914,7 @@ public sealed class ShopTests : IDisposable
         File.WriteAllText(viewPath, """
             <resource>
               <element type="FORM" name="form" size="40 30" resource="SHARED_FRAME">
-                <item type="MACROITEM" name="macro_instance" pos="10 12" resource="SHARED_MACRO"/>
+                <item type="MACROITEM" name="macro_instance" pos="22 24" resource="SHARED_MACRO"/>
               </element>
             </resource>
             """);
@@ -1346,6 +1502,38 @@ public sealed class ShopTests : IDisposable
         Assert.Null(resolver.TryResolvePath(string.Empty));
         Assert.Null(resolver.TryResolvePath("   "));
         Assert.Null(resolver.TryResolvePath("."));
+    }
+
+    [Fact]
+    public void AssetResolver_PrefersTheExplicitExtensionOverDirectoryPriority()
+    {
+        string tga = Path.Combine(_directory, "ui", "roomlist", "gp_roomlist_background.tga");
+        string jpg = Path.Combine(_directory, "ui", "frames", "gp_roomlist_background.jpg");
+        Directory.CreateDirectory(Path.GetDirectoryName(tga)!);
+        Directory.CreateDirectory(Path.GetDirectoryName(jpg)!);
+        File.WriteAllBytes(tga, [1]);
+        File.WriteAllBytes(jpg, [2]);
+        using var resolver = new PangyaFileImageProvider(_directory);
+
+        Assert.Equal(tga, resolver.ResolvePath("gp_roomlist_background.TGA"));
+        Assert.Equal(jpg, resolver.ResolvePath("gp_roomlist_background.jpg"));
+        Assert.Equal(jpg, resolver.ResolvePath("gp_roomlist_background"));
+    }
+
+    [Fact]
+    public void AssetResolver_PrefersUiImageAndAllowsMissingOptionalImages()
+    {
+        string tga = Path.Combine(_directory, "ui", "lobby", "chat_emoti.tga");
+        string jpg = Path.Combine(_directory, "2d", "640x480", "gui", "chat_emoti.jpg");
+        Directory.CreateDirectory(Path.GetDirectoryName(tga)!);
+        Directory.CreateDirectory(Path.GetDirectoryName(jpg)!);
+        File.WriteAllBytes(tga, [1]);
+        File.WriteAllBytes(jpg, [2]);
+        using var resolver = new PangyaFileImageProvider(_directory);
+
+        Assert.Equal(tga, resolver.ResolvePath("chat_emoti"));
+        Assert.Equal(jpg, resolver.ResolvePath("chat_emoti.jpg"));
+        Assert.Null(resolver.GetImage("sfrm"));
     }
 
     [Fact]

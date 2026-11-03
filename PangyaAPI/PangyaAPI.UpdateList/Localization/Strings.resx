@@ -54,4 +54,8 @@
   <data name="UpdateKeyDetectorPlainTextReadyToEncrypt" xml:space="preserve">
     <value>[Info] File opened as plain text. Ready to encrypt ({0}{1})</value>
   </data>
+  <data name="UpdateListVerifierDirectoryIsRooted" xml:space="preserve"><value>The update-list directory is rooted.</value></data>
+  <data name="UpdateListVerifierEntryLeafFilenameUnsafe" xml:space="preserve"><value>The update-list filename is not a safe leaf filename.</value></data>
+  <data name="UpdateListVerifierPathEscapesRoot" xml:space="preserve"><value>The update-list path escapes the selected root directory.</value></data>
+  <data name="UpdateListVerifierReparsePoint" xml:space="preserve"><value>The resolved path contains a symbolic link or reparse point.</value></data>
 </root>

@@ -13,3 +13,7 @@ bld/
 *.sln.docstates
 /.vs
 PangYa-Suite-Tools/PangYa-Suite-Tools.csproj.user
+
+# Local Codex state and generated output
+/.codex/
+/.codex-*/

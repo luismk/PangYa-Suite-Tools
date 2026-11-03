@@ -34,7 +34,14 @@ namespace PangyaAPI.UpdateList.Models
 
             byte[] rawXmlBytes = Encoding.GetEncoding("euc-kr").GetBytes(xml.ToString());
             byte[] encryptedData = XteaEncrypt(rawXmlBytes);
-            File.WriteAllBytes(outputPath, encryptedData);
+            using (FileStream output = new(
+                       outputPath,
+                       FileMode.Create,
+                       FileAccess.Write,
+                       FileShare.None))
+            {
+                output.Write(encryptedData);
+            }
 
             Console.WriteLine(UpdateListStrings.Format(
                 UpdateListStrings.UpdateWriterGeneratedSuccessfully,
@@ -71,7 +78,8 @@ namespace PangyaAPI.UpdateList.Models
 
         public byte[] XteaEncrypt(byte[] rawData)
         {
-            Xtea.EncipherStreamPadNull(_cryptoKeys, new MemoryStream(rawData), out byte[] result);
+            using var input = new MemoryStream(rawData, writable: false);
+            Xtea.EncipherStreamPadNull(_cryptoKeys, input, out byte[] result);
             return result;
         }
     }

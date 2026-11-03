@@ -51,6 +51,18 @@ internal static class UpdateListStrings
     internal static string UpdateKeyDetectorPlainTextReadyToEncrypt =>
         GetString(nameof(UpdateKeyDetectorPlainTextReadyToEncrypt));
 
+    internal static string UpdateListVerifierDirectoryIsRooted =>
+        GetString(nameof(UpdateListVerifierDirectoryIsRooted));
+
+    internal static string UpdateListVerifierEntryLeafFilenameUnsafe =>
+        GetString(nameof(UpdateListVerifierEntryLeafFilenameUnsafe));
+
+    internal static string UpdateListVerifierPathEscapesRoot =>
+        GetString(nameof(UpdateListVerifierPathEscapesRoot));
+
+    internal static string UpdateListVerifierReparsePoint =>
+        GetString(nameof(UpdateListVerifierReparsePoint));
+
     internal static string Format(string format, params object?[] args) =>
         string.Format(CultureInfo.CurrentCulture, format, args);
 

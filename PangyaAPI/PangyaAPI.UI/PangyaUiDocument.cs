@@ -79,7 +79,15 @@ public sealed class PangyaUiNode
     public bool IsEditable => !IsPreviewOnly;
     public IReadOnlyDictionary<string, string> Parameters { get; private set; } =
         new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-    public bool IsForm => Type.Equals("FORM", StringComparison.OrdinalIgnoreCase) ||
+    internal bool IsLayout => Type.Equals("LAYOUT", StringComparison.OrdinalIgnoreCase);
+    internal XmlElement? LayoutBase => IsLayout ? Element["base"] : null;
+    internal string StaticCaption => Type.Equals("STATIC", StringComparison.OrdinalIgnoreCase)
+        ? Attribute("caption") : string.Empty;
+    internal string TextButtonCaption => Type.Equals("TEXTBUTTON", StringComparison.OrdinalIgnoreCase)
+        ? Attribute("caption") : string.Empty;
+    internal string ContextMenuCaption => Type.Equals("CONTEXTMENU", StringComparison.OrdinalIgnoreCase)
+        ? Attribute("caption") : string.Empty;
+    public bool IsForm => IsLayout || Type.Equals("FORM", StringComparison.OrdinalIgnoreCase) ||
                           Element.LocalName.Equals("form", StringComparison.OrdinalIgnoreCase);
 
     public string DisplayName => string.IsNullOrWhiteSpace(Name)
@@ -88,9 +96,13 @@ public sealed class PangyaUiNode
 
     public PangyaUiNode? FindContainingForm()
     {
+        PangyaUiNode? form = null;
         for (PangyaUiNode? node = this; node is not null; node = node.Parent)
-            if (node.IsForm) return node;
-        return null;
+        {
+            if (node.IsLayout) return node;
+            if (node.IsForm) form ??= node;
+        }
+        return form;
     }
 
     public bool IsWithin(PangyaUiNode ancestor)
@@ -105,11 +117,15 @@ public sealed class PangyaUiNode
 
     public bool IsRenderVisible =>
         !Parameters.TryGetValue("visible", out string? value) ||
-        !value.Trim().Equals("0", StringComparison.OrdinalIgnoreCase);
+        (Type.Equals("AREA", StringComparison.OrdinalIgnoreCase)
+            ? int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out int visible) && visible == 1
+            : !value.Trim().Equals("0", StringComparison.OrdinalIgnoreCase));
 
     public bool IsExplicitlyStretched =>
         Parameters.TryGetValue("stretch", out string? value) &&
-        value.Trim().Equals("1", StringComparison.OrdinalIgnoreCase);
+        (Type.Equals("AREA", StringComparison.OrdinalIgnoreCase)
+            ? int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out int stretch) && stretch != 0
+            : value.Trim().Equals("1", StringComparison.OrdinalIgnoreCase));
 
     public void SetName(string value)
     {
@@ -130,11 +146,23 @@ public sealed class PangyaUiNode
         EnsureEditable();
         bounds.Width = Math.Max(0, bounds.Width);
         bounds.Height = Math.Max(0, bounds.Height);
-        if (HasAttribute("rect") || HasAttribute("bounds"))
+        if (LayoutBase is XmlElement layoutBase)
+        {
+            layoutBase.SetAttribute("width", bounds.Width.ToString(CultureInfo.InvariantCulture));
+            layoutBase.SetAttribute("height", bounds.Height.ToString(CultureInfo.InvariantCulture));
+        }
+        else if (HasAttribute("rect") || HasAttribute("bounds"))
         {
             string attribute = HasAttribute("rect") ? "rect" : "bounds";
             Element.SetAttribute(attribute,
                 $"{bounds.Left} {bounds.Top} {bounds.Right} {bounds.Bottom}");
+            if (Element.LocalName.Equals("item", StringComparison.OrdinalIgnoreCase) &&
+                attribute == "rect")
+            {
+                foreach (XmlAttribute position in Element.Attributes.OfType<XmlAttribute>()
+                             .Where(value => value.LocalName.Equals("pos", StringComparison.OrdinalIgnoreCase)).ToArray())
+                    Element.Attributes.Remove(position);
+            }
         }
         else
         {
@@ -146,6 +174,9 @@ public sealed class PangyaUiNode
 
     public string GetResource(PangyaUiButtonState state)
     {
+        if (Type.Equals("VIEWER", StringComparison.OrdinalIgnoreCase))
+            return Parameters.GetValueOrDefault("image") ?? string.Empty;
+
         string[] candidates = state switch
         {
             PangyaUiButtonState.Hover => ["over", "below_over", "normal", "bgimg", "resource", "image", "src"],
@@ -163,7 +194,8 @@ public sealed class PangyaUiNode
     public void SetResource(string value)
     {
         EnsureEditable();
-        string parameterName = ImageParameterNames.FirstOrDefault(Parameters.ContainsKey) ??
+        string parameterName = Type.Equals("VIEWER", StringComparison.OrdinalIgnoreCase) ? "image" :
+            ImageParameterNames.FirstOrDefault(Parameters.ContainsKey) ??
             (Type.Equals("AREA", StringComparison.OrdinalIgnoreCase) ? "bgimg" : "normal");
         XmlElement? parameter = Element.ChildNodes.OfType<XmlElement>()
             .LastOrDefault(child =>
@@ -191,6 +223,8 @@ public sealed class PangyaUiNode
         Name = Attribute("name");
         if (string.IsNullOrWhiteSpace(Name)) Name = Attribute("id");
         Bounds = ParseBounds(Element);
+        if (LayoutBase is XmlElement layoutBase)
+            Bounds = ParseBounds(layoutBase);
         var parameters = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         foreach (XmlAttribute attribute in Element.Attributes)
         {
@@ -216,11 +250,17 @@ public sealed class PangyaUiNode
     public static Rectangle ParseBounds(XmlElement element)
     {
         string rect = FirstAttribute(element, "rect", "bounds");
+        string pos = FirstAttribute(element, "pos");
+        if (element.LocalName.Equals("item", StringComparison.OrdinalIgnoreCase) &&
+            FirstAttribute(element, "rect").Length > 0 &&
+            PangyaUiDimensionHelper.ParsePoint(pos) is Point position &&
+            position.X <= int.MaxValue - 10 && position.Y <= int.MaxValue - 10)
+            return new Rectangle(position, new Size(10, 10));
         if (PangyaUiDimensionHelper.ParseRectangle(rect) is Rectangle rectangle)
             return rectangle;
 
-        string pos = FirstAttribute(element, "pos", "position");
-        Point point = PangyaUiDimensionHelper.ParsePoint(pos) ?? Point.Empty;
+        Point? point = PangyaUiDimensionHelper.ParsePoint(
+            pos.Length > 0 ? pos : FirstAttribute(element, "position"));
         string size = FirstAttribute(element, "size");
         Size? dimensions = PangyaUiDimensionHelper.ParseSize(size);
         if (dimensions is null)
@@ -230,7 +270,13 @@ public sealed class PangyaUiNode
             if (int.TryParse(width, out int parsedWidth) && int.TryParse(height, out int parsedHeight))
                 dimensions = new Size(parsedWidth, parsedHeight);
         }
-        return new Rectangle(point,
+        // Fresh in JP 983 gives position-only items a 10 by 10 rectangle.
+        if (dimensions is null && pos.Length > 0 && point is Point origin &&
+            !FirstAttribute(element, "type").Equals("MACROITEM", StringComparison.OrdinalIgnoreCase) &&
+            origin.X <= int.MaxValue - 10 && origin.Y <= int.MaxValue - 10)
+            dimensions = new Size(10, 10);
+
+        return new Rectangle(point ?? Point.Empty,
             new Size(Math.Max(0, dimensions?.Width ?? 0), Math.Max(0, dimensions?.Height ?? 0)));
     }
 
@@ -315,6 +361,8 @@ public sealed class PangyaUiDocument
         xml = NormalizeLegacyMultilineComments(xml);
         xml = PangyaXmlCompatibility.EscapeBareAmpersands(xml);
         xml = NormalizeLegacyAdjacentAttributes(xml);
+        var warnings = new List<string>();
+        xml = NormalizeLegacyDuplicateAttributes(xml, warnings);
         xml = NormalizeLegacyElementCasing(xml);
         var settings = new XmlReaderSettings
         {
@@ -331,7 +379,6 @@ public sealed class PangyaUiDocument
         var roots = new List<PangyaUiNode>();
         var nodes = new List<PangyaUiNode>();
         var conditionalSymbols = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        var warnings = new List<string>();
         if (document.DocumentElement is not null)
             AddNodes(document.DocumentElement, null, [], isPreviewOnly: false,
                 roots, nodes, conditionalSymbols, warnings);
@@ -476,6 +523,7 @@ public sealed class PangyaUiDocument
         string xml = "<conditional-root>" + fragment + "</conditional-root>";
         xml = PangyaXmlCompatibility.EscapeBareAmpersands(xml);
         xml = NormalizeLegacyAdjacentAttributes(xml);
+        xml = NormalizeLegacyDuplicateAttributes(xml);
         xml = NormalizeLegacyElementCasing(xml);
         var settings = new XmlReaderSettings
         {
@@ -505,9 +553,7 @@ public sealed class PangyaUiDocument
 
     private static Size CalculateCanvasSize(IReadOnlyList<PangyaUiNode> nodes)
     {
-        PangyaUiNode? form = nodes.FirstOrDefault(node =>
-            node.Type.Equals("FORM", StringComparison.OrdinalIgnoreCase) ||
-            node.Element.LocalName.Equals("form", StringComparison.OrdinalIgnoreCase));
+        PangyaUiNode? form = nodes.FirstOrDefault(node => node.IsForm);
         if (form?.Bounds.Size is { Width: > 0, Height: > 0 } formSize) return Limit(formSize);
         int width = nodes.Count == 0 ? 1024 : nodes.Max(node => node.Bounds.Right);
         int height = nodes.Count == 0 ? 768 : nodes.Max(node => node.Bounds.Bottom);
@@ -573,6 +619,92 @@ public sealed class PangyaUiDocument
 
     private static bool IsXmlNameCharacter(char value) =>
         IsXmlNameStart(value) || value is '-' or '.' || char.IsDigit(value);
+
+    private static string NormalizeLegacyDuplicateAttributes(string xml,
+        ICollection<string>? warnings = null)
+    {
+        var normalized = new StringBuilder(xml.Length);
+        for (int index = 0; index < xml.Length;)
+        {
+            if (xml.AsSpan(index).StartsWith("<!--", StringComparison.Ordinal))
+            {
+                CopyMarkupBlock(xml, normalized, ref index, "-->");
+                continue;
+            }
+            if (xml.AsSpan(index).StartsWith("<![CDATA[", StringComparison.Ordinal))
+            {
+                CopyMarkupBlock(xml, normalized, ref index, "]]>");
+                continue;
+            }
+            if (xml.AsSpan(index).StartsWith("<?", StringComparison.Ordinal))
+            {
+                CopyMarkupBlock(xml, normalized, ref index, "?>");
+                continue;
+            }
+            if (xml[index] != '<' || index + 1 >= xml.Length ||
+                !IsXmlNameStart(xml[index + 1]))
+            {
+                normalized.Append(xml[index++]);
+                continue;
+            }
+
+            int tagEnd = FindTagEnd(xml, index);
+            if (tagEnd < 0)
+            {
+                normalized.Append(xml, index, xml.Length - index);
+                break;
+            }
+
+            NormalizeStartTagDuplicateAttributes(xml.AsSpan(index, tagEnd - index + 1),
+                normalized, warnings);
+            index = tagEnd + 1;
+        }
+
+        return normalized.ToString();
+    }
+
+    private static void NormalizeStartTagDuplicateAttributes(ReadOnlySpan<char> tag,
+        StringBuilder normalized, ICollection<string>? warnings)
+    {
+        int position = 1;
+        while (position < tag.Length && IsXmlNameCharacter(tag[position])) position++;
+
+        int copiedThrough = 0;
+        var names = new HashSet<string>(StringComparer.Ordinal);
+        while (position < tag.Length)
+        {
+            int whitespaceStart = position;
+            while (position < tag.Length && char.IsWhiteSpace(tag[position])) position++;
+            if (position >= tag.Length || tag[position] is '/' or '>') break;
+
+            int nameStart = position;
+            if (!IsXmlNameStart(tag[position])) break;
+            position++;
+            while (position < tag.Length && IsXmlNameCharacter(tag[position])) position++;
+            int nameEnd = position;
+            while (position < tag.Length && char.IsWhiteSpace(tag[position])) position++;
+            if (position >= tag.Length || tag[position] != '=') break;
+            position++;
+            while (position < tag.Length && char.IsWhiteSpace(tag[position])) position++;
+            if (position >= tag.Length || tag[position] is not ('"' or '\'')) break;
+
+            char quote = tag[position++];
+            while (position < tag.Length && tag[position] != quote) position++;
+            if (position >= tag.Length) break;
+            position++;
+
+            string name = tag[nameStart..nameEnd].ToString();
+            bool isNamespaceDeclaration = name.Equals("xmlns", StringComparison.Ordinal) ||
+                                          name.StartsWith("xmlns:", StringComparison.Ordinal);
+            if (isNamespaceDeclaration || names.Add(name)) continue;
+
+            normalized.Append(tag[copiedThrough..whitespaceStart]);
+            copiedThrough = position;
+            warnings?.Add($"Ignored duplicate XML attribute '{name}' and kept its first value.");
+        }
+
+        normalized.Append(tag[copiedThrough..]);
+    }
 
     private static string NormalizeLegacyElementCasing(string xml)
     {
@@ -699,6 +831,7 @@ public sealed class PangyaUiDocument
 
 public sealed class PangyaUiResourceCatalog
 {
+    internal PangyaUiEmoticons? Emoticons { get; private init; }
     private readonly Dictionary<string, List<ResourceDefinition>> _definitions;
 
     private PangyaUiResourceCatalog(Dictionary<string, List<ResourceDefinition>> definitions)
@@ -714,20 +847,76 @@ public sealed class PangyaUiResourceCatalog
         ArgumentNullException.ThrowIfNull(paths);
         var definitions = new Dictionary<string, List<ResourceDefinition>>(
             StringComparer.OrdinalIgnoreCase);
-        foreach (string path in paths.OrderBy(value => value, StringComparer.OrdinalIgnoreCase))
+        string[] orderedPaths = paths.Select(Path.GetFullPath).Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(path => !Path.GetFileName(path).Equals("all.xml", StringComparison.OrdinalIgnoreCase))
+            .ThenBy(path => path, StringComparer.OrdinalIgnoreCase).ToArray();
+        var knownPaths = new HashSet<string>(orderedPaths, StringComparer.OrdinalIgnoreCase);
+        var visited = new Dictionary<string, List<string[]>>(StringComparer.OrdinalIgnoreCase);
+        var activePaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var documents = new Dictionary<string, PangyaUiDocument?>(StringComparer.OrdinalIgnoreCase);
+        foreach (string path in orderedPaths) AddDocument(path, [], 0);
+        PangyaUiEmoticons? emoticons = null;
+        string? emoticonPath = orderedPaths.FirstOrDefault(path =>
+            Path.GetFileName(path).Equals("emoticon.xml", StringComparison.OrdinalIgnoreCase));
+        if (emoticonPath is not null)
         {
+            try { emoticons = PangyaUiEmoticons.Load(emoticonPath); }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or XmlException or ArgumentException)
+            {
+                // Emoticons are optional preview resources.
+            }
+        }
+        return new PangyaUiResourceCatalog(definitions) { Emoticons = emoticons };
+
+        void AddDocument(string path, string[] requiredSymbols, int depth)
+        {
+            if (depth >= 64 || activePaths.Contains(path)) return;
+            if (!visited.TryGetValue(path, out List<string[]>? earlierConditions))
+            {
+                earlierConditions = [];
+                visited.Add(path, earlierConditions);
+            }
+            // An earlier, less restrictive visit already wins whenever this one would be visible.
+            if (earlierConditions.Any(earlier =>
+                earlier.All(symbol => requiredSymbols.Contains(symbol, StringComparer.OrdinalIgnoreCase))))
+                return;
+            earlierConditions.Add(requiredSymbols);
+            activePaths.Add(path);
             try
             {
-                PangyaUiDocument document = PangyaUiDocument.Load(path);
+                if (!documents.TryGetValue(path, out PangyaUiDocument? document))
+                {
+                    documents[path] = null;
+                    documents[path] = document = PangyaUiDocument.Load(path);
+                }
+                if (document is null) return;
                 foreach (PangyaUiNode root in document.Roots.Where(root =>
                              !string.IsNullOrWhiteSpace(root.Name)))
                 {
+                    if (root.Type.Equals("INCLUDE", StringComparison.OrdinalIgnoreCase))
+                    {
+                        if (Path.IsPathRooted(root.Name)) continue;
+                        string include;
+                        try { include = Path.GetFullPath(root.Name, Path.GetDirectoryName(path) ?? path); }
+                        catch (Exception ex) when (ex is ArgumentException or NotSupportedException or PathTooLongException)
+                        {
+                            continue;
+                        }
+                        if (knownPaths.Contains(include))
+                        {
+                            string[] symbols = requiredSymbols.Concat(root.RequiredSymbols)
+                                .Distinct(StringComparer.OrdinalIgnoreCase)
+                                .OrderBy(symbol => symbol, StringComparer.OrdinalIgnoreCase).ToArray();
+                            AddDocument(include, symbols, depth + 1);
+                        }
+                        continue;
+                    }
                     if (!definitions.TryGetValue(root.Name, out List<ResourceDefinition>? matches))
                     {
                         matches = [];
                         definitions[root.Name] = matches;
                     }
-                    matches.Add(new ResourceDefinition(path, root));
+                    matches.Add(new ResourceDefinition(root, requiredSymbols));
                 }
             }
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or
@@ -736,8 +925,8 @@ public sealed class PangyaUiResourceCatalog
                 // Some data trees mix legacy and newer XML dialects. Unsupported files do not
                 // prevent valid reusable definitions from being cataloged.
             }
+            finally { activePaths.Remove(path); }
         }
-        return new PangyaUiResourceCatalog(definitions);
     }
 
     public PangyaUiNode? TryResolve(string resourceId, string instanceType,
@@ -748,13 +937,15 @@ public sealed class PangyaUiResourceCatalog
             return null;
 
         ResourceDefinition[] visible = matches
-            .Where(match => match.Node.IsVisible(enabledSymbols))
+            .Where(match => match.Node.IsVisible(enabledSymbols) &&
+                match.IncludeSymbols.All(enabledSymbols.Contains))
             .ToArray();
         if (visible.Length == 0) return null;
 
         ResourceDefinition? sameType = visible.FirstOrDefault(match =>
             match.Node.Type.Equals(instanceType, StringComparison.OrdinalIgnoreCase));
         if (sameType is not null) return sameType.Node;
+        if (instanceType.Equals("MACROITEM", StringComparison.OrdinalIgnoreCase)) return null;
 
         if (instanceType.Equals("FORM", StringComparison.OrdinalIgnoreCase) ||
             instanceType.Equals("FRAME", StringComparison.OrdinalIgnoreCase) ||
@@ -768,5 +959,5 @@ public sealed class PangyaUiResourceCatalog
         return visible[0].Node;
     }
 
-    private sealed record ResourceDefinition(string Path, PangyaUiNode Node);
+    private sealed record ResourceDefinition(PangyaUiNode Node, string[] IncludeSymbols);
 }
