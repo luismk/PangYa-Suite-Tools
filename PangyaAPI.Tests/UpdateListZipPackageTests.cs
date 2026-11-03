@@ -85,6 +85,28 @@ public sealed class UpdateListZipPackageTests
     }
 
     [Fact]
+    public void GenerateFromDirectory_ReleasesGeneratedUpdateListAndZipHandles()
+    {
+        using var temp = new TemporaryDirectory();
+        string source = temp.Combine("client");
+        string outputDirectory = temp.Combine("published");
+        Directory.CreateDirectory(source);
+        Directory.CreateDirectory(outputDirectory);
+        File.WriteAllText(Path.Combine(source, "client.dll"), "client");
+        string output = Path.Combine(outputDirectory, "updatelist");
+
+        new UpdateMaker().GenerateFromDirectory(
+            source,
+            output,
+            UpdateKeys.JP,
+            "patch",
+            createZipPackages: true);
+
+        AssertCanOpenExclusively(output);
+        AssertCanOpenExclusively(Path.Combine(outputDirectory, "client.dll_1.zip"));
+    }
+
+    [Fact]
     public void GenerateFromDirectory_IdenticalPackageIsRetained()
     {
         using var temp = new TemporaryDirectory();
@@ -275,5 +297,11 @@ public sealed class UpdateListZipPackageTests
         Assert.False(File.Exists(output));
         Assert.Empty(Directory.EnumerateFiles(outputDirectory, "*.zip"));
         Assert.Empty(Directory.EnumerateFiles(outputDirectory, "*.tmp"));
+    }
+
+    private static void AssertCanOpenExclusively(string path)
+    {
+        using var stream = new FileStream(path, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+        Assert.True(stream.CanRead);
     }
 }

@@ -54,4 +54,8 @@
   <data name="UpdateKeyDetectorPlainTextReadyToEncrypt" xml:space="preserve">
     <value>[Info] Arquivo aberto em texto puro. Pronto para encriptar ({0}{1})</value>
   </data>
+  <data name="UpdateListVerifierDirectoryIsRooted" xml:space="preserve"><value>O diretório da lista de atualização possui uma raiz absoluta.</value></data>
+  <data name="UpdateListVerifierEntryLeafFilenameUnsafe" xml:space="preserve"><value>O nome do arquivo na lista de atualização não é um nome de arquivo simples seguro.</value></data>
+  <data name="UpdateListVerifierPathEscapesRoot" xml:space="preserve"><value>O caminho da lista de atualização sai da pasta raiz selecionada.</value></data>
+  <data name="UpdateListVerifierReparsePoint" xml:space="preserve"><value>O caminho resolvido contém um link simbólico ou ponto de nova análise.</value></data>
 </root>

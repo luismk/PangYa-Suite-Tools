@@ -17,6 +17,7 @@ public sealed class PangyaFileImageProvider : IPangyaImageProvider, IDisposable
 {
     private static readonly string[] PreferredSegments =
         ["ui\\shop_myroom", "ui\\frames", "ui\\buttons"];
+    private static readonly string[] FreshBitmapExtensions = [".tga", ".png", ".bmp"];
     private readonly Dictionary<string, List<string>> _files;
     private readonly Dictionary<string, Image> _images =
         new(StringComparer.OrdinalIgnoreCase);
@@ -43,30 +44,67 @@ public sealed class PangyaFileImageProvider : IPangyaImageProvider, IDisposable
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentException.ThrowIfNullOrWhiteSpace(resourceId);
-        string lookupKey = Path.GetFileNameWithoutExtension(resourceId.Trim());
+        string? path = FindPath(resourceId, out IReadOnlyList<string>? ambiguous);
+        if (path is not null) return path;
+        if (ambiguous is not null)
+            throw new InvalidDataException(
+                $"The PangYa image resource '{resourceId}' is ambiguous: {string.Join(", ", ambiguous)}");
+        throw new FileNotFoundException($"The PangYa image resource '{resourceId}' was not found.");
+    }
+
+    private string? FindPath(string resourceId, out IReadOnlyList<string>? ambiguous)
+    {
+        ambiguous = null;
+        string filename = resourceId.Trim();
+        string lookupKey = Path.GetFileNameWithoutExtension(filename);
         if (string.IsNullOrWhiteSpace(lookupKey) ||
             !_files.TryGetValue(lookupKey, out List<string>? matches) || matches.Count == 0)
-            throw new FileNotFoundException(
-                $"The PangYa image resource '{resourceId}' was not found.");
+            return null;
         if (matches.Count == 1) return matches[0];
+        if (PangyaImageLoader.IsSupportedPath(filename))
+        {
+            string extension = Path.GetExtension(filename);
+            List<string> exactFormat = matches.Where(path =>
+                Path.GetExtension(path).Equals(extension, StringComparison.OrdinalIgnoreCase)).ToList();
+            if (exactFormat.Count == 1) return exactFormat[0];
+            if (exactFormat.Count > 1) matches = exactFormat;
+        }
         foreach (string segment in PreferredSegments)
         {
             List<string> preferred = matches.Where(path =>
                 path.Contains(segment, StringComparison.OrdinalIgnoreCase)).ToList();
             if (preferred.Count == 1) return preferred[0];
         }
+        List<string> uiMatches = matches.Where(path =>
+            Path.GetRelativePath(DataRoot, path).StartsWith(
+                $"ui{Path.DirectorySeparatorChar}", StringComparison.OrdinalIgnoreCase)).ToList();
+        if (uiMatches.Count == 1) return uiMatches[0];
+        if (uiMatches.Count > 1) matches = uiMatches;
+
+        if (!Path.HasExtension(filename))
+        {
+            foreach (string extension in FreshBitmapExtensions)
+            {
+                List<string> formatMatches = matches.Where(path =>
+                    Path.GetExtension(path).Equals(extension, StringComparison.OrdinalIgnoreCase)).ToList();
+                if (formatMatches.Count == 0) continue;
+                if (formatMatches.Count == 1) return formatMatches[0];
+                matches = formatMatches;
+                break;
+            }
+        }
+
         if (matches.Select(HashFile).Distinct(StringComparer.Ordinal).Count() == 1)
             return matches[0];
-        throw new InvalidDataException(
-            $"The PangYa image resource '{resourceId}' is ambiguous: {string.Join(", ", matches)}");
+        ambiguous = matches;
+        return null;
     }
 
     public string? TryResolvePath(string resourceId)
     {
         if (string.IsNullOrWhiteSpace(resourceId)) return null;
-        try { return ResolvePath(resourceId); }
-        catch (FileNotFoundException) { return null; }
-        catch (InvalidDataException) { return null; }
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        try { return FindPath(resourceId, out _); }
         catch (ArgumentException) { return null; }
     }
 

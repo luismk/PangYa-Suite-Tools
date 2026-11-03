@@ -20,8 +20,15 @@ namespace PangYa_Suite_Tools
             tabDecrypt = new TabPage();
             viewerToolbar = new ToolStrip();
             btnShowRawXml = new ToolStripButton();
+            btnVerifyFiles = new ToolStripButton();
+            btnCancelVerification = new ToolStripButton();
+            lblVerificationFilter = new ToolStripLabel();
+            cboVerificationFilter = new ToolStripComboBox();
+            viewerProgressBar = new ToolStripProgressBar();
             txtViewerFilePath = new TextBox();
             btnBrowseViewer = new Button();
+            txtVerificationRootPath = new TextBox();
+            btnBrowseVerificationRoot = new Button();
             //pnlCryptoDrop = new Panel();
             lblDropHint = new Label();
             lstUpdateFiles = new ListView();
@@ -29,6 +36,8 @@ namespace PangYa_Suite_Tools
             colDirectory = new ColumnHeader();
             colFileSize = new ColumnHeader();
             colCrc = new ColumnHeader();
+            colActualCrc = new ColumnHeader();
+            colVerificationStatus = new ColumnHeader();
             colDate = new ColumnHeader();
             colTime = new ColumnHeader();
             colPackageName = new ColumnHeader();
@@ -85,6 +94,8 @@ namespace PangYa_Suite_Tools
             tabDecrypt.Controls.Add(viewerToolbar);
             tabDecrypt.Controls.Add(txtViewerFilePath);
             tabDecrypt.Controls.Add(btnBrowseViewer);
+            tabDecrypt.Controls.Add(txtVerificationRootPath);
+            tabDecrypt.Controls.Add(btnBrowseVerificationRoot);
             //tabDecrypt.Controls.Add(pnlCryptoDrop);
             tabDecrypt.Controls.Add(lstUpdateFiles);
             tabDecrypt.Controls.Add(txtXmlViewer);
@@ -99,7 +110,7 @@ namespace PangYa_Suite_Tools
             viewerToolbar.AutoSize = false;
             viewerToolbar.GripStyle = ToolStripGripStyle.Hidden;
             viewerToolbar.ImageScalingSize = new Size(32, 32);
-            viewerToolbar.Items.AddRange(new ToolStripItem[] { btnShowRawXml });
+            viewerToolbar.Items.AddRange(new ToolStripItem[] { btnShowRawXml, btnVerifyFiles, btnCancelVerification, lblVerificationFilter, cboVerificationFilter, viewerProgressBar });
             viewerToolbar.LayoutStyle = ToolStripLayoutStyle.HorizontalStackWithOverflow;
             viewerToolbar.Location = new Point(3, 3);
             viewerToolbar.Name = "viewerToolbar";
@@ -113,6 +124,30 @@ namespace PangYa_Suite_Tools
             btnShowRawXml.Size = new Size(92, 62);
             btnShowRawXml.TextImageRelation = TextImageRelation.ImageAboveText;
             btnShowRawXml.Click += btnShowRawXml_Click;
+
+            btnVerifyFiles.DisplayStyle = ToolStripItemDisplayStyle.ImageAndText;
+            btnVerifyFiles.Name = "btnVerifyFiles";
+            btnVerifyFiles.Size = new Size(92, 62);
+            btnVerifyFiles.TextImageRelation = TextImageRelation.ImageAboveText;
+            btnVerifyFiles.Click += btnVerifyFiles_Click;
+
+            btnCancelVerification.DisplayStyle = ToolStripItemDisplayStyle.ImageAndText;
+            btnCancelVerification.Enabled = false;
+            btnCancelVerification.Name = "btnCancelVerification";
+            btnCancelVerification.Size = new Size(92, 62);
+            btnCancelVerification.TextImageRelation = TextImageRelation.ImageAboveText;
+            btnCancelVerification.Click += btnCancelVerification_Click;
+
+            lblVerificationFilter.Name = "lblVerificationFilter";
+
+            cboVerificationFilter.DropDownStyle = ComboBoxStyle.DropDownList;
+            cboVerificationFilter.Name = "cboVerificationFilter";
+            cboVerificationFilter.Size = new Size(92, 25);
+            cboVerificationFilter.SelectedIndexChanged += cboVerificationFilter_SelectedIndexChanged;
+
+            viewerProgressBar.Name = "viewerProgressBar";
+            viewerProgressBar.Size = new Size(100, 16);
+            viewerProgressBar.Visible = false;
 
             // txtViewerFilePath
             txtViewerFilePath.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
@@ -133,6 +168,24 @@ namespace PangYa_Suite_Tools
             btnBrowseViewer.TabIndex = 2;
             btnBrowseViewer.UseVisualStyleBackColor = false;
             btnBrowseViewer.Click += btnBrowseViewer_Click;
+
+            txtVerificationRootPath.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            txtVerificationRootPath.Location = new Point(8, 112);
+            txtVerificationRootPath.Name = "txtVerificationRootPath";
+            txtVerificationRootPath.ReadOnly = true;
+            txtVerificationRootPath.Size = new Size(638, 23);
+            txtVerificationRootPath.TabIndex = 3;
+
+            btnBrowseVerificationRoot.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btnBrowseVerificationRoot.BackColor = Color.FromArgb(0, 122, 204);
+            btnBrowseVerificationRoot.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            btnBrowseVerificationRoot.ForeColor = Color.White;
+            btnBrowseVerificationRoot.Location = new Point(656, 110);
+            btnBrowseVerificationRoot.Name = "btnBrowseVerificationRoot";
+            btnBrowseVerificationRoot.Size = new Size(104, 28);
+            btnBrowseVerificationRoot.TabIndex = 4;
+            btnBrowseVerificationRoot.UseVisualStyleBackColor = false;
+            btnBrowseVerificationRoot.Click += btnBrowseVerificationRoot_Click;
 
             // pnlCryptoDrop
             // pnlCryptoDrop.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
@@ -156,13 +209,14 @@ namespace PangYa_Suite_Tools
 
             // lstUpdateFiles
             lstUpdateFiles.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            lstUpdateFiles.Columns.AddRange(new ColumnHeader[] { colFileName, colDirectory, colFileSize, colCrc, colDate, colTime, colPackageName, colPackageSize });
+            lstUpdateFiles.Columns.AddRange(new ColumnHeader[] { colFileName, colDirectory, colFileSize, colCrc, colActualCrc, colVerificationStatus, colDate, colTime, colPackageName, colPackageSize });
             lstUpdateFiles.FullRowSelect = true;
             lstUpdateFiles.GridLines = true;
-            lstUpdateFiles.Location = new Point(8, 112);
+            lstUpdateFiles.Location = new Point(8, 144);
             lstUpdateFiles.Name = "lstUpdateFiles";
-            lstUpdateFiles.Size = new Size(760, 415);
-            lstUpdateFiles.TabIndex = 4;
+            lstUpdateFiles.ShowItemToolTips = true;
+            lstUpdateFiles.Size = new Size(760, 383);
+            lstUpdateFiles.TabIndex = 5;
             lstUpdateFiles.UseCompatibleStateImageBehavior = false;
             lstUpdateFiles.View = View.Details;
 
@@ -475,8 +529,15 @@ namespace PangYa_Suite_Tools
         private TabPage tabDecrypt;
         private ToolStrip viewerToolbar;
         private ToolStripButton btnShowRawXml;
+        private ToolStripButton btnVerifyFiles;
+        private ToolStripButton btnCancelVerification;
+        private ToolStripLabel lblVerificationFilter;
+        private ToolStripComboBox cboVerificationFilter;
+        private ToolStripProgressBar viewerProgressBar;
         private TextBox txtViewerFilePath;
         private Button btnBrowseViewer;
+        private TextBox txtVerificationRootPath;
+        private Button btnBrowseVerificationRoot;
         //private Panel pnlCryptoDrop;
         private Label lblDropHint;
         private ListView lstUpdateFiles;
@@ -484,6 +545,8 @@ namespace PangYa_Suite_Tools
         private ColumnHeader colDirectory;
         private ColumnHeader colFileSize;
         private ColumnHeader colCrc;
+        private ColumnHeader colActualCrc;
+        private ColumnHeader colVerificationStatus;
         private ColumnHeader colDate;
         private ColumnHeader colTime;
         private ColumnHeader colPackageName;

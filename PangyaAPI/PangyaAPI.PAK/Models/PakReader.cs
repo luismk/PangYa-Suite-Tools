@@ -11,7 +11,6 @@ namespace PangyaAPI.PAK.Models
 { 
     public class PakReader : IDisposable
     {
-        private readonly BinaryReader _reader;
         private readonly object _ioLock = new();
         private readonly ILogSink? _logSink;
         private readonly string _path;
@@ -27,8 +26,7 @@ namespace PangyaAPI.PAK.Models
             _path = Path.GetFullPath(path);
             _logSink = logSink;
             FileNameEncoding = fileNameEncoding ?? PakFileNameEncoding.CreateDefault();
-            _reader = new BinaryReader(File.OpenRead(path), Encoding.ASCII, leaveOpen: false);
-            Log($"Opened '{_path}' using {FileNameEncoding.EncodingName} filename encoding.");
+            Log($"Created reader for '{_path}' using {FileNameEncoding.EncodingName} filename encoding.");
         }
 
         // ── Parsing ─────────────────────────────────────────────────────────
@@ -50,7 +48,8 @@ namespace PangyaAPI.PAK.Models
 
         private void ParseCore(uint[]? forceKeys)
         {
-            var br = _reader;
+            ThrowIfDisposed();
+            using var br = OpenReader();
             long fileLen = br.BaseStream.Length;
 
             if (fileLen < PakHeader.BinarySize)
@@ -148,10 +147,10 @@ namespace PangyaAPI.PAK.Models
             }
 
             // ── Autor ────────────────────────────────────────────────────────
-            Header.Author = ReadAuthor();
+            Header.Author = ReadAuthor(br);
         }
 
-        private string ReadAuthor()
+        private string ReadAuthor(BinaryReader reader)
         {
             long payloadEnd = Entries.Count == 0
                 ? 0
@@ -160,16 +159,16 @@ namespace PangyaAPI.PAK.Models
 
             if (restAuthor <= 2) return "Desconhecido";
 
-            _reader.BaseStream.Seek(Header.OffsetFileEntry - 2, SeekOrigin.Begin);
-            ushort authorLenLE = _reader.ReadUInt16();
+            reader.BaseStream.Seek(Header.OffsetFileEntry - 2, SeekOrigin.Begin);
+            ushort authorLenLE = reader.ReadUInt16();
             // big endian → inverte bytes
             int authorLen = ((authorLenLE >> 8) & 0xFF) | ((authorLenLE << 8) & 0xFF00);
 
             if (authorLen == 0) return "Desconhecido";
             if (authorLen > restAuthor - 2) return "Desconhecido";
 
-            _reader.BaseStream.Seek(Header.OffsetFileEntry - 2 - authorLen, SeekOrigin.Begin);
-            return Encoding.ASCII.GetString(_reader.ReadBytes(authorLen));
+            reader.BaseStream.Seek(Header.OffsetFileEntry - 2 - authorLen, SeekOrigin.Begin);
+            return Encoding.ASCII.GetString(reader.ReadBytes(authorLen));
         }
 
         // ── Extração ─────────────────────────────────────────────────────────
@@ -184,6 +183,7 @@ namespace PangyaAPI.PAK.Models
                             CancellationToken cancellationToken = default,
                             bool writeManifest = true)
         {
+            ThrowIfDisposed();
             // 1. Filtragem inicial (Rápida)
             var regexPattern = "^" + Regex.Escape(pattern).Replace(@"\*", ".*") + "$";
             var regex = new Regex(regexPattern, RegexOptions.IgnoreCase);
@@ -209,6 +209,8 @@ namespace PangyaAPI.PAK.Models
             foreach (var entry in matches)
                 _ = GetSafeOutputPath(baseOutPrefix, entry.Name);
 
+            using var reader = OpenReader();
+
             // 2. Processamento em Paralelo usando Parallel.ForEach
             // Limitamos o grau de paralelismo se necessário, mas por padrão ele usa os cores disponíveis.
             Parallel.ForEach(matches, new ParallelOptions
@@ -226,15 +228,15 @@ namespace PangyaAPI.PAK.Models
                 // O objetivo aqui é passar o menor tempo possível dentro do lock. Apenas copiamos os bytes brutos.
                 lock (_ioLock)
                 {
-                    _reader.BaseStream.Seek(entry.Offset, SeekOrigin.Begin);
+                    reader.BaseStream.Seek(entry.Offset, SeekOrigin.Begin);
 
                     if (entry.Type == PakFileEntryType.Raw)
                     {
-                        decompressedData = _reader.ReadBytes((int)entry.Size);
+                        decompressedData = reader.ReadBytes((int)entry.Size);
                     }
                     else if (entry.Type == PakFileEntryType.LZ77 || entry.Type == PakFileEntryType.LZ772)
                     {
-                        compressedBytes = _reader.ReadBytes((int)entry.CompressSize);
+                        compressedBytes = reader.ReadBytes((int)entry.CompressSize);
                     }
                 }
 
@@ -319,23 +321,25 @@ namespace PangyaAPI.PAK.Models
         /// </summary>
         public byte[]? ExtractEntryToBytes(PakFileEntry entry)
         {
+            ThrowIfDisposed();
             Log($"Reading entry '{entry.Name}' into memory.");
             lock (_ioLock)
             {
-                _reader.BaseStream.Seek(entry.Offset, SeekOrigin.Begin);
+                using var reader = OpenReader();
+                reader.BaseStream.Seek(entry.Offset, SeekOrigin.Begin);
 
                 if (entry.Type == PakFileEntryType.Raw)
-                    return _reader.ReadBytes((int)entry.Size);
+                    return reader.ReadBytes((int)entry.Size);
 
                 if (entry.Type == PakFileEntryType.LZ77)
                 {
-                    byte[] compressed = _reader.ReadBytes((int)entry.CompressSize);
+                    byte[] compressed = reader.ReadBytes((int)entry.CompressSize);
                     return Lz77.Decompress(compressed, entry.Size, entry.CompressSize);
                 }
 
                 if (entry.Type == PakFileEntryType.LZ772)
                 {
-                    byte[] compressed = _reader.ReadBytes((int)entry.CompressSize);
+                    byte[] compressed = reader.ReadBytes((int)entry.CompressSize);
                     return Lz772.Decompress(compressed, entry.Size, entry.CompressSize);
                 }
 
@@ -345,12 +349,14 @@ namespace PangyaAPI.PAK.Models
 
         internal byte[] ReadCompressedEntryBytes(PakFileEntry entry)
         {
+            ThrowIfDisposed();
             if (entry.Type == PakFileEntryType.Directory) return Array.Empty<byte>();
             int length = checked((int)(entry.Type == PakFileEntryType.Raw ? entry.Size : entry.CompressSize));
             lock (_ioLock)
             {
-                _reader.BaseStream.Seek(entry.Offset, SeekOrigin.Begin);
-                byte[] data = _reader.ReadBytes(length);
+                using var reader = OpenReader();
+                reader.BaseStream.Seek(entry.Offset, SeekOrigin.Begin);
+                byte[] data = reader.ReadBytes(length);
                 if (data.Length != length)
                     throw new EndOfStreamException($"Entry payload is truncated: {entry.Name}");
                 return data;
@@ -444,12 +450,18 @@ namespace PangyaAPI.PAK.Models
             {
                 if (!_disposed)
                 {
-                    _reader.Dispose();
                     _disposed = true;
-                    Log($"Closed '{_path}'.");
+                    Log($"Disposed reader for '{_path}'.");
                 }
             }
         }
+
+        private BinaryReader OpenReader() => new(
+            new FileStream(_path, FileMode.Open, FileAccess.Read, FileShare.Read),
+            Encoding.ASCII,
+            leaveOpen: false);
+
+        private void ThrowIfDisposed() => ObjectDisposedException.ThrowIf(_disposed, this);
 
         private void Log(string message, LogSeverity severity = LogSeverity.Information) =>
             _logSink?.Log("PAK Reader", message, severity);

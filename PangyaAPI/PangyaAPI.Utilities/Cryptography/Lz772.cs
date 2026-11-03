@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 namespace PangyaAPI.Utilities.Cryptography
 {
 
@@ -87,8 +88,7 @@ namespace PangyaAPI.Utilities.Cryptography
                 0 => 0x5,
                 1 => 0xF,
                 2 => 0x5F,
-                // The reference implementation falls through from case 3 to case 4.
-                3 => 0x5FF,
+                3 => 0xFF,
                 4 => 0x5FF,
                 _ => 0xFFF,
             };
@@ -99,6 +99,7 @@ namespace PangyaAPI.Utilities.Cryptography
 
             int dIdx = 0, sIdx = 0;
             int[] maskPtrPositions = new int[8]; // posições das ushorts de cada bit
+            var hashChain = new Dictionary<int, List<int>>();
 
             while (sIdx < size)
             {
@@ -112,10 +113,12 @@ namespace PangyaAPI.Utilities.Cryptography
                 {
                     if (dIdx >= dest.Length) return null;
 
-                    var (matchLen, matchPos) = Lz77.FindBestMatchInternal(source, sIdx, maxDicWindow, maxMatch);
+                    var (matchLen, matchPos) = Lz77.FindBestMatchInternal(
+                        source, sIdx, maxDicWindow, maxMatch, hashChain);
 
                     if (matchPos < 0)
                     {
+                        Lz77.IndexPositionInternal(hashChain, source, sIdx, size);
                         dest[dIdx++] = source[sIdx++];
                     }
                     else
@@ -129,6 +132,9 @@ namespace PangyaAPI.Utilities.Cryptography
                         maskPtrPositions[bits] = dIdx;
 
                         dIdx += 2;
+
+                        for (int position = sIdx; position < sIdx + matchLen; position++)
+                            Lz77.IndexPositionInternal(hashChain, source, position, size);
 
                         sIdx += matchLen;
 

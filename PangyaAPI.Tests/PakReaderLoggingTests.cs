@@ -28,10 +28,10 @@ public sealed class PakReaderLoggingTests
             reader.Extract("*", output);
         }
 
-        Assert.Contains(sink.Messages, message => message.Contains("Opened", StringComparison.Ordinal));
+        Assert.Contains(sink.Messages, message => message.Contains("Created reader", StringComparison.Ordinal));
         Assert.Contains(sink.Messages, message => message.Contains("Parsed", StringComparison.Ordinal));
         Assert.Contains(sink.Messages, message => message.Contains("Extracted", StringComparison.Ordinal));
-        Assert.Contains(sink.Messages, message => message.Contains("Closed", StringComparison.Ordinal));
+        Assert.Contains(sink.Messages, message => message.Contains("Disposed reader", StringComparison.Ordinal));
     }
 
     private sealed class RecordingLogSink : ILogSink

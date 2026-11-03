@@ -12,6 +12,7 @@ using PangyaAPI.PAK.Flags;
 using PangyaAPI.PAK.Models;
 using PangyaAPI.IFF;
 using PangyaAPI.Utilities.Cryptography;
+using PangyaAPI.UpdateList.Models;
 using Xunit;
 
 namespace PangYa_Suite_Tools.Tests;
@@ -564,6 +565,7 @@ public sealed class LocalizationTests : IDisposable
 
                 Assert.Equal(paths[PathTextBoxKind.PakArchive], PrivateField<TextBox>(pak, "txtPakPath").Text);
                 Assert.Equal(paths[PathTextBoxKind.UpdateListViewerFile], PrivateField<TextBox>(update, "txtViewerFilePath").Text);
+                Assert.Equal(paths[PathTextBoxKind.UpdateListVerificationRoot], PrivateField<TextBox>(update, "txtVerificationRootPath").Text);
                 Assert.Equal(paths[PathTextBoxKind.UpdateListSourceFolder], PrivateField<TextBox>(update, "txtPangyaPath").Text);
                 Assert.Equal(paths[PathTextBoxKind.UpdateListDestinationFolder], PrivateField<TextBox>(update, "txtUpdatePath").Text);
                 Assert.Equal(paths[PathTextBoxKind.UpdateListExistingFile], PrivateField<TextBox>(update, "txtExistingList").Text);
@@ -950,6 +952,148 @@ public sealed class LocalizationTests : IDisposable
                 var files = (IEnumerable)document.GetType().GetProperty("Files")!.GetValue(document)!;
                 object file = files.Cast<object>().Single();
                 Assert.Equal("-19843887", file.GetType().GetProperty("Crc")!.GetValue(file));
+            }
+            catch (Exception ex) { failure = ex; }
+        });
+        thread.SetApartmentState(ApartmentState.STA);
+        thread.Start();
+        thread.Join();
+        if (failure is not null) ExceptionDispatchInfo.Capture(failure).Throw();
+    }
+
+    [Fact]
+    public void UpdateListViewer_ShowsVerificationResultsFiltersIssuesAndResetsState()
+    {
+        const string xml = """
+            <updatefiles count="2">
+                <fileinfo fname="match.bin" fdir="\" fcrc="1" />
+                <fileinfo fname="missing.bin" fdir="\" fcrc="2" />
+            </updatefiles>
+            """;
+        Exception? failure = null;
+        var thread = new Thread(() =>
+        {
+            try
+            {
+                LocalizationManager.SetCulture(LocalizationManager.English);
+                using var form = new FrmUpdateList();
+                MethodInfo parser = typeof(FrmUpdateList).GetMethod(
+                    "ParseUpdateListXml", BindingFlags.Static | BindingFlags.NonPublic)!;
+                object document = parser.Invoke(null, [xml])!;
+                typeof(FrmUpdateList).GetField("_currentUpdateListDocument",
+                        BindingFlags.Instance | BindingFlags.NonPublic)!
+                    .SetValue(form, document);
+                typeof(FrmUpdateList).GetField("_verificationResults",
+                        BindingFlags.Instance | BindingFlags.NonPublic)!
+                    .SetValue(form, new UpdateFileVerificationResult[]
+                    {
+                        new(new UpdateEntry { fname = "match.bin", fcrc = 1 },
+                            "match.bin", UpdateFileVerificationStatus.Match, 1, null),
+                        new(new UpdateEntry { fname = "missing.bin", fcrc = 2 },
+                            "missing.bin", UpdateFileVerificationStatus.Missing, null, null)
+                    });
+                MethodInfo populate = typeof(FrmUpdateList).GetMethod(
+                    "PopulateUpdateFileList", BindingFlags.Instance | BindingFlags.NonPublic)!;
+                populate.Invoke(form, [document]);
+                typeof(FrmUpdateList).GetMethod("UpdatePatchSummary",
+                        BindingFlags.Instance | BindingFlags.NonPublic)!
+                    .Invoke(form, [document]);
+
+                ListView list = PrivateField<ListView>(form, "lstUpdateFiles");
+                Assert.Equal(2, list.Items.Count);
+                Assert.Equal("0x00000001", list.Items[0].SubItems[4].Text);
+                Assert.Equal(Strings.UpdateList_VerificationMatch, list.Items[0].SubItems[5].Text);
+                Assert.Equal(Strings.UpdateList_VerificationMissing, list.Items[1].SubItems[5].Text);
+                Assert.Contains("1 matched", PrivateField<ToolStripStatusLabel>(form,
+                    "lblUpdateListSummary").Text, StringComparison.Ordinal);
+
+                ToolStripComboBox filter = PrivateField<ToolStripComboBox>(form, "cboVerificationFilter");
+                filter.SelectedIndex = 1;
+                Assert.Single(list.Items.Cast<ListViewItem>());
+                Assert.Equal("missing.bin", list.Items[0].Text);
+
+                typeof(FrmUpdateList).GetMethod("ResetVerificationResults",
+                        BindingFlags.Instance | BindingFlags.NonPublic)!
+                    .Invoke(form, [true]);
+                Assert.Equal(2, list.Items.Count);
+                Assert.All(list.Items.Cast<ListViewItem>(), item =>
+                    Assert.Equal(string.Empty, item.SubItems[5].Text));
+            }
+            catch (Exception ex) { failure = ex; }
+        });
+        thread.SetApartmentState(ApartmentState.STA);
+        thread.Start();
+        thread.Join();
+        if (failure is not null) ExceptionDispatchInfo.Capture(failure).Throw();
+    }
+
+    [Fact]
+    public void UpdateListViewer_LocalizesVerifierControlsAndGatesVerifyAction()
+    {
+        const string xml = "<updatefiles count=\"1\"><fileinfo fname=\"file.bin\" fdir=\"\\\" fcrc=\"0\" /></updatefiles>";
+        Exception? failure = null;
+        var thread = new Thread(() =>
+        {
+            try
+            {
+                LocalizationManager.SetCulture(LocalizationManager.Swedish);
+                using var form = new FrmUpdateList();
+                ToolStripButton verify = PrivateField<ToolStripButton>(form, "btnVerifyFiles");
+                Assert.Equal(Strings.UpdateList_VerifyFiles, verify.Text);
+                Assert.False(verify.Enabled);
+
+                object document = typeof(FrmUpdateList).GetMethod(
+                    "ParseUpdateListXml", BindingFlags.Static | BindingFlags.NonPublic)!.Invoke(null, [xml])!;
+                typeof(FrmUpdateList).GetField("_currentUpdateListDocument",
+                        BindingFlags.Instance | BindingFlags.NonPublic)!
+                    .SetValue(form, document);
+                PrivateField<TextBox>(form, "txtVerificationRootPath").Text = _tempDirectory;
+                typeof(FrmUpdateList).GetMethod("UpdateVerifyButtonState",
+                        BindingFlags.Instance | BindingFlags.NonPublic)!
+                    .Invoke(form, null);
+
+                Assert.True(verify.Enabled);
+                Assert.Equal(Strings.UpdateList_ColumnActualCrc,
+                    PrivateField<ColumnHeader>(form, "colActualCrc").Text);
+                Assert.Equal(Strings.UpdateList_FilterIssues,
+                    PrivateField<ToolStripComboBox>(form, "cboVerificationFilter").Items[1]);
+
+                var cancellation = new CancellationTokenSource();
+                typeof(FrmUpdateList).GetField("_verificationCancellation",
+                        BindingFlags.Instance | BindingFlags.NonPublic)!
+                    .SetValue(form, cancellation);
+                typeof(FrmUpdateList).GetMethod("btnCancelVerification_Click",
+                        BindingFlags.Instance | BindingFlags.NonPublic)!
+                    .Invoke(form, [null, EventArgs.Empty]);
+                Assert.True(cancellation.IsCancellationRequested);
+                cancellation.Dispose();
+                typeof(FrmUpdateList).GetField("_verificationCancellation",
+                        BindingFlags.Instance | BindingFlags.NonPublic)!
+                    .SetValue(form, null);
+            }
+            catch (Exception ex) { failure = ex; }
+        });
+        thread.SetApartmentState(ApartmentState.STA);
+        thread.Start();
+        thread.Join();
+        if (failure is not null) ExceptionDispatchInfo.Capture(failure).Throw();
+    }
+
+    [Fact]
+    public void MainMenu_OrdersIffPakAndUpdateListFirst()
+    {
+        Exception? failure = null;
+        var thread = new Thread(() =>
+        {
+            try
+            {
+                using var menu = new FrmMenu();
+                Button iff = menu.Controls.Find("btnOpenIffManager", true).OfType<Button>().Single();
+                Button pak = menu.Controls.Find("btnOpenPakMaker", true).OfType<Button>().Single();
+                Button update = menu.Controls.Find("btnOpenUpdateList", true).OfType<Button>().Single();
+
+                Assert.Equal([70, 135, 200], new[] { iff.Top, pak.Top, update.Top });
+                Assert.Equal([1, 2, 3], new[] { iff.TabIndex, pak.TabIndex, update.TabIndex });
             }
             catch (Exception ex) { failure = ex; }
         });

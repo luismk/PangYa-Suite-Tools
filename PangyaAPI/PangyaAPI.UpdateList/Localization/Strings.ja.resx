@@ -54,4 +54,8 @@
   <data name="UpdateKeyDetectorPlainTextReadyToEncrypt" xml:space="preserve">
     <value>[情報] ファイルをプレーンテキストとして開きました。暗号化できます ({0}{1})</value>
   </data>
+  <data name="UpdateListVerifierDirectoryIsRooted" xml:space="preserve"><value>更新リストのディレクトリが絶対パスです。</value></data>
+  <data name="UpdateListVerifierEntryLeafFilenameUnsafe" xml:space="preserve"><value>更新リストのファイル名は安全な単一ファイル名ではありません。</value></data>
+  <data name="UpdateListVerifierPathEscapesRoot" xml:space="preserve"><value>更新リストのパスが選択したルートフォルダーの外に出ています。</value></data>
+  <data name="UpdateListVerifierReparsePoint" xml:space="preserve"><value>解決されたパスにシンボリックリンクまたは再解析ポイントが含まれています。</value></data>
 </root>

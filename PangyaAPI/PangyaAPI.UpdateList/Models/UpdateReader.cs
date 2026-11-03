@@ -99,7 +99,11 @@ namespace PangyaAPI.UpdateList.Models
         {
             if (!File.Exists(filePath)) return Array.Empty<byte>();
 
-            using var fs = File.OpenRead(filePath);
+            using FileStream fs = new(
+                filePath,
+                FileMode.Open,
+                FileAccess.Read,
+                FileShare.Read);
             Xtea.DecipherStreamTrimNull(_cryptoKeys, fs, out byte[] result);
             return result;
         }

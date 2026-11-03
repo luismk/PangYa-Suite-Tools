@@ -36,30 +36,30 @@
             // btnOpenPakMaker
             // 
             btnOpenPakMaker.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
-            btnOpenPakMaker.Location = new Point(42, 70);
+            btnOpenPakMaker.Location = new Point(42, 135);
             btnOpenPakMaker.Name = "btnOpenPakMaker";
             btnOpenPakMaker.Size = new Size(300, 50);
-            btnOpenPakMaker.TabIndex = 1;
+            btnOpenPakMaker.TabIndex = 2;
             btnOpenPakMaker.UseVisualStyleBackColor = true;
             btnOpenPakMaker.Click += btnOpenPakMaker_Click;
             // 
             // btnOpenUpdateList
             // 
             btnOpenUpdateList.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
-            btnOpenUpdateList.Location = new Point(42, 135);
+            btnOpenUpdateList.Location = new Point(42, 200);
             btnOpenUpdateList.Name = "btnOpenUpdateList";
             btnOpenUpdateList.Size = new Size(300, 50);
-            btnOpenUpdateList.TabIndex = 2;
+            btnOpenUpdateList.TabIndex = 3;
             btnOpenUpdateList.UseVisualStyleBackColor = true;
             btnOpenUpdateList.Click += btnOpenUpdateList_Click;
             // 
             // btnOpenIffManager
             // 
             btnOpenIffManager.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
-            btnOpenIffManager.Location = new Point(42, 200);
+            btnOpenIffManager.Location = new Point(42, 70);
             btnOpenIffManager.Name = "btnOpenIffManager";
             btnOpenIffManager.Size = new Size(300, 50);
-            btnOpenIffManager.TabIndex = 3;
+            btnOpenIffManager.TabIndex = 1;
             btnOpenIffManager.UseVisualStyleBackColor = true;
             btnOpenIffManager.Click += btnOpenIffManager_Click;
             // 

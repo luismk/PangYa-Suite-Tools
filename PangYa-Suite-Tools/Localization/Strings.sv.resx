@@ -1152,4 +1152,25 @@ Avbryt: Stoppa extraheringen.</value></data>
   <data name="Pak_UnusualNamesSummary" xml:space="preserve"><value>{0} ovanliga postnamn hittades. Kontrollera filnamnskodningen innan du extraherar eller redigerar. Berörda poster är markerade och detaljer finns i loggen.</value></data>
   <data name="Pak_CompressionLevelUnknown" xml:space="preserve"><value>Okänd (lagras inte i PAK-filen)</value></data>
   <data name="Pak_CompressionLevelSummaryFormat" xml:space="preserve"><value>Komprimeringsnivå: {0}</value></data>
+  <data name="UpdateList_VerificationRootHint" xml:space="preserve"><value>Välj PangYas rotmapp att verifiera</value></data>
+  <data name="UpdateList_SelectVerificationRoot" xml:space="preserve"><value>Välj PangYas rotmapp vars filer ska verifieras</value></data>
+  <data name="UpdateList_VerifyFiles" xml:space="preserve"><value>Verifiera filer</value></data>
+  <data name="UpdateList_Filter" xml:space="preserve"><value>Visa:</value></data>
+  <data name="UpdateList_FilterAll" xml:space="preserve"><value>Alla</value></data>
+  <data name="UpdateList_FilterIssues" xml:space="preserve"><value>Problem</value></data>
+  <data name="UpdateList_ColumnActualCrc" xml:space="preserve"><value>Faktisk CRC</value></data>
+  <data name="UpdateList_ColumnVerificationStatus" xml:space="preserve"><value>Status</value></data>
+  <data name="UpdateList_VerificationMatch" xml:space="preserve"><value>Stämmer</value></data>
+  <data name="UpdateList_VerificationMismatch" xml:space="preserve"><value>Kontrollsumman skiljer sig</value></data>
+  <data name="UpdateList_VerificationMissing" xml:space="preserve"><value>Saknas</value></data>
+  <data name="UpdateList_VerificationInvalidPath" xml:space="preserve"><value>Ogiltig sökväg</value></data>
+  <data name="UpdateList_VerificationReadError" xml:space="preserve"><value>Läsfel</value></data>
+  <data name="UpdateList_VerificationSummaryFormat" xml:space="preserve"><value>Verifiering: {0} stämmer | {1} skiljer sig | {2} saknas | {3} ogiltiga | {4} läsfel</value></data>
+  <data name="UpdateList_VerificationStartedFormat" xml:space="preserve"><value>Verifierar {1} listade filer under {0}</value></data>
+  <data name="UpdateList_VerificationProgressFormat" xml:space="preserve"><value>Verifierar filer: {0}/{1}</value></data>
+  <data name="UpdateList_VerificationIssueFormat" xml:space="preserve"><value>Verifieringsproblem: {0} - {1} {2}</value></data>
+  <data name="UpdateList_VerificationCancelled" xml:space="preserve"><value>Verifieringen av uppdateringslistan avbröts.</value></data>
+  <data name="UpdateList_VerificationFailedFormat" xml:space="preserve"><value>Verifieringen av uppdateringslistan misslyckades: {0}</value></data>
+  <data name="UpdateList_InvalidVerificationRoot" xml:space="preserve"><value>Läs in en uppdateringslista och välj en giltig PangYa-rotmapp före verifiering.</value></data>
+  <data name="UiEditor_StartupWallpaper" xml:space="preserve"><value>Startbakgrund</value></data>
 </root>

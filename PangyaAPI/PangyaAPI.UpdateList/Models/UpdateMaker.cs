@@ -244,22 +244,28 @@ namespace PangyaAPI.UpdateList.Models
 
         private static void CreateZipCandidate(string sourcePath, string entryName, string candidatePath)
         {
-            using FileStream output = new(
-                candidatePath, FileMode.CreateNew, FileAccess.ReadWrite, FileShare.None);
-            using var archive = new ZipArchive(output, ZipArchiveMode.Create, leaveOpen: false);
-            ZipArchiveEntry archiveEntry = archive.CreateEntry(entryName, CompressionLevel.Optimal);
-            DateTimeOffset sourceTimestamp = File.GetLastWriteTime(sourcePath);
-            DateTimeOffset minimumZipTimestamp = new(1980, 1, 1, 0, 0, 0, sourceTimestamp.Offset);
-            DateTimeOffset maximumZipTimestamp = new(2107, 12, 31, 23, 59, 58, sourceTimestamp.Offset);
-            archiveEntry.LastWriteTime = sourceTimestamp < minimumZipTimestamp
-                ? minimumZipTimestamp
-                : sourceTimestamp > maximumZipTimestamp
-                    ? maximumZipTimestamp
-                    : sourceTimestamp;
-            using Stream input = new FileStream(
-                sourcePath, FileMode.Open, FileAccess.Read, FileShare.Read);
-            using Stream entryOutput = archiveEntry.Open();
-            input.CopyTo(entryOutput);
+            using (FileStream output = new(
+                       candidatePath,
+                       FileMode.CreateNew,
+                       FileAccess.ReadWrite,
+                       FileShare.None))
+            {
+                using var archive = new ZipArchive(output, ZipArchiveMode.Create, leaveOpen: true);
+                ZipArchiveEntry archiveEntry = archive.CreateEntry(entryName, CompressionLevel.Optimal);
+                DateTimeOffset sourceTimestamp = File.GetLastWriteTime(sourcePath);
+                DateTimeOffset minimumZipTimestamp = new(1980, 1, 1, 0, 0, 0, sourceTimestamp.Offset);
+                DateTimeOffset maximumZipTimestamp = new(2107, 12, 31, 23, 59, 58, sourceTimestamp.Offset);
+                archiveEntry.LastWriteTime = sourceTimestamp < minimumZipTimestamp
+                    ? minimumZipTimestamp
+                    : sourceTimestamp > maximumZipTimestamp
+                        ? maximumZipTimestamp
+                        : sourceTimestamp;
+
+                using Stream input = new FileStream(
+                    sourcePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+                using Stream entryOutput = archiveEntry.Open();
+                input.CopyTo(entryOutput);
+            }
         }
     }
 }

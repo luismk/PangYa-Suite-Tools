@@ -6,6 +6,29 @@ namespace PangyaAPI.Tests;
 public sealed class UpdateListRoundTripTests
 {
     [Fact]
+    public void WriteAndRead_ReleaseUpdateListFileHandleAfterEachOperation()
+    {
+        using var temp = new TemporaryDirectory();
+        string output = temp.Combine("released-updatelist.dat");
+        var header = new UpdateHeader
+        {
+            ClientPatchVersion = "1",
+            ClientPatchNum = "1",
+            UpdateVersion = "20260813"
+        };
+        var entries = new List<UpdateEntry>
+        {
+            new() { fname = "client.dll", fdir = "\\", pname = "client.zip" }
+        };
+
+        new UpdateWriter(UpdateKeys.JP).WriteUpdateList(output, header, entries);
+        AssertCanOpenExclusively(output);
+
+        _ = new UpdateReader(UpdateKeys.JP).ReadUpdateList(output);
+        AssertCanOpenExclusively(output);
+    }
+
+    [Fact]
     public void UpdateKeys_IncludesSuperSsDevForGeneratorSelection()
     {
         var ssDev = Assert.Single(UpdateKeys.All, item => item.Label == "Super SS Dev");
@@ -78,5 +101,11 @@ public sealed class UpdateListRoundTripTests
     {
         foreach (var field in UpdateEntryFieldMap.Fields)
             Assert.Equal(field.Get(expected), field.Get(actual));
+    }
+
+    private static void AssertCanOpenExclusively(string path)
+    {
+        using var stream = new FileStream(path, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+        Assert.True(stream.CanRead);
     }
 }

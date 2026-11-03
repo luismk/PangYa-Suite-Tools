@@ -23,6 +23,8 @@ namespace PangYa_Suite_Tools
         private readonly Lock _generatorLock = new();
         private string _currentRawXml = string.Empty;
         private UpdateListDocument? _currentUpdateListDocument;
+        private IReadOnlyList<UpdateFileVerificationResult> _verificationResults = [];
+        private CancellationTokenSource? _verificationCancellation;
         private bool _isMonitoring = false;
         // private bool _isInitializingLanguages = true;
         private enum UpdateToolbarIconKind
@@ -30,7 +32,9 @@ namespace PangYa_Suite_Tools
             Generate,
             MonitorStart,
             MonitorStop,
-            RawXml
+            RawXml,
+            Verify,
+            Cancel
         }
 
         // ── Construtor ───────────────────────────────────────────────────────
@@ -50,6 +54,10 @@ namespace PangYa_Suite_Tools
                 btnGenerateNow.Image?.Dispose();
                 btnToggleWatch.Image?.Dispose();
                 btnShowRawXml.Image?.Dispose();
+                btnVerifyFiles.Image?.Dispose();
+                btnCancelVerification.Image?.Dispose();
+                _verificationCancellation?.Cancel();
+                _verificationCancellation?.Dispose();
             };
         }
 
@@ -74,20 +82,33 @@ namespace PangYa_Suite_Tools
             lblClientPatchNum.Text = Strings.Update_PatchNumber;
             chkCreateZipPackages.Text = Strings.UpdateList_CreateZipPackages;
             txtViewerFilePath.PlaceholderText = Strings.UpdateList_ViewerPathHint;
+            txtVerificationRootPath.PlaceholderText = Strings.UpdateList_VerificationRootHint;
             btnBrowsePangya.Text = Strings.Pak_Browse;
             btnBrowseUpdate.Text = Strings.Pak_Browse;
             btnBrowseViewer.Text = Strings.Pak_Browse;
+            btnBrowseVerificationRoot.Text = Strings.Pak_Browse;
             btnGenerateNow.Text = Strings.UpdateList_GenerateNow;
             btnShowRawXml.Text = Strings.UpdateList_RawXml;
+            btnVerifyFiles.Text = Strings.UpdateList_VerifyFiles;
+            btnCancelVerification.Text = Strings.Common_Cancel;
+            lblVerificationFilter.Text = Strings.UpdateList_Filter;
+            bool showIssuesOnly = cboVerificationFilter.SelectedIndex == 1;
+            cboVerificationFilter.Items.Clear();
+            cboVerificationFilter.Items.AddRange([Strings.UpdateList_FilterAll, Strings.UpdateList_FilterIssues]);
+            cboVerificationFilter.SelectedIndex = showIssuesOnly ? 1 : 0;
             colFileName.Text = Strings.UpdateList_ColumnFileName;
             colDirectory.Text = Strings.UpdateList_ColumnDirectory;
             colFileSize.Text = Strings.UpdateList_ColumnFileSize;
             colCrc.Text = Strings.UpdateList_ColumnCrc;
+            colActualCrc.Text = Strings.UpdateList_ColumnActualCrc;
+            colVerificationStatus.Text = Strings.UpdateList_ColumnVerificationStatus;
             colDate.Text = Strings.UpdateList_ColumnDate;
             colTime.Text = Strings.UpdateList_ColumnTime;
             colPackageName.Text = Strings.UpdateList_ColumnPackageName;
             colPackageSize.Text = Strings.UpdateList_ColumnPackageSize;
             lblLog.Text = Strings.Update_Log;
+            if (_currentUpdateListDocument is not null)
+                PopulateUpdateFileList(_currentUpdateListDocument);
             UpdatePatchSummary(_currentUpdateListDocument);
 
             // Estados dinâmicos: só atualiza se não houver monitoramento/drop em andamento, para não confundir o usuário no meio de uma operação
@@ -136,6 +157,7 @@ private void SetupComponents()
         private void RestorePreferences()
         {
             txtViewerFilePath.Text = PathTextBoxPreferences.LoadPath(PathTextBoxKind.UpdateListViewerFile);
+            txtVerificationRootPath.Text = PathTextBoxPreferences.LoadPath(PathTextBoxKind.UpdateListVerificationRoot);
             txtPangyaPath.Text = PathTextBoxPreferences.LoadPath(PathTextBoxKind.UpdateListSourceFolder);
             txtUpdatePath.Text = PathTextBoxPreferences.LoadPath(PathTextBoxKind.UpdateListDestinationFolder);
             txtExistingList.Text = PathTextBoxPreferences.LoadPath(PathTextBoxKind.UpdateListExistingFile);
@@ -172,9 +194,11 @@ private void SetupComponents()
 
         private void FrmUpdateList_FormClosing(object? sender, FormClosingEventArgs e)
         {
+            _verificationCancellation?.Cancel();
             PathTextBoxPreferences.SavePaths(new Dictionary<PathTextBoxKind, string?>
             {
                 [PathTextBoxKind.UpdateListViewerFile] = txtViewerFilePath.Text,
+                [PathTextBoxKind.UpdateListVerificationRoot] = txtVerificationRootPath.Text,
                 [PathTextBoxKind.UpdateListSourceFolder] = txtPangyaPath.Text,
                 [PathTextBoxKind.UpdateListDestinationFolder] = txtUpdatePath.Text,
                 [PathTextBoxKind.UpdateListExistingFile] = txtExistingList.Text
@@ -192,6 +216,8 @@ private void SetupComponents()
             SetToolbarIcon(btnGenerateNow, UpdateToolbarIconKind.Generate);
             SetToolbarIcon(btnToggleWatch, UpdateToolbarIconKind.MonitorStart);
             SetToolbarIcon(btnShowRawXml, UpdateToolbarIconKind.RawXml);
+            SetToolbarIcon(btnVerifyFiles, UpdateToolbarIconKind.Verify);
+            SetToolbarIcon(btnCancelVerification, UpdateToolbarIconKind.Cancel);
             foreach (ToolStripButton button in new[] { btnGenerateNow, btnToggleWatch, btnShowRawXml })
             {
                 button.DisplayStyle = ToolStripItemDisplayStyle.ImageAndText;
@@ -199,7 +225,15 @@ private void SetupComponents()
                 button.Size = new Size(92, 62);
             }
 
+            foreach (ToolStripButton button in new[] { btnShowRawXml, btnVerifyFiles, btnCancelVerification })
+            {
+                button.DisplayStyle = ToolStripItemDisplayStyle.ImageAndText;
+                button.TextImageRelation = TextImageRelation.ImageAboveText;
+                button.Size = new Size(92, 62);
+            }
+
             AutoSizeUpdateFileColumns();
+            UpdateVerifyButtonState();
         }
 
         private static void SetToolbarIcon(ToolStripButton button, UpdateToolbarIconKind iconKind)
@@ -243,6 +277,21 @@ private void SetupComponents()
                         g.DrawString("</>", font, white, new PointF(8, 13));
                     }
                     break;
+                case UpdateToolbarIconKind.Verify:
+                    g.FillEllipse(green, 5, 5, 22, 22);
+                    using (var checkPen = new Pen(Color.White, 3F))
+                    {
+                        g.DrawLines(checkPen, [new Point(10, 16), new Point(15, 21), new Point(23, 11)]);
+                    }
+                    break;
+                case UpdateToolbarIconKind.Cancel:
+                    g.FillEllipse(red, 5, 5, 22, 22);
+                    using (var cancelPen = new Pen(Color.White, 3F))
+                    {
+                        g.DrawLine(cancelPen, 11, 11, 21, 21);
+                        g.DrawLine(cancelPen, 21, 11, 11, 21);
+                    }
+                    break;
             }
 
             return bitmap;
@@ -280,11 +329,12 @@ private void SetupComponents()
 
         private async Task ProcessViewerFileAsync(string targetFile)
         {
+            _verificationCancellation?.Cancel();
             txtViewerFilePath.Text = targetFile;
             txtXmlViewer.Clear();
-            lstUpdateFiles.Items.Clear();
             _currentRawXml = string.Empty;
             _currentUpdateListDocument = null;
+            ResetVerificationResults();
             UpdatePatchSummary(null);
             lblDropHint.Text = $"{Strings.UpdateList_Processing} {Path.GetFileName(targetFile)}...";
 
@@ -401,8 +451,10 @@ private void SetupComponents()
             txtXmlViewer.Text = formattedXml;
             UpdateListDocument document = ParseUpdateListXml(rawXml);
             _currentUpdateListDocument = document;
+            ResetVerificationResults(repopulate: false);
             PopulateUpdateFileList(document);
             UpdatePatchSummary(document);
+            UpdateVerifyButtonState();
         }
 
         private static UpdateListDocument ParseUpdateListXml(string xmlText)
@@ -446,16 +498,32 @@ private void SetupComponents()
             try
             {
                 lstUpdateFiles.Items.Clear();
-                foreach (UpdateListFileInfo file in document.Files)
+                for (int index = 0; index < document.Files.Count; index++)
                 {
+                    UpdateListFileInfo file = document.Files[index];
+                    UpdateFileVerificationResult? result = index < _verificationResults.Count
+                        ? _verificationResults[index]
+                        : null;
+                    if (cboVerificationFilter.SelectedIndex == 1
+                        && result?.Status == UpdateFileVerificationStatus.Match)
+                    {
+                        continue;
+                    }
+
                     var item = new ListViewItem(file.FileName);
+                    item.Tag = index;
                     item.SubItems.Add(file.Directory);
                     item.SubItems.Add(file.FileSize);
                     item.SubItems.Add(FormatCrcForDisplay(file.Crc));
+                    item.SubItems.Add(result?.ActualCrc is int actualCrc
+                        ? FormatCrcForDisplay(actualCrc.ToString(CultureInfo.InvariantCulture))
+                        : string.Empty);
+                    item.SubItems.Add(result is null ? string.Empty : GetVerificationStatusText(result.Status));
                     item.SubItems.Add(file.Date);
                     item.SubItems.Add(file.Time);
                     item.SubItems.Add(file.PackageName);
                     item.SubItems.Add(file.PackageSize);
+                    ApplyVerificationStyle(item, result);
                     lstUpdateFiles.Items.Add(item);
                 }
             }
@@ -488,7 +556,7 @@ private void SetupComponents()
                 return;
             }
 
-            lblUpdateListSummary.Text = string.Format(
+            string patchSummary = string.Format(
                 LocalizationManager.CurrentCulture,
                 Strings.UpdateList_StatusSummary,
                 document.PatchVersion,
@@ -496,7 +564,203 @@ private void SetupComponents()
                 document.UpdateListVersion,
                 document.Files.Count,
                 document.DeclaredCount);
+            lblUpdateListSummary.Text = _verificationResults.Count == 0
+                ? patchSummary
+                : $"{patchSummary} | {BuildVerificationSummary(_verificationResults)}";
         }
+
+        private async void btnVerifyFiles_Click(object? sender, EventArgs e)
+        {
+            UpdateListDocument? document = _currentUpdateListDocument;
+            string rootPath = txtVerificationRootPath.Text;
+            if (document is null || !Directory.Exists(rootPath))
+            {
+                MessageBox.Show(this, Strings.UpdateList_InvalidVerificationRoot,
+                    Strings.UpdateList_Warning, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            _verificationCancellation?.Dispose();
+            var cancellation = new CancellationTokenSource();
+            _verificationCancellation = cancellation;
+            ResetVerificationResults();
+            SetVerificationRunning(true, document.Files.Count);
+            Log(string.Format(LocalizationManager.CurrentCulture,
+                Strings.UpdateList_VerificationStartedFormat, rootPath, document.Files.Count));
+
+            try
+            {
+                List<UpdateEntry> entries = document.Files.Select(ToUpdateEntry).ToList();
+                IReadOnlyList<UpdateFileVerificationResult> results = await Task.Run(() =>
+                    new UpdateListVerifier().VerifyDirectory(
+                        rootPath,
+                        entries,
+                        (completed, total, _) => ReportVerificationProgress(completed, total),
+                        cancellation.Token),
+                    cancellation.Token);
+
+                _verificationResults = results;
+                PopulateUpdateFileList(document);
+                UpdatePatchSummary(document);
+                Log(BuildVerificationSummary(results));
+                foreach (UpdateFileVerificationResult result in results.Where(
+                             result => result.Status != UpdateFileVerificationStatus.Match))
+                {
+                    Log(string.Format(LocalizationManager.CurrentCulture,
+                        Strings.UpdateList_VerificationIssueFormat,
+                        result.Entry.fname,
+                        GetVerificationStatusText(result.Status),
+                        result.ErrorMessage ?? string.Empty));
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                Log(Strings.UpdateList_VerificationCancelled);
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
+            {
+                Log(string.Format(LocalizationManager.CurrentCulture,
+                    Strings.UpdateList_VerificationFailedFormat, ex.Message));
+                MessageBox.Show(this, ex.Message, Strings.Common_Error,
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                if (ReferenceEquals(_verificationCancellation, cancellation))
+                {
+                    _verificationCancellation = null;
+                    cancellation.Dispose();
+                }
+                SetVerificationRunning(false, document.Files.Count);
+            }
+        }
+
+        private void btnCancelVerification_Click(object? sender, EventArgs e) =>
+            _verificationCancellation?.Cancel();
+
+        private void btnBrowseVerificationRoot_Click(object? sender, EventArgs e)
+        {
+            using var dialog = new FolderBrowserDialog
+            {
+                Description = Strings.UpdateList_SelectVerificationRoot,
+                SelectedPath = Directory.Exists(txtVerificationRootPath.Text)
+                    ? txtVerificationRootPath.Text
+                    : string.Empty
+            };
+            if (dialog.ShowDialog(this) != DialogResult.OK) return;
+
+            txtVerificationRootPath.Text = dialog.SelectedPath;
+            PathTextBoxPreferences.SavePath(PathTextBoxKind.UpdateListVerificationRoot, dialog.SelectedPath);
+            ResetVerificationResults();
+            UpdateVerifyButtonState();
+        }
+
+        private void cboVerificationFilter_SelectedIndexChanged(object? sender, EventArgs e)
+        {
+            if (_currentUpdateListDocument is not null)
+                PopulateUpdateFileList(_currentUpdateListDocument);
+        }
+
+        private void ResetVerificationResults(bool repopulate = true)
+        {
+            _verificationResults = [];
+            viewerProgressBar.Value = 0;
+            viewerProgressBar.Visible = false;
+            if (repopulate)
+            {
+                if (_currentUpdateListDocument is null) lstUpdateFiles.Items.Clear();
+                else PopulateUpdateFileList(_currentUpdateListDocument);
+                UpdatePatchSummary(_currentUpdateListDocument);
+            }
+            UpdateVerifyButtonState();
+        }
+
+        private void SetVerificationRunning(bool running, int total)
+        {
+            viewerProgressBar.Visible = running;
+            viewerProgressBar.Minimum = 0;
+            viewerProgressBar.Maximum = Math.Max(1, total);
+            if (running) viewerProgressBar.Value = 0;
+            btnCancelVerification.Enabled = running;
+            btnBrowseViewer.Enabled = !running;
+            btnBrowseVerificationRoot.Enabled = !running;
+            if (running) btnVerifyFiles.Enabled = false;
+            else UpdateVerifyButtonState();
+        }
+
+        private void UpdateVerifyButtonState()
+        {
+            btnVerifyFiles.Enabled = _verificationCancellation is null
+                                     && _currentUpdateListDocument is not null
+                                     && Directory.Exists(txtVerificationRootPath.Text);
+        }
+
+        private void ReportVerificationProgress(int completed, int total)
+        {
+            if (IsDisposed || Disposing || !IsHandleCreated) return;
+            BeginInvoke(() =>
+            {
+                if (IsDisposed || viewerProgressBar.IsDisposed) return;
+                viewerProgressBar.Maximum = Math.Max(1, total);
+                viewerProgressBar.Value = Math.Min(completed, viewerProgressBar.Maximum);
+                viewerProgressBar.ToolTipText = string.Format(
+                    LocalizationManager.CurrentCulture,
+                    Strings.UpdateList_VerificationProgressFormat,
+                    completed,
+                    total);
+            });
+        }
+
+        private static UpdateEntry ToUpdateEntry(UpdateListFileInfo file) => new()
+        {
+            fname = file.FileName,
+            fdir = file.Directory,
+            fsize = long.TryParse(file.FileSize, NumberStyles.Integer, CultureInfo.InvariantCulture, out long size) ? size : 0,
+            fcrc = int.TryParse(file.Crc, NumberStyles.Integer, CultureInfo.InvariantCulture, out int crc) ? crc : 0,
+            fdate = file.Date,
+            ftime = file.Time,
+            pname = file.PackageName,
+            psize = int.TryParse(file.PackageSize, NumberStyles.Integer, CultureInfo.InvariantCulture, out int packageSize)
+                ? packageSize
+                : 0
+        };
+
+        private static void ApplyVerificationStyle(
+            ListViewItem item,
+            UpdateFileVerificationResult? result)
+        {
+            if (result is null) return;
+            item.ToolTipText = result.ErrorMessage ?? string.Empty;
+            item.BackColor = result.Status switch
+            {
+                UpdateFileVerificationStatus.Match => Color.Honeydew,
+                UpdateFileVerificationStatus.ChecksumMismatch => Color.MistyRose,
+                UpdateFileVerificationStatus.Missing => Color.LemonChiffon,
+                UpdateFileVerificationStatus.InvalidPath => Color.LightSalmon,
+                UpdateFileVerificationStatus.ReadError => Color.LightSalmon,
+                _ => SystemColors.Window
+            };
+        }
+
+        private static string GetVerificationStatusText(UpdateFileVerificationStatus status) => status switch
+        {
+            UpdateFileVerificationStatus.Match => Strings.UpdateList_VerificationMatch,
+            UpdateFileVerificationStatus.ChecksumMismatch => Strings.UpdateList_VerificationMismatch,
+            UpdateFileVerificationStatus.Missing => Strings.UpdateList_VerificationMissing,
+            UpdateFileVerificationStatus.InvalidPath => Strings.UpdateList_VerificationInvalidPath,
+            UpdateFileVerificationStatus.ReadError => Strings.UpdateList_VerificationReadError,
+            _ => status.ToString()
+        };
+
+        private static string BuildVerificationSummary(IReadOnlyList<UpdateFileVerificationResult> results) =>
+            string.Format(
+                LocalizationManager.CurrentCulture,
+                Strings.UpdateList_VerificationSummaryFormat,
+                results.Count(result => result.Status == UpdateFileVerificationStatus.Match),
+                results.Count(result => result.Status == UpdateFileVerificationStatus.ChecksumMismatch),
+                results.Count(result => result.Status == UpdateFileVerificationStatus.Missing),
+                results.Count(result => result.Status == UpdateFileVerificationStatus.InvalidPath),
+                results.Count(result => result.Status == UpdateFileVerificationStatus.ReadError));
 
         private void btnShowRawXml_Click(object? sender, EventArgs e)
         {

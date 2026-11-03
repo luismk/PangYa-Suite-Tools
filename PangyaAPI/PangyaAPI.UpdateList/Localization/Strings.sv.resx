@@ -54,4 +54,8 @@
   <data name="UpdateKeyDetectorPlainTextReadyToEncrypt" xml:space="preserve">
     <value>[Info] Filen öppnades som klartext. Klar att kryptera ({0}{1})</value>
   </data>
+  <data name="UpdateListVerifierDirectoryIsRooted" xml:space="preserve"><value>Katalogen i uppdateringslistan är en absolut sökväg.</value></data>
+  <data name="UpdateListVerifierEntryLeafFilenameUnsafe" xml:space="preserve"><value>Filnamnet i uppdateringslistan är inte ett säkert enkelt filnamn.</value></data>
+  <data name="UpdateListVerifierPathEscapesRoot" xml:space="preserve"><value>Sökvägen i uppdateringslistan lämnar den valda rotmappen.</value></data>
+  <data name="UpdateListVerifierReparsePoint" xml:space="preserve"><value>Den lösta sökvägen innehåller en symbolisk länk eller referenspunkt.</value></data>
 </root>

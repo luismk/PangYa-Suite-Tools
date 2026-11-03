@@ -1114,4 +1114,25 @@ Déclencheur :</value>
   <data name="Pak_UnusualNamesSummary" xml:space="preserve"><value>{0} nom(s) d’entrée inhabituel(s) détecté(s). Vérifiez l’encodage avant l’extraction ou la modification. Les entrées concernées sont surlignées et les détails figurent dans le journal.</value></data>
   <data name="Pak_CompressionLevelUnknown" xml:space="preserve"><value>Inconnu (non stocké dans le PAK)</value></data>
   <data name="Pak_CompressionLevelSummaryFormat" xml:space="preserve"><value>Niveau de compression : {0}</value></data>
+  <data name="UpdateList_VerificationRootHint" xml:space="preserve"><value>Sélectionnez le dossier racine PangYa à vérifier</value></data>
+  <data name="UpdateList_SelectVerificationRoot" xml:space="preserve"><value>Sélectionnez le dossier racine PangYa dont les fichiers seront vérifiés</value></data>
+  <data name="UpdateList_VerifyFiles" xml:space="preserve"><value>Vérifier les fichiers</value></data>
+  <data name="UpdateList_Filter" xml:space="preserve"><value>Afficher :</value></data>
+  <data name="UpdateList_FilterAll" xml:space="preserve"><value>Tous</value></data>
+  <data name="UpdateList_FilterIssues" xml:space="preserve"><value>Problèmes</value></data>
+  <data name="UpdateList_ColumnActualCrc" xml:space="preserve"><value>CRC réel</value></data>
+  <data name="UpdateList_ColumnVerificationStatus" xml:space="preserve"><value>État</value></data>
+  <data name="UpdateList_VerificationMatch" xml:space="preserve"><value>Conforme</value></data>
+  <data name="UpdateList_VerificationMismatch" xml:space="preserve"><value>Somme de contrôle différente</value></data>
+  <data name="UpdateList_VerificationMissing" xml:space="preserve"><value>Absent</value></data>
+  <data name="UpdateList_VerificationInvalidPath" xml:space="preserve"><value>Chemin non valide</value></data>
+  <data name="UpdateList_VerificationReadError" xml:space="preserve"><value>Erreur de lecture</value></data>
+  <data name="UpdateList_VerificationSummaryFormat" xml:space="preserve"><value>Vérification : {0} conformes | {1} différents | {2} absents | {3} non valides | {4} erreurs de lecture</value></data>
+  <data name="UpdateList_VerificationStartedFormat" xml:space="preserve"><value>Vérification de {1} fichiers listés sous {0}</value></data>
+  <data name="UpdateList_VerificationProgressFormat" xml:space="preserve"><value>Vérification des fichiers : {0}/{1}</value></data>
+  <data name="UpdateList_VerificationIssueFormat" xml:space="preserve"><value>Problème de vérification : {0} - {1} {2}</value></data>
+  <data name="UpdateList_VerificationCancelled" xml:space="preserve"><value>La vérification de la liste de mise à jour a été annulée.</value></data>
+  <data name="UpdateList_VerificationFailedFormat" xml:space="preserve"><value>Échec de la vérification de la liste de mise à jour : {0}</value></data>
+  <data name="UpdateList_InvalidVerificationRoot" xml:space="preserve"><value>Chargez une liste de mise à jour et sélectionnez un dossier racine PangYa valide avant la vérification.</value></data>
+  <data name="UiEditor_StartupWallpaper" xml:space="preserve"><value>Fond de démarrage</value></data>
 </root>

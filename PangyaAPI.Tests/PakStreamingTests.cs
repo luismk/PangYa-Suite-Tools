@@ -7,6 +7,25 @@ namespace PangyaAPI.Tests;
 public sealed class PakStreamingTests
 {
     [Fact]
+    public void Reader_ReleasesArchiveHandleAfterEachOperation()
+    {
+        using var temp = new TemporaryDirectory();
+        string source = CreateSource(temp);
+        string pak = temp.Combine("released-handle.pak");
+        NewWriter(PakKeys.JP).CreateFromDirectoryContents(source, pak);
+
+        using var reader = Open(pak, PakKeys.JP);
+        AssertCanOpenExclusively(pak);
+
+        PakFileEntry entry = FindEntry(reader, "keep.txt");
+        Assert.NotNull(reader.ExtractEntryToBytes(entry));
+        AssertCanOpenExclusively(pak);
+
+        reader.Extract("*", temp.Combine("extracted"));
+        AssertCanOpenExclusively(pak);
+    }
+
+    [Fact]
     public void Create_IsDeterministicAndCancellationPreservesDestination()
     {
         using var temp = new TemporaryDirectory();
@@ -665,6 +684,12 @@ public sealed class PakStreamingTests
 
     private static PakFileEntry FindEntry(PakReader reader, string normalizedPath) =>
         reader.Entries.Single(entry => Normalize(entry.Name) == normalizedPath);
+
+    private static void AssertCanOpenExclusively(string path)
+    {
+        using var stream = new FileStream(path, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+        Assert.True(stream.CanRead);
+    }
 
     private static string Normalize(string path) => path.Replace('\\', '/');
 }
