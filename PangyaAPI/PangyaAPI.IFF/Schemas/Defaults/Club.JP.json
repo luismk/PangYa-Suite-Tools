@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "defaultRevision": 1,
+  "defaultRevision": 2,
   "fileName": "Club.iff",
   "region": "JP",
   "minimumRecordSize": 244,
@@ -10,7 +10,7 @@
       "name": "SecondaryIcon",
       "offset": 192,
       "width": 40,
-      "type": "FixedString",
+      "type": "ImageResource",
       "isEditable": true,
       "encodingCodePage": 28591,
       "minimum": null,

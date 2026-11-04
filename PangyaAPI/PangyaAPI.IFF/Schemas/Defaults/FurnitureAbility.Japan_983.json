@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 2,
+  "defaultRevision": 2,
+  "fileName": "FurnitureAbility.iff",
+  "region": "Japan_983",
+  "minimumRecordSize": 60,
+  "isEditable": true,
+  "defaultStringSize": 60,
+  "fields": [
+    { "name": "Enabled", "offset": 0, "width": 1, "type": "Boolean" },
+    { "name": "AbilityType", "offset": 1, "width": 1, "type": "Byte" },
+    { "name": "FurnitureItemId", "offset": 4, "width": 4, "type": "ItemIdReference", "reference": {"targetFile": "Furniture.iff"} },
+    { "name": "SuccessType", "offset": 8, "width": 1, "type": "Byte" },
+    { "name": "StayTime", "offset": 12, "width": 4, "type": "Int32" },
+    { "name": "EffectType", "offset": 16, "width": 1, "type": "Byte" },
+    { "name": "SetInItemId", "offset": 20, "width": 4, "type": "ItemIdReference", "reference": {"targetFile": "Desc.iff", "displayField": "Description"} },
+    { "name": "MaximumAtFurniture", "offset": 24, "width": 4, "type": "Int32" },
+    { "name": "StartDate", "offset": 28, "width": 16, "type": "DateTime" },
+    { "name": "Duration", "offset": 44, "width": 4, "type": "UInt32" },
+    { "name": "PutOutItemId", "offset": 48, "width": 4, "type": "ItemIdReference", "reference": {"targetFile": "Desc.iff", "displayField": "Description"} },
+    { "name": "Probability", "offset": 52, "width": 4, "type": "Int32" },
+    { "name": "MaximumAtUser", "offset": 56, "width": 4, "type": "Int32" }
+  ],
+  "isKeyless": true
+}

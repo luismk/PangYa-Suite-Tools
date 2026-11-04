@@ -344,7 +344,7 @@ public static class IffPatchAnalyzer
     }
 
     private static bool IsString(IffFieldType type) =>
-        type is IffFieldType.FixedString or IffFieldType.LongString or IffFieldType.Icon or IffFieldType.Sound;
+        type is IffFieldType.FixedString or IffFieldType.LongString or IffFieldType.Icon or IffFieldType.ImageResource or IffFieldType.Sound;
 
     private static bool IsScalar(IffFieldType type) =>
         type is IffFieldType.Boolean or IffFieldType.Byte or IffFieldType.UInt16 or IffFieldType.Int16 or

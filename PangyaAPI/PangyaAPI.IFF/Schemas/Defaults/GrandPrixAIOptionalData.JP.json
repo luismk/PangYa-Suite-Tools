@@ -1,9 +1,9 @@
 {
-  "schemaVersion": 2, "defaultRevision": 1, "fileName": "GrandPrixAIOptionalData.iff", "region": "JP", "minimumRecordSize": 604, "isEditable": true, "keyField": "Id",
+  "schemaVersion": 2, "defaultRevision": 2, "fileName": "GrandPrixAIOptionalData.iff", "region": "JP", "minimumRecordSize": 604, "isEditable": true, "keyField": "Id",
   "fields": [
     { "name": "Active", "offset": 0, "width": 4, "type": "UInt32" }, { "name": "Id", "offset": 4, "width": 4, "type": "Int32" },
     { "name": "Name", "offset": 8, "width": 36, "type": "FixedString", "encodingCodePage": 932 },
-    { "name": "BetterOrNo", "offset": 44, "width": 4, "type": "UInt32" }, { "name": "TypeId", "offset": 48, "width": 4, "type": "UInt32" },
+    { "name": "BetterOrNo", "offset": 44, "width": 4, "type": "UInt32" }, { "name": "TypeId", "offset": 48, "width": 4, "type": "ItemIdReference", "reference": {"targetFile": "GrandPrixData.iff", "targetKeyField": "TypeId", "iconField": "Image"} },
     { "name": "Class", "offset": 52, "width": 4, "type": "UInt32" }, { "name": "PartTypeIds", "offset": 56, "width": 96, "type": "Raw" },
     { "name": "PartIds", "offset": 152, "width": 96, "type": "Raw" }, { "name": "UccIndices", "offset": 248, "width": 216, "type": "Raw" },
     { "name": "AuxPartTypeIds", "offset": 464, "width": 20, "type": "Raw" }, { "name": "Unknown", "offset": 484, "width": 120, "type": "Raw" }

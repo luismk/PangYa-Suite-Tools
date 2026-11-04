@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 2,
+  "defaultRevision": 2,
+  "fileName": "TikiSpecialTable.iff",
+  "region": "Japan_983",
+  "minimumRecordSize": 60,
+  "isEditable": true,
+  "defaultStringSize": 60,
+  "fields": [
+    { "name": "Index", "offset": 0, "width": 4, "type": "UInt32" },
+    { "name": "Enabled", "offset": 4, "width": 1, "type": "Boolean" },
+    { "name": "Category", "offset": 5, "width": 32, "type": "FixedString", "encodingCodePage": 932 },
+    { "name": "ItemCount", "offset": 40, "width": 4, "type": "UInt32" },
+    { "name": "Item1", "offset": 44, "width": 4, "type": "ItemIdReference", "reference": {"targetFile": "Desc.iff", "displayField": "Description"} },
+    { "name": "Item2", "offset": 48, "width": 4, "type": "ItemIdReference", "reference": {"targetFile": "Desc.iff", "displayField": "Description"} },
+    { "name": "Item3", "offset": 52, "width": 4, "type": "ItemIdReference", "reference": {"targetFile": "Desc.iff", "displayField": "Description"} },
+    { "name": "Item4", "offset": 56, "width": 4, "type": "ItemIdReference", "reference": {"targetFile": "Desc.iff", "displayField": "Description"} }
+  ],
+  "keyField": "Index"
+}

@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 2,
+  "defaultRevision": 1,
+  "fileName": "ErrorCodeInfo.iff",
+  "region": "Japan_983",
+  "minimumRecordSize": 272,
+  "isEditable": true,
+  "fields": [
+    { "name": "Active", "offset": 0, "width": 4, "type": "UInt32" },
+    { "name": "Code", "offset": 4, "width": 4, "type": "UInt32" },
+    { "name": "Type", "offset": 8, "width": 4, "type": "UInt32" },
+    { "name": "Info", "offset": 12, "width": 260, "type": "LongString", "encodingCodePage": 932 }
+  ],
+  "isKeyless": true
+}

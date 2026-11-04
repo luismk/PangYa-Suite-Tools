@@ -1,7 +1,7 @@
 {
-  "schemaVersion": 2, "defaultRevision": 1, "fileName": "PointShop.iff", "region": "JP", "minimumRecordSize": 20, "isEditable": true, "keyField": "Id",
+  "schemaVersion": 2, "defaultRevision": 2, "fileName": "PointShop.iff", "region": "JP", "minimumRecordSize": 20, "isEditable": true, "keyField": "Id",
   "fields": [
-    { "name": "Active", "offset": 0, "width": 4, "type": "UInt32" }, { "name": "Id", "offset": 4, "width": 4, "type": "UInt32" },
+    { "name": "Active", "offset": 0, "width": 4, "type": "UInt32" }, { "name": "Id", "offset": 4, "width": 4, "type": "ItemIdReference", "reference": {"targetFile": "Desc.iff", "displayField": "Description"} },
     { "name": "Points", "offset": 8, "width": 4, "type": "UInt32" }, { "name": "Quantity", "offset": 12, "width": 4, "type": "UInt32" },
     { "name": "Flag", "offset": 16, "width": 4, "type": "UInt32" }
   ]

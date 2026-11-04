@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 2,
+  "defaultRevision": 2,
+  "fileName": "Item.iff",
+  "region": "Japan_983",
+  "minimumRecordSize": 248,
+  "isEditable": true,
+  "defaultStringSize": 64,
+  "fields": [
+    { "name": "ItemFlags", "offset": 192, "width": 4, "type": "UInt32", "isEditable": false },
+    { "name": "RandomBox", "offset": 192, "width": 4, "type": "BooleanBitField", "isEditable": true, "bitMask": 1, "bitShift": 0 },
+    { "name": "Artifact", "offset": 192, "width": 4, "type": "BitField", "isEditable": true, "bitMask": 6, "bitShift": 1 },
+    { "name": "SecondaryIcon", "offset": 196, "width": 40, "type": "ImageResource", "isEditable": true, "encodingCodePage": 932 },
+    { "name": "COM1", "offset": 236, "width": 2, "type": "Int16", "isEditable": true },
+    { "name": "COM2", "offset": 238, "width": 2, "type": "Int16", "isEditable": true },
+    { "name": "COM3", "offset": 240, "width": 2, "type": "Int16", "isEditable": true },
+    { "name": "COM4", "offset": 242, "width": 2, "type": "Int16", "isEditable": true },
+    { "name": "COM5", "offset": 244, "width": 2, "type": "Int16", "isEditable": true },
+    { "name": "Point", "offset": 246, "width": 2, "type": "Int16", "isEditable": true }
+  ],
+  "base": {
+    "name": "Common"
+  }
+}

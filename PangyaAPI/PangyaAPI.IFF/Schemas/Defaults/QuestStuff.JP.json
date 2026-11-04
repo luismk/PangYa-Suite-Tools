@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "defaultRevision": 1,
+  "defaultRevision": 2,
   "fileName": "QuestStuff.iff",
   "region": "JP",
   "minimumRecordSize": 244,
@@ -140,7 +140,7 @@
       "name": "Icon",
       "offset": 49,
       "width": 40,
-      "type": "FixedString",
+      "type": "ImageResource",
       "isEditable": true,
       "encodingCodePage": 28591,
       "minimum": null,
@@ -556,66 +556,71 @@
       "name": "Counter1TypeId",
       "offset": 168,
       "width": 4,
-      "type": "UInt32",
+      "type": "ItemIdReference",
       "isEditable": true,
       "encodingCodePage": null,
       "minimum": null,
       "maximum": null,
       "bitMask": null,
       "bitShift": 0,
-      "isVisible": true
+      "isVisible": true,
+      "reference": {"targetFile": "CounterItem.iff"}
     },
     {
       "name": "Counter2TypeId",
       "offset": 172,
       "width": 4,
-      "type": "UInt32",
+      "type": "ItemIdReference",
       "isEditable": true,
       "encodingCodePage": null,
       "minimum": null,
       "maximum": null,
       "bitMask": null,
       "bitShift": 0,
-      "isVisible": true
+      "isVisible": true,
+      "reference": {"targetFile": "CounterItem.iff"}
     },
     {
       "name": "Counter3TypeId",
       "offset": 176,
       "width": 4,
-      "type": "UInt32",
+      "type": "ItemIdReference",
       "isEditable": true,
       "encodingCodePage": null,
       "minimum": null,
       "maximum": null,
       "bitMask": null,
       "bitShift": 0,
-      "isVisible": true
+      "isVisible": true,
+      "reference": {"targetFile": "CounterItem.iff"}
     },
     {
       "name": "Counter4TypeId",
       "offset": 180,
       "width": 4,
-      "type": "UInt32",
+      "type": "ItemIdReference",
       "isEditable": true,
       "encodingCodePage": null,
       "minimum": null,
       "maximum": null,
       "bitMask": null,
       "bitShift": 0,
-      "isVisible": true
+      "isVisible": true,
+      "reference": {"targetFile": "CounterItem.iff"}
     },
     {
       "name": "Counter5TypeId",
       "offset": 184,
       "width": 4,
-      "type": "UInt32",
+      "type": "ItemIdReference",
       "isEditable": true,
       "encodingCodePage": null,
       "minimum": null,
       "maximum": null,
       "bitMask": null,
       "bitShift": 0,
-      "isVisible": true
+      "isVisible": true,
+      "reference": {"targetFile": "CounterItem.iff"}
     },
     {
       "name": "Counter1Quantity",
@@ -686,40 +691,43 @@
       "name": "Reward1TypeId",
       "offset": 208,
       "width": 4,
-      "type": "UInt32",
+      "type": "ItemIdReference",
       "isEditable": true,
       "encodingCodePage": null,
       "minimum": null,
       "maximum": null,
       "bitMask": null,
       "bitShift": 0,
-      "isVisible": true
+      "isVisible": true,
+      "reference": {"targetFile": "Desc.iff", "displayField": "Description"}
     },
     {
       "name": "Reward2TypeId",
       "offset": 212,
       "width": 4,
-      "type": "UInt32",
+      "type": "ItemIdReference",
       "isEditable": true,
       "encodingCodePage": null,
       "minimum": null,
       "maximum": null,
       "bitMask": null,
       "bitShift": 0,
-      "isVisible": true
+      "isVisible": true,
+      "reference": {"targetFile": "Desc.iff", "displayField": "Description"}
     },
     {
       "name": "Reward3TypeId",
       "offset": 216,
       "width": 4,
-      "type": "UInt32",
+      "type": "ItemIdReference",
       "isEditable": true,
       "encodingCodePage": null,
       "minimum": null,
       "maximum": null,
       "bitMask": null,
       "bitShift": 0,
-      "isVisible": true
+      "isVisible": true,
+      "reference": {"targetFile": "Desc.iff", "displayField": "Description"}
     },
     {
       "name": "Reward1Quantity",

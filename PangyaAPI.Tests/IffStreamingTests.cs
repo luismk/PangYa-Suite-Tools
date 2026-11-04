@@ -77,6 +77,74 @@ public sealed class IffStreamingTests
     }
 
     [Fact]
+    public async Task Japan983Item_DecodesCommonAndItemFieldsAndRoundTrips()
+    {
+        byte[] bytes = new byte[8 + 248];
+        bytes[0] = 1;
+        bytes[4] = 13;
+        bytes[8] = 1;
+        byte[] name = [0x93, 0xFA, 0x96, 0x7B]; // 日本 in code page 932
+        name.CopyTo(bytes, 8 + 8);
+        "item_icon"u8.CopyTo(bytes.AsSpan(8 + 73));
+        BitConverter.GetBytes(120u).CopyTo(bytes, 8 + 116);
+        BitConverter.GetBytes(80u).CopyTo(bytes, 8 + 120);
+        bytes[8 + 128] = 0x61;
+        bytes[8 + 129] = 3;
+        bytes[8 + 131] = 7;
+        BitConverter.GetBytes(35u).CopyTo(bytes, 8 + 132);
+        BitConverter.GetBytes((ushort)30).CopyTo(bytes, 8 + 140);
+        bytes[8 + 192] = 5;
+        "item_data"u8.CopyTo(bytes.AsSpan(8 + 196));
+
+        using var stream = new MemoryStream(bytes, writable: false);
+        await using IffReader reader = IffReader.Open(stream, "Item.iff");
+        Assert.Equal(IffHeader.Japan983Region, reader.Info.Region);
+        Assert.Null(reader.Info.SchemaWarning);
+        IffRecord record = await SingleAsync(reader.ReadRecordsAsync());
+        Assert.Equal("日本", record.GetValue("Name"));
+        Assert.Equal("item_icon", record.GetValue("Icon"));
+        Assert.Equal(120u, record.GetValue("Price"));
+        Assert.Equal(80u, record.GetValue("DiscountPrice"));
+        Assert.Equal(3u, record.GetValue("InStock"));
+        Assert.Equal(true, record.GetValue("ShowNew"));
+        Assert.Equal(true, record.GetValue("ShowHot"));
+        Assert.Equal((byte)7, record.GetValue("Time"));
+        Assert.Equal(35u, record.GetValue("TikiQtyPerPoint"));
+        Assert.Equal((ushort)30, record.GetValue("Mileage"));
+        Assert.Equal(true, record.GetValue("RandomBox"));
+        Assert.Equal(2u, record.GetValue("Artifact"));
+        Assert.Equal("item_data", record.GetValue("SecondaryIcon"));
+
+        using var destination = new MemoryStream();
+        await IffWriter.WriteAsync(destination, reader.Info.Header, AsAsync([record]));
+        Assert.Equal(bytes, destination.ToArray());
+    }
+
+    [Theory]
+    [InlineData(57, null, null, "Global_57")]
+    [InlineData(57, "JP", null, "Japan_983")]
+    [InlineData(28749, "JP", null, "Japan_983")]
+    [InlineData(28749, null, "Japan_983", "Japan_983")]
+    [InlineData(0, null, "JP", "JP")]
+    public void Japan983Reader_ResolvesLinkageUsingRegionContext(ushort linkage, string? hint,
+        string? selection, string expected)
+    {
+        byte[] bytes = BuildIff("Skin.iff", 1, 244);
+        BitConverter.GetBytes(linkage).CopyTo(bytes, 2);
+        bytes[4] = 13;
+        using var stream = new MemoryStream(bytes);
+        using IffReader reader = IffReader.Open(stream, "Skin.iff",
+            new(SchemaRegion: selection, FallbackSchemaRegion: hint));
+
+        Assert.Equal(expected, reader.Info.Region);
+        if (expected == IffHeader.Japan983Region)
+        {
+            Assert.Null(reader.Info.SchemaWarning);
+            Assert.Contains(reader.Info.Schema!.Fields, field => field.Name == "Price" && field.Offset == 116);
+        }
+    }
+
+    [Fact]
     public void EmbeddedJsonSchema_ResolvesKnownRegion()
     {
         var header = new IffHeader(1, 0, 11, [0, 0, 0]);

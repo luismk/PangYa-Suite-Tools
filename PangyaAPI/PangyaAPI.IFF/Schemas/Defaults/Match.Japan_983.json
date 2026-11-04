@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 2,
+  "defaultRevision": 2,
+  "fileName": "Match.iff",
+  "region": "Japan_983",
+  "minimumRecordSize": 332,
+  "isEditable": true,
+  "defaultStringSize": 64,
+  "fields": [
+    { "name": "Enabled", "offset": 0, "width": 1, "type": "Boolean" },
+    { "name": "ItemId", "offset": 4, "width": 4, "type": "UInt32" },
+    { "name": "Name", "offset": 8, "width": 80, "type": "FixedString", "encodingCodePage": 932 },
+    { "name": "RequiredLevel", "offset": 88, "width": 1, "type": "Byte" },
+    { "name": "Icon1", "offset": 89, "width": 40, "type": "ImageResource", "encodingCodePage": 932 },
+    { "name": "Icon2", "offset": 129, "width": 40, "type": "ImageResource", "encodingCodePage": 932 },
+    { "name": "Icon3", "offset": 169, "width": 40, "type": "ImageResource", "encodingCodePage": 932 },
+    { "name": "Icon4", "offset": 209, "width": 40, "type": "ImageResource", "encodingCodePage": 932 },
+    { "name": "Icon5", "offset": 249, "width": 40, "type": "ImageResource", "encodingCodePage": 932 },
+    { "name": "Icon6", "offset": 289, "width": 40, "type": "ImageResource", "encodingCodePage": 932 }
+  ],
+  "keyField": "ItemId"
+}

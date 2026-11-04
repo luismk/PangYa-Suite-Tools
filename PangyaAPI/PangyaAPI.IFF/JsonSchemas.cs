@@ -53,7 +53,8 @@ public sealed record IffSchemaDefinition(
     IffSchemaBaseReference? Base = null,
     int DefaultRevision = 0,
     string? KeyField = null,
-    bool IsOpaque = false);
+    bool IsOpaque = false,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool IsKeyless = false);
 
 public sealed record IffFieldDefinition(
     string Name,
@@ -114,7 +115,7 @@ public static class IffSchemaJson
         if (!document.RootElement.TryGetProperty("defaultStringSize", out _))
         {
             int inferred = definition.Fields?.FirstOrDefault(field =>
-                    field.Type is IffFieldType.FixedString or IffFieldType.Icon or IffFieldType.Sound)?.Width
+                    field.Type is IffFieldType.FixedString or IffFieldType.Icon or IffFieldType.ImageResource or IffFieldType.Sound)?.Width
                 ?? Math.Min(32, definition.MinimumRecordSize);
             definition = definition with { DefaultStringSize = Math.Max(1, inferred) };
         }
@@ -127,7 +128,7 @@ public static class IffSchemaJson
         return new(CurrentVersion, Path.GetFileName(fileName), region, schema.MinimumRecordSize, schema.IsEditable,
             localFields.Select(FromField).ToArray(), schema.DefaultStringSize,
             schema.Ui, schema.DefaultLongStringSize, schema.BaseReference, schema.DefaultRevision, schema.KeyField,
-            schema.IsOpaque);
+            schema.IsOpaque, schema.IsKeyless);
     }
 
     public static IffFieldDefinition FromField(IffField field) => new(
@@ -161,13 +162,14 @@ public static class IffSchemaJson
             .ToArray() ?? [];
         ValidateComposition(definition, inheritedFields, localFields, recordSize);
         IffField[] fields = [.. inheritedFields, .. localFields];
-        string? keyField = definition.KeyField ?? baseSchema?.KeyField ?? InferKeyField(fields);
+        string? keyField = definition.IsKeyless ? null :
+            definition.KeyField ?? baseSchema?.KeyField ?? InferKeyField(fields);
         if (keyField is not null && !fields.Any(field => field.Name.Equals(keyField, StringComparison.OrdinalIgnoreCase)))
             throw new InvalidDataException($"Schema '{definition.FileName}' identifies missing key field '{keyField}'.");
         return new IffSchema(Path.GetFileNameWithoutExtension(definition.FileName),
             definition.MinimumRecordSize, fields, definition.IsEditable, definition.DefaultStringSize, definition.Ui,
             definition.DefaultLongStringSize, definition.Base, localFields, definition.DefaultRevision, keyField,
-            definition.IsOpaque);
+            definition.IsOpaque, definition.IsKeyless);
     }
 
     private static IReadOnlyList<IffFieldDefinition> CreateOpaqueFields(int recordSize)
@@ -228,6 +230,8 @@ public static class IffSchemaJson
             throw new InvalidDataException($"Unsupported IFF schema version {definition.SchemaVersion}.");
         if (definition.DefaultRevision < 0)
             throw new InvalidDataException("An IFF default schema revision cannot be negative.");
+        if (definition.IsKeyless && definition.KeyField is not null)
+            throw new InvalidDataException("A keyless IFF schema cannot specify a key field.");
         if (definition.KeyField is { Length: 0 })
             throw new InvalidDataException("An IFF schema key field cannot be empty.");
         if (definition.SchemaVersion == 1 && definition.Base is not null)
@@ -302,8 +306,8 @@ public static class IffSchemaJson
     {
         if (!string.IsNullOrWhiteSpace(field.IconPath))
         {
-            if (field.Type != IffFieldType.Icon)
-                throw new InvalidDataException($"Field '{field.Name}' icon path can only be set on Icon fields.");
+            if (field.Type is not (IffFieldType.Icon or IffFieldType.ImageResource))
+                throw new InvalidDataException($"Field '{field.Name}' icon path can only be set on image resource fields.");
             ValidateRelativeAssetPath(field.Name, field.IconPath, "icon");
         }
         if (!string.IsNullOrWhiteSpace(field.SoundPath))

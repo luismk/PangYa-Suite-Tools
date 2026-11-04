@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 2,
+  "defaultRevision": 2,
+  "fileName": "CadieMagicBox.iff",
+  "region": "Japan_983",
+  "minimumRecordSize": 140,
+  "isEditable": true,
+  "defaultStringSize": 64,
+  "fields": [
+    { "name": "uiNumber", "offset": 0, "width": 4, "type": "UInt32", "isEditable": true },
+    { "name": "Enabled", "offset": 4, "width": 1, "type": "Boolean", "isEditable": true },
+    { "name": "uiCategory", "offset": 8, "width": 4, "type": "UInt32", "isEditable": true },
+    { "name": "iCharacter", "offset": 12, "width": 4, "type": "Int32", "isEditable": true },
+    { "name": "iLevel", "offset": 16, "width": 4, "type": "Int32", "isEditable": true },
+    { "name": "uiFlag983", "offset": 20, "width": 4, "type": "UInt32", "isEditable": true },
+    { "name": "uiOutput", "offset": 24, "width": 4, "type": "ItemIdReference", "isEditable": true, "reference": {"targetFile": "Desc.iff", "displayField": "Description"} },
+    { "name": "uiOutputCount", "offset": 28, "width": 4, "type": "UInt32", "isEditable": true },
+    { "name": "uiElem1", "offset": 32, "width": 4, "type": "ItemIdReference", "isEditable": true, "reference": {"targetFile": "Desc.iff", "displayField": "Description"} },
+    { "name": "uiElem2", "offset": 36, "width": 4, "type": "ItemIdReference", "isEditable": true, "reference": {"targetFile": "Desc.iff", "displayField": "Description"} },
+    { "name": "uiElem3", "offset": 40, "width": 4, "type": "ItemIdReference", "isEditable": true, "reference": {"targetFile": "Desc.iff", "displayField": "Description"} },
+    { "name": "uiElem4", "offset": 44, "width": 4, "type": "ItemIdReference", "isEditable": true, "reference": {"targetFile": "Desc.iff", "displayField": "Description"} },
+    { "name": "uiElemCount1", "offset": 48, "width": 4, "type": "UInt32", "isEditable": true },
+    { "name": "uiElemCount2", "offset": 52, "width": 4, "type": "UInt32", "isEditable": true },
+    { "name": "uiElemCount3", "offset": 56, "width": 4, "type": "UInt32", "isEditable": true },
+    { "name": "uiElemCount4", "offset": 60, "width": 4, "type": "UInt32", "isEditable": true },
+    { "name": "uiRandSeq", "offset": 64, "width": 4, "type": "UInt32", "isEditable": true },
+    { "name": "szRandName", "offset": 68, "width": 40, "type": "FixedString", "isEditable": true, "encodingCodePage": 932 },
+    { "name": "dateStart983", "offset": 108, "width": 16, "type": "DateTime", "isEditable": true },
+    { "name": "dateEnd983", "offset": 124, "width": 16, "type": "DateTime", "isEditable": true }
+  ]
+}

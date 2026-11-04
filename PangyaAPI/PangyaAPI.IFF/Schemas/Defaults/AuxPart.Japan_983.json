@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 2,
+  "defaultRevision": 2,
+  "fileName": "AuxPart.iff",
+  "region": "Japan_983",
+  "minimumRecordSize": 228,
+  "isEditable": true,
+  "defaultStringSize": 64,
+  "fields": [
+    { "name": "COM1", "offset": 192, "width": 2, "type": "Int16", "isEditable": true },
+    { "name": "COM2", "offset": 194, "width": 2, "type": "Int16", "isEditable": true },
+    { "name": "COM3", "offset": 196, "width": 2, "type": "Int16", "isEditable": true },
+    { "name": "COM4", "offset": 198, "width": 2, "type": "Int16", "isEditable": true },
+    { "name": "COM5", "offset": 200, "width": 2, "type": "Int16", "isEditable": true },
+    { "name": "Attr1", "offset": 202, "width": 1, "type": "SByte", "isEditable": true },
+    { "name": "Attr2", "offset": 203, "width": 1, "type": "SByte", "isEditable": true },
+    { "name": "Attr3", "offset": 204, "width": 1, "type": "SByte", "isEditable": true },
+    { "name": "Attr4", "offset": 205, "width": 1, "type": "SByte", "isEditable": true },
+    { "name": "Attr5", "offset": 206, "width": 1, "type": "SByte", "isEditable": true },
+    { "name": "Slot1", "offset": 207, "width": 1, "type": "SByte", "isEditable": true },
+    { "name": "Slot2", "offset": 208, "width": 1, "type": "SByte", "isEditable": true },
+    { "name": "Slot3", "offset": 209, "width": 1, "type": "SByte", "isEditable": true },
+    { "name": "Slot4", "offset": 210, "width": 1, "type": "SByte", "isEditable": true },
+    { "name": "Slot5", "offset": 211, "width": 1, "type": "SByte", "isEditable": true },
+    { "name": "DriveUp", "offset": 212, "width": 1, "type": "SByte", "isEditable": true },
+    { "name": "ItemDropUp", "offset": 214, "width": 2, "type": "UInt16", "isEditable": true },
+    { "name": "ComboUp", "offset": 216, "width": 2, "type": "UInt16", "isEditable": true },
+    { "name": "PangUp", "offset": 218, "width": 2, "type": "UInt16", "isEditable": true },
+    { "name": "ExpUp", "offset": 220, "width": 2, "type": "UInt16", "isEditable": true },
+    { "name": "SetDriveUp983", "offset": 222, "width": 2, "type": "Int16", "isEditable": true },
+    { "name": "tidSet983", "offset": 224, "width": 4, "type": "ItemIdReference", "isEditable": true, "reference": {"targetFile": "AuxPart.iff"} }
+  ],
+  "base": {
+    "name": "Common"
+  }
+}

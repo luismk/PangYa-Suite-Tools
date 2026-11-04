@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 2,
+  "defaultRevision": 1,
+  "fileName": "CadieMagicBoxRandom.iff",
+  "region": "Japan_983",
+  "minimumRecordSize": 16,
+  "isEditable": true,
+  "defaultStringSize": 16,
+  "fields": [
+    {"name": "RandomSequence", "offset": 0, "width": 4, "type": "UInt32"},
+    {"name": "RewardItemId", "offset": 4, "width": 4, "type": "ItemIdReference", "reference": {"targetFile": "Desc.iff", "displayField": "Description"}},
+    {"name": "Count", "offset": 8, "width": 4, "type": "UInt32"},
+    {"name": "Probability", "offset": 12, "width": 4, "type": "UInt32"}
+  ],
+  "isKeyless": true
+}

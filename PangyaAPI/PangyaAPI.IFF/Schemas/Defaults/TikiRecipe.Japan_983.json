@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 2,
+  "defaultRevision": 2,
+  "fileName": "TikiRecipe.iff",
+  "region": "Japan_983",
+  "minimumRecordSize": 52,
+  "isEditable": true,
+  "defaultStringSize": 52,
+  "fields": [
+    { "name": "Index", "offset": 0, "width": 4, "type": "UInt32" },
+    { "name": "Enabled", "offset": 4, "width": 1, "type": "Boolean" },
+    { "name": "Category", "offset": 5, "width": 32, "type": "FixedString", "encodingCodePage": 932 },
+    { "name": "OutputItemId", "offset": 40, "width": 4, "type": "ItemIdReference", "reference": {"targetFile": "Desc.iff", "displayField": "Description"} },
+    { "name": "Count", "offset": 44, "width": 4, "type": "UInt32" },
+    { "name": "Rate", "offset": 48, "width": 4, "type": "UInt32" }
+  ],
+  "keyField": "Index"
+}

@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 2,
+  "defaultRevision": 2,
+  "fileName": "Ball.iff",
+  "region": "Japan_983",
+  "minimumRecordSize": 816,
+  "isEditable": true,
+  "defaultStringSize": 64,
+  "fields": [
+    { "name": "Flag983", "offset": 192, "width": 4, "type": "UInt32", "isEditable": true },
+    { "name": "SecondaryIcon", "offset": 196, "width": 40, "type": "ImageResource", "isEditable": true, "encodingCodePage": 932 },
+    { "name": "Bound", "offset": 236, "width": 4, "type": "UInt32", "isEditable": true },
+    { "name": "Roll", "offset": 240, "width": 4, "type": "UInt32", "isEditable": true },
+    { "name": "Fx1", "offset": 244, "width": 40, "type": "FixedString", "isEditable": true, "encodingCodePage": 932 },
+    { "name": "Fx2", "offset": 284, "width": 40, "type": "FixedString", "isEditable": true, "encodingCodePage": 932 },
+    { "name": "Fx3", "offset": 324, "width": 40, "type": "FixedString", "isEditable": true, "encodingCodePage": 932 },
+    { "name": "Fx4", "offset": 364, "width": 40, "type": "FixedString", "isEditable": true, "encodingCodePage": 932 },
+    { "name": "Fx5", "offset": 404, "width": 40, "type": "FixedString", "isEditable": true, "encodingCodePage": 932 },
+    { "name": "Fx6", "offset": 444, "width": 40, "type": "FixedString", "isEditable": true, "encodingCodePage": 932 },
+    { "name": "Fx7", "offset": 484, "width": 40, "type": "FixedString", "isEditable": true, "encodingCodePage": 932 },
+    { "name": "FxBone1", "offset": 524, "width": 40, "type": "FixedString", "isEditable": true, "encodingCodePage": 932 },
+    { "name": "FxBone2", "offset": 564, "width": 40, "type": "FixedString", "isEditable": true, "encodingCodePage": 932 },
+    { "name": "FxBone3", "offset": 604, "width": 40, "type": "FixedString", "isEditable": true, "encodingCodePage": 932 },
+    { "name": "FxBone4", "offset": 644, "width": 40, "type": "FixedString", "isEditable": true, "encodingCodePage": 932 },
+    { "name": "FxBone5", "offset": 684, "width": 40, "type": "FixedString", "isEditable": true, "encodingCodePage": 932 },
+    { "name": "FxBone6", "offset": 724, "width": 40, "type": "FixedString", "isEditable": true, "encodingCodePage": 932 },
+    { "name": "FxBone7", "offset": 764, "width": 40, "type": "FixedString", "isEditable": true, "encodingCodePage": 932 },
+    { "name": "COM1", "offset": 804, "width": 2, "type": "Int16", "isEditable": true },
+    { "name": "COM2", "offset": 806, "width": 2, "type": "Int16", "isEditable": true },
+    { "name": "COM3", "offset": 808, "width": 2, "type": "Int16", "isEditable": true },
+    { "name": "COM4", "offset": 810, "width": 2, "type": "Int16", "isEditable": true },
+    { "name": "COM5", "offset": 812, "width": 2, "type": "Int16", "isEditable": true }
+  ],
+  "base": {
+    "name": "Common"
+  }
+}

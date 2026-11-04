@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 2,
+  "defaultRevision": 2,
+  "fileName": "SpecialPrizeItem.iff",
+  "region": "Japan_983",
+  "minimumRecordSize": 12,
+  "isEditable": true,
+  "defaultStringSize": 12,
+  "fields": [
+    { "name": "ItemId", "offset": 0, "width": 4, "type": "ItemIdReference", "isEditable": true, "reference": {"targetFile": "Desc.iff", "displayField": "Description"} },
+    { "name": "ability", "offset": 4, "width": 4, "type": "UInt32", "isEditable": true },
+    { "name": "rate", "offset": 8, "width": 4, "type": "Single", "isEditable": true }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 2,
+  "defaultRevision": 2,
+  "fileName": "Title.iff",
+  "region": "Japan_983",
+  "minimumRecordSize": 88,
+  "isEditable": true,
+  "defaultStringSize": 64,
+  "fields": [
+    { "name": "Enabled", "offset": 0, "width": 1, "type": "Boolean" },
+    { "name": "ItemId", "offset": 4, "width": 4, "type": "UInt32" },
+    { "name": "Name", "offset": 8, "width": 40, "type": "FixedString", "encodingCodePage": 932 },
+    { "name": "Icon", "offset": 48, "width": 40, "type": "ImageResource", "encodingCodePage": 932 }
+  ],
+  "keyField": "ItemId"
+}

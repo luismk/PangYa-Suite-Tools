@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 2,
+  "defaultRevision": 1,
+  "fileName": "CounterItem.iff",
+  "region": "Japan_983",
+  "minimumRecordSize": 280,
+  "isEditable": true,
+  "defaultStringSize": 64,
+  "base": {
+    "name": "Common"
+  },
+  "fields": [
+    {
+      "name": "CounterData",
+      "offset": 192,
+      "width": 88,
+      "type": "Raw"
+    }
+  ]
+}

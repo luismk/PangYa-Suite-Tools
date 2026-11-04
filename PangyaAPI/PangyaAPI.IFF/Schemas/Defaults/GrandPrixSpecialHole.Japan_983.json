@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "defaultRevision": 2,
+  "fileName": "GrandPrixSpecialHole.iff",
+  "region": "Japan_983",
+  "minimumRecordSize": 20,
+  "isEditable": true,
+  "fields": [
+    { "name": "Enabled", "offset": 0, "width": 4, "type": "UInt32", "isEditable": true, "bitShift": 0, "isVisible": true },
+    { "name": "TypeId", "offset": 4, "width": 4, "type": "ItemIdReference", "isEditable": true, "bitShift": 0, "isVisible": true, "reference": {"targetFile": "GrandPrixData.iff", "targetKeyField": "TypeId", "iconField": "Image"} },
+    { "name": "HolePosition", "offset": 8, "width": 4, "type": "UInt32", "isEditable": true, "bitShift": 0, "isVisible": true },
+    { "name": "Map", "offset": 12, "width": 4, "type": "UInt32", "isEditable": true, "bitShift": 0, "isVisible": true },
+    { "name": "Hole", "offset": 16, "width": 4, "type": "UInt32", "isEditable": true, "bitShift": 0, "isVisible": true }
+  ],
+  "defaultStringSize": 20,
+  "isKeyless": true
+}

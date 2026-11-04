@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 2,
+  "defaultRevision": 2,
+  "fileName": "SubscriptionItemTable.iff",
+  "region": "Japan_983",
+  "minimumRecordSize": 44,
+  "isEditable": true,
+  "defaultStringSize": 44,
+  "fields": [
+    { "name": "Enabled", "offset": 0, "width": 1, "type": "Boolean", "isEditable": true },
+    { "name": "type", "offset": 4, "width": 4, "type": "UInt32", "isEditable": true },
+    { "name": "ItemId", "offset": 8, "width": 4, "type": "ItemIdReference", "isEditable": true, "reference": {"targetFile": "Desc.iff", "displayField": "Description"} },
+    { "name": "start", "offset": 12, "width": 16, "type": "DateTime", "isEditable": true },
+    { "name": "end", "offset": 28, "width": 16, "type": "DateTime", "isEditable": true }
+  ]
+}
