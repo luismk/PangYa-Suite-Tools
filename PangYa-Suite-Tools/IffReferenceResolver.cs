@@ -81,7 +81,7 @@ internal sealed class IffReferenceResolver : IIffReferenceResolver
 
     public static bool Supports(IffDocumentInfo? document) =>
         document?.Schema?.Fields.Any(field => field.Reference is not null ||
-            field.Type == IffFieldType.Icon ||
+            field.Type is IffFieldType.Icon or IffFieldType.ImageResource ||
             field.Type == IffFieldType.Sound ||
             field.Name.Equals("Icon", StringComparison.OrdinalIgnoreCase)) == true;
 
@@ -359,7 +359,7 @@ internal sealed class IffReferenceResolver : IIffReferenceResolver
         string? dataRoot, PangyaFileImageProvider? assets)
     {
         if (string.IsNullOrWhiteSpace(iconId)) return null;
-        if (field?.Type == IffFieldType.Icon && !string.IsNullOrWhiteSpace(field.IconPath) && dataRoot is not null)
+        if (field?.Type is IffFieldType.Icon or IffFieldType.ImageResource && !string.IsNullOrWhiteSpace(field.IconPath) && dataRoot is not null)
         {
             string? relativeMatch = TryResolveRelativeIconPath(dataRoot, field.IconPath, iconId);
             if (relativeMatch is not null) return relativeMatch;

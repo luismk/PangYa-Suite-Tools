@@ -905,7 +905,7 @@ internal sealed class IffFormRecordEditor : UserControl
     }
 
     private static bool IsIconField(IffField field) =>
-        field.Type == IffFieldType.Icon ||
+        field.Type is IffFieldType.Icon or IffFieldType.ImageResource ||
         field.Type == IffFieldType.FixedString && field.Name.Equals("Icon", StringComparison.OrdinalIgnoreCase);
 
     private void UpdateIconPreview(Control editor, IffField field, string iconId)

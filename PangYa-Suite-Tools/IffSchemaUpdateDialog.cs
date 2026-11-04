@@ -5,6 +5,7 @@ namespace PangYa_Suite_Tools;
 
 internal sealed class IffSchemaUpdateDialog : Form
 {
+    private const int ActionColumnIndex = 4;
     private sealed record ActionOption(IffSchemaUpdateAction Action, string Label);
 
     private readonly IReadOnlyList<IffSchemaUpdateCandidate> _candidates;
@@ -28,9 +29,7 @@ internal sealed class IffSchemaUpdateDialog : Form
         .Cast<DataGridViewRow>()
         .Select(row => new IffSchemaUpdateSelection(
             _candidates[row.Index],
-            row.Cells[4].Value is IffSchemaUpdateAction action
-                ? action
-                : IffSchemaUpdateAction.KeepForNow))
+            GetAction(row)))
         .ToArray();
 
     internal IffSchemaUpdateDialog(IReadOnlyList<IffSchemaUpdateCandidate> candidates)
@@ -72,6 +71,16 @@ internal sealed class IffSchemaUpdateDialog : Form
             AutoSize = true,
             DialogResult = DialogResult.Cancel
         };
+        var useForAll = new Button
+        {
+            Name = "btnSchemaUpdateUseForAll",
+            Text = Strings.IFFManager_SchemaUpdateUseForAll,
+            AutoSize = true
+        };
+        useForAll.Click += (_, _) => UseCurrentActionForAll();
+        EventHandler refreshUseForAll = (_, _) => useForAll.Text = Strings.IFFManager_SchemaUpdateUseForAll;
+        LocalizationManager.CultureChanged += refreshUseForAll;
+        useForAll.Disposed += (_, _) => LocalizationManager.CultureChanged -= refreshUseForAll;
         var buttons = new FlowLayoutPanel
         {
             Dock = DockStyle.Fill,
@@ -81,6 +90,7 @@ internal sealed class IffSchemaUpdateDialog : Form
         };
         buttons.Controls.Add(cancel);
         buttons.Controls.Add(apply);
+        buttons.Controls.Add(useForAll);
 
         var layout = new TableLayoutPanel
         {
@@ -159,6 +169,20 @@ internal sealed class IffSchemaUpdateDialog : Form
         foreach (IffSchemaUpdateCandidate candidate in _candidates)
             _updates.Rows.Add(candidate.FileName, candidate.Region, candidate.LocalRevision,
                 candidate.BundledRevision, IffSchemaUpdateAction.KeepForNow);
+    }
+
+    private static IffSchemaUpdateAction GetAction(DataGridViewRow row) =>
+        row.Cells[ActionColumnIndex].Value is IffSchemaUpdateAction action
+            ? action
+            : IffSchemaUpdateAction.KeepForNow;
+
+    private void UseCurrentActionForAll()
+    {
+        if (!_updates.EndEdit() || _updates.CurrentRow is not { } currentRow) return;
+
+        IffSchemaUpdateAction action = GetAction(currentRow);
+        foreach (DataGridViewRow row in _updates.Rows)
+            row.Cells[ActionColumnIndex].Value = action;
     }
 
     private void RefreshJsonPreview()

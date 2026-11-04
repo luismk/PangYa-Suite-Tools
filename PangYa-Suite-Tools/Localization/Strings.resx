@@ -870,6 +870,7 @@
   <data name="IFFManager_SchemaUpdateLocalRevision" xml:space="preserve"><value>Local revision</value></data>
   <data name="IFFManager_SchemaUpdateBundledRevision" xml:space="preserve"><value>Default revision</value></data>
   <data name="IFFManager_SchemaUpdateAction" xml:space="preserve"><value>Action</value></data>
+  <data name="IFFManager_SchemaUpdateUseForAll" xml:space="preserve"><value>Use this action for all items</value></data>
   <data name="IFFManager_SchemaUpdateKeep" xml:space="preserve"><value>Keep for now</value></data>
   <data name="IFFManager_SchemaUpdateReplace" xml:space="preserve"><value>Replace with bundled default</value></data>
   <data name="IFFManager_SchemaUpdateUseMine" xml:space="preserve"><value>Use my definition as default</value></data>
@@ -882,6 +883,7 @@
   <data name="IFFManager_RegionAuto" xml:space="preserve"><value>Auto detect</value></data>
   <data name="IFFManager_RegionThailand" xml:space="preserve"><value>Thailand</value></data>
   <data name="IFFManager_RegionJapan" xml:space="preserve"><value>Japan</value></data>
+  <data name="IFFManager_RegionJapan983" xml:space="preserve"><value>Japan (983)</value></data>
   <data name="IFFManager_RegionGlobal" xml:space="preserve"><value>Global</value></data>
   <data name="IFFManager_UnknownRegionTitle" xml:space="preserve"><value>Unknown IFF region</value></data>
   <data name="IFFManager_UnknownRegionDescription" xml:space="preserve"><value>The header does not match a known region. Review it and select the schema region to use.</value></data>

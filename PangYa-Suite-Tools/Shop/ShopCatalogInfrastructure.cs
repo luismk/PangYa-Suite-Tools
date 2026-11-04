@@ -29,7 +29,7 @@ internal static class ShopCatalogLoader
             cancellationToken.ThrowIfCancellationRequested();
             await using Stream stream = await entry.OpenAsync(cancellationToken);
             await using IffReader reader = IffReader.Open(stream,
-                Path.GetFileName(entry.Name), new(LeaveOpen: true));
+                Path.GetFileName(entry.Name), new(LeaveOpen: true, FallbackSchemaRegion: container.FileNameRegion));
             firstDocument ??= reader.Info;
             if (NormalizeSchemaRegion(reader.Info.Region) is { } region)
                 regions.Add(region);
@@ -116,6 +116,7 @@ internal static class ShopCatalogLoader
 
     private static string? NormalizeSchemaRegion(string region)
     {
+        if (region == IffHeader.Japan983Region) return region;
         if (region.Equals("TH", StringComparison.OrdinalIgnoreCase)) return "TH";
         if (region.Equals("JP", StringComparison.OrdinalIgnoreCase) ||
             region.StartsWith("Japan", StringComparison.OrdinalIgnoreCase)) return "JP";
