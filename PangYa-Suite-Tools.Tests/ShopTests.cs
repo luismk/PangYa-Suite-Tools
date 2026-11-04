@@ -732,8 +732,10 @@ public sealed class ShopTests : IDisposable
         int background = (useImage ? Color.Lime : Color.Red).ToArgb();
         Assert.Equal(background, bitmap.GetPixel(70, 32).ToArgb());
         Assert.Equal(background, bitmap.GetPixel(1, 1).ToArgb());
-        Assert.True(Enumerable.Range(4, 24).Any(y =>
-            Enumerable.Range(4, 60).Any(x => bitmap.GetPixel(x, y).ToArgb() != background)));
+        Assert.Equal(background, bitmap.GetPixel(79, 39).ToArgb());
+        Assert.Contains(Enumerable.Range(4, 24).SelectMany(y =>
+            Enumerable.Range(4, 60).Select(x => bitmap.GetPixel(x, y).ToArgb())),
+            pixel => pixel != background);
         Assert.Same(label, renderer.HitTest(document, layout, new Point(8, 8)));
     }
 

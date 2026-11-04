@@ -1,0 +1,13 @@
+{
+  "solution": {
+    "path": "PangYa-Suite-Tools.slnx",
+    "projects": [
+      "PangYa-Suite-Tools\\PangYa-Suite-Tools.csproj",
+      "PangYa-Suite-Tools.Tests\\PangYa-Suite-Tools.Tests.csproj",
+      "PangyaAPI\\PangyaAPI.Migrations.SqlServer\\PangyaAPI.Migrations.SqlServer.csproj",
+      "PangyaAPI\\PangyaAPI.WFT\\PangyaAPI.WFT.csproj",
+      "PangyaAPI.Tests\\PangyaAPI.Tests.csproj",
+      "PangyaAPI.SQL.Tests\\PangyaAPI.SQL.Tests.csproj"
+    ]
+  }
+}

@@ -59,6 +59,8 @@ dotnet add package PangyaAPI.WFT
 dotnet add package PangyaAPI.UI
 ```
 
+GitHub Actions restores from NuGet.org and builds and tests the projects in `PangYa-Suite-Tools.CI.slnf`. The filter excludes the Network project and its tests because they require the local `PangyaAPI.IFF.JP` package. Use `PangYa-Suite-Tools.slnx` with the local feed to build and test those projects.
+
 Repository builds retain project references for source-level development. Run `.\build-local-nugets.ps1` to build the PangyaAPI solution and create packages and symbols in the shared `D:\devtest\.nuget-local` directory. Each invocation assigns the entire package set one sortable UTC timestamp version such as `1.0.0-local.20260802010130123`, so rebuilt packages do not reuse a previous version and their PangyaAPI dependency versions remain synchronized. Add the directory as a package source in the server repository with `dotnet nuget add source D:\devtest\.nuget-local --name PangyaAPI-local`.
 
 Tags in the form `vX.Y.Z` or `vX.Y.Z-prerelease` build matching package versions, attach the packages and symbols to the GitHub release, and publish them to NuGet.org using the repository's `NUGET_API_KEY` secret. Branch and pull-request builds produce uniquely versioned CI package artifacts without publishing them.
