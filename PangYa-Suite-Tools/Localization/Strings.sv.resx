@@ -867,6 +867,7 @@
   <data name="IFFManager_SchemaUpdateLocalRevision" xml:space="preserve"><value>Lokal revision</value></data>
   <data name="IFFManager_SchemaUpdateBundledRevision" xml:space="preserve"><value>Standardrevision</value></data>
   <data name="IFFManager_SchemaUpdateAction" xml:space="preserve"><value>Åtgärd</value></data>
+  <data name="IFFManager_SchemaUpdateUseForAll" xml:space="preserve"><value>Använd den här åtgärden för alla objekt</value></data>
   <data name="IFFManager_SchemaUpdateKeep" xml:space="preserve"><value>Behåll tills vidare</value></data>
   <data name="IFFManager_SchemaUpdateReplace" xml:space="preserve"><value>Ersätt med inbyggd standard</value></data>
   <data name="IFFManager_SchemaUpdateUseMine" xml:space="preserve"><value>Använd min definition som standard</value></data>
@@ -879,6 +880,7 @@
   <data name="IFFManager_RegionAuto" xml:space="preserve"><value>Identifiera automatiskt</value></data>
   <data name="IFFManager_RegionThailand" xml:space="preserve"><value>Thailand</value></data>
   <data name="IFFManager_RegionJapan" xml:space="preserve"><value>Japan</value></data>
+  <data name="IFFManager_RegionJapan983" xml:space="preserve"><value>Japan (983)</value></data>
   <data name="IFFManager_RegionGlobal" xml:space="preserve"><value>Global</value></data>
   <data name="IFFManager_UnknownRegionTitle" xml:space="preserve"><value>Okänd IFF-region</value></data>
   <data name="IFFManager_UnknownRegionDescription" xml:space="preserve"><value>Rubriken matchar ingen känd region. Granska den och välj schemaregion.</value></data>

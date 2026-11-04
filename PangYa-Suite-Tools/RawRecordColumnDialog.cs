@@ -40,7 +40,7 @@ internal sealed class RawRecordColumnDialog : Form
         _fieldType.DropDownStyle = ComboBoxStyle.DropDownList;
         _fieldType.FormattingEnabled = true;
         _fieldType.Name = "cboRawFieldType";
-        _fieldType.Items.AddRange(Enum.GetValues<IffFieldType>().Cast<object>().ToArray());
+        _fieldType.Items.AddRange(IffFieldTypeDisplay.SelectableTypes());
         _fieldType.Format += IffFieldTypeDisplay.FormatComboBoxItem;
         _fieldType.SelectedItem = IffFieldType.Raw;
         _fieldType.SelectedIndexChanged += (_, _) => ReselectFromCurrentStart();
@@ -258,7 +258,7 @@ internal sealed class RawRecordColumnDialog : Form
         _fieldType.SelectedItem is IffFieldType type ? type : IffFieldType.Raw;
 
     private static bool IsStringFieldType(IffFieldType type) =>
-        type is IffFieldType.FixedString or IffFieldType.LongString or IffFieldType.Icon or IffFieldType.Sound;
+        type is IffFieldType.FixedString or IffFieldType.LongString or IffFieldType.Icon or IffFieldType.ImageResource or IffFieldType.Sound;
 
     private int TypeSelectionEnd(int startOffset)
     {
@@ -276,7 +276,7 @@ internal sealed class RawRecordColumnDialog : Form
             IffFieldType.Single => 4,
         IffFieldType.Int64 => 8,
         IffFieldType.DateTime => 16,
-        IffFieldType.FixedString or IffFieldType.Icon or IffFieldType.Sound => Math.Max(1, defaultStringSize),
+        IffFieldType.FixedString or IffFieldType.Icon or IffFieldType.ImageResource or IffFieldType.Sound => Math.Max(1, defaultStringSize),
         IffFieldType.LongString => Math.Max(1, defaultLongStringSize),
         _ => 1
     };

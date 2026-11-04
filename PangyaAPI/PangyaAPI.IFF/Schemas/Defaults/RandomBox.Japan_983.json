@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 2,
+  "defaultRevision": 2,
+  "fileName": "RandomBox.sff",
+  "region": "Japan_983",
+  "minimumRecordSize": 228,
+  "isEditable": true,
+  "defaultStringSize": 64,
+  "fields": [
+    { "name": "Enabled", "offset": 0, "width": 1, "type": "Boolean" },
+    { "name": "BoxItemId", "offset": 36, "width": 4, "type": "ItemIdReference", "reference": {"targetFile": "Desc.iff", "displayField": "Description"} },
+    { "name": "Kind", "offset": 40, "width": 1, "type": "Byte" },
+    { "name": "RewardItemId", "offset": 44, "width": 4, "type": "ItemIdReference", "reference": {"targetFile": "Desc.iff", "displayField": "Description"} },
+    { "name": "CheckItemId", "offset": 56, "width": 4, "type": "ItemIdReference", "reference": {"targetFile": "Desc.iff", "displayField": "Description"} }
+  ]
+}

@@ -30,10 +30,13 @@ public sealed class IffReader : IDisposable, IAsyncDisposable
             if (computed <= 0 || computed > options.MaximumRecordSize) throw new InvalidDataException("The IFF record size is invalid or exceeds the configured limit.");
             size = checked((int)computed);
         }
-        IffFormatProfile? profile = header.FormatProfile;
         string? fileNameRegion = IffRegionDetector.FromFileName(fileName) ?? options.FallbackSchemaRegion;
+        IffFormatProfile? profile = string.Equals(options.SchemaRegion, IffHeader.Japan983Region,
+            StringComparison.OrdinalIgnoreCase)
+            ? IffHeader.Japan983Profile
+            : header.ResolveFormatProfile(fileNameRegion);
         IReadOnlyList<string> schemaRegions = options.SchemaRegion is { } explicitRegion
-            ? [explicitRegion]
+            ? IffHeader.GetSchemaRegions(explicitRegion)
             : profile?.SchemaRegions ?? (fileNameRegion is null ? ["Unknown"] : [fileNameRegion]);
         string schemaRegion = options.SchemaRegion ?? profile?.Variant ?? fileNameRegion ?? "Unknown";
         IffSchemaResolution resolution = size == 0

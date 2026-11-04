@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "defaultRevision": 1,
+  "defaultRevision": 2,
   "fileName": "GrandPrixSpecialHole.iff",
   "region": "JP",
   "minimumRecordSize": 20,
@@ -23,14 +23,15 @@
       "name": "TypeId",
       "offset": 4,
       "width": 4,
-      "type": "UInt32",
+      "type": "ItemIdReference",
       "isEditable": true,
       "encodingCodePage": null,
       "minimum": null,
       "maximum": null,
       "bitMask": null,
       "bitShift": 0,
-      "isVisible": true
+      "isVisible": true,
+      "reference": {"targetFile": "GrandPrixData.iff", "targetKeyField": "TypeId", "iconField": "Image"}
     },
     {
       "name": "HolePosition",

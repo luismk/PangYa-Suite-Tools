@@ -1860,10 +1860,19 @@ public sealed class PangyaUiRenderer
         PangyaUiRenderOptions options)
     {
         if (bounds.Width <= 0 || bounds.Height <= 0 || options.DesktopWallpaperTint.A == 0) return;
-        if (options.DesktopWallpaperTint.ToArgb() == Color.White.ToArgb())
-            graphics.DrawImage(image, bounds, 0, 0, image.Width, image.Height, GraphicsUnit.Pixel);
-        else
-            DrawTintedImage(graphics, image, bounds, 0, image.Width, image.Height, options.DesktopWallpaperTint);
+        GraphicsState state = graphics.Save();
+        try
+        {
+            graphics.PixelOffsetMode = PixelOffsetMode.Half;
+            if (options.DesktopWallpaperTint.ToArgb() == Color.White.ToArgb())
+                graphics.DrawImage(image, bounds, 0, 0, image.Width, image.Height, GraphicsUnit.Pixel);
+            else
+                DrawTintedImage(graphics, image, bounds, 0, image.Width, image.Height, options.DesktopWallpaperTint);
+        }
+        finally
+        {
+            graphics.Restore(state);
+        }
     }
 
     private Image? GetStartupWallpaper(PangyaUiRenderOptions options, IReadOnlySet<string> symbols) =>

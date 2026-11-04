@@ -52,8 +52,10 @@ public sealed class IffEditorFeatureTests
             Assert.Contains("42", header.Text);
             Assert.Contains("AABBCC", header.Text);
             Assert.Contains("516", header.Text);
-            Assert.Equal(3, regions.Items.Count);
+            Assert.Equal(4, regions.Items.Count);
             regions.SelectedIndex = 2;
+            Assert.Equal(IffHeader.Japan983Region, dialog.SelectedRegion);
+            regions.SelectedIndex = 3;
             Assert.Equal("Global", dialog.SelectedRegion);
         });
     }
@@ -281,7 +283,8 @@ public sealed class IffEditorFeatureTests
                 IffStringEncodingPreferences.SaveCodePage(originalCodePage);
             }
 
-            ((ToolStripMenuItem)region.DropDownItems[3]).PerformClick();
+            region.DropDownItems.OfType<ToolStripMenuItem>()
+                .Single(item => item.Text == Strings.IFFManager_RegionGlobal).PerformClick();
             Assert.Contains(Strings.IFFManager_RegionGlobal, region.Text);
             Assert.Equal("Global", typeof(FrmIFFManager).GetProperty("SelectedSchemaRegion",
                     BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(form));

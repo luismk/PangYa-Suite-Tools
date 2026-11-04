@@ -239,6 +239,7 @@ public partial class FrmIFFManager : Form
             new(Strings.IFFManager_RegionAuto, null),
             new(Strings.IFFManager_RegionThailand, "TH"),
             new(Strings.IFFManager_RegionJapan, "JP"),
+            new(Strings.IFFManager_RegionJapan983, IffHeader.Japan983Region),
             new(Strings.IFFManager_RegionGlobal, "Global")
         };
         if (detectedRegion is not null)
@@ -1807,7 +1808,9 @@ public partial class FrmIFFManager : Form
 
     private IReadOnlyList<string> CurrentSchemaRegions()
     {
-        if (SelectedSchemaRegion is { } selected) return [selected];
+        if (SelectedSchemaRegion is { } selected) return IffHeader.GetSchemaRegions(selected);
+        if (_document?.Region == IffHeader.Japan983Region)
+            return IffHeader.GetSchemaRegions(_document.Region);
         return _document?.Header.FormatProfile?.SchemaRegions ??
                (_document is null ? [] : [_document.Region]);
     }

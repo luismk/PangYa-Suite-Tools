@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "defaultRevision": 1,
+  "defaultRevision": 2,
   "fileName": "GrandPrixData.iff",
   "region": "JP",
   "minimumRecordSize": 816,
@@ -36,14 +36,15 @@
       "name": "LinkedTypeId",
       "offset": 8,
       "width": 4,
-      "type": "UInt32",
+      "type": "ItemIdReference",
       "isEditable": true,
       "encodingCodePage": null,
       "minimum": null,
       "maximum": null,
       "bitMask": null,
       "bitShift": 0,
-      "isVisible": true
+      "isVisible": true,
+      "reference": {"targetFile": "GrandPrixData.iff", "targetKeyField": "TypeId", "iconField": "Image"}
     },
     {
       "name": "GrandPrixType",
@@ -88,14 +89,15 @@
       "name": "TicketTypeId",
       "offset": 84,
       "width": 4,
-      "type": "UInt32",
+      "type": "ItemIdReference",
       "isEditable": true,
       "encodingCodePage": null,
       "minimum": null,
       "maximum": null,
       "bitMask": null,
       "bitShift": 0,
-      "isVisible": true
+      "isVisible": true,
+      "reference": {"targetFile": "Desc.iff", "displayField": "Description"}
     },
     {
       "name": "TicketQuantity",
@@ -114,7 +116,7 @@
       "name": "Image",
       "offset": 92,
       "width": 41,
-      "type": "FixedString",
+      "type": "ImageResource",
       "isEditable": true,
       "encodingCodePage": 28591,
       "minimum": null,
@@ -348,66 +350,71 @@
       "name": "Reward1TypeId",
       "offset": 180,
       "width": 4,
-      "type": "UInt32",
+      "type": "ItemIdReference",
       "isEditable": true,
       "encodingCodePage": null,
       "minimum": null,
       "maximum": null,
       "bitMask": null,
       "bitShift": 0,
-      "isVisible": true
+      "isVisible": true,
+      "reference": {"targetFile": "Desc.iff", "displayField": "Description"}
     },
     {
       "name": "Reward2TypeId",
       "offset": 184,
       "width": 4,
-      "type": "UInt32",
+      "type": "ItemIdReference",
       "isEditable": true,
       "encodingCodePage": null,
       "minimum": null,
       "maximum": null,
       "bitMask": null,
       "bitShift": 0,
-      "isVisible": true
+      "isVisible": true,
+      "reference": {"targetFile": "Desc.iff", "displayField": "Description"}
     },
     {
       "name": "Reward3TypeId",
       "offset": 188,
       "width": 4,
-      "type": "UInt32",
+      "type": "ItemIdReference",
       "isEditable": true,
       "encodingCodePage": null,
       "minimum": null,
       "maximum": null,
       "bitMask": null,
       "bitShift": 0,
-      "isVisible": true
+      "isVisible": true,
+      "reference": {"targetFile": "Desc.iff", "displayField": "Description"}
     },
     {
       "name": "Reward4TypeId",
       "offset": 192,
       "width": 4,
-      "type": "UInt32",
+      "type": "ItemIdReference",
       "isEditable": true,
       "encodingCodePage": null,
       "minimum": null,
       "maximum": null,
       "bitMask": null,
       "bitShift": 0,
-      "isVisible": true
+      "isVisible": true,
+      "reference": {"targetFile": "Desc.iff", "displayField": "Description"}
     },
     {
       "name": "Reward5TypeId",
       "offset": 196,
       "width": 4,
-      "type": "UInt32",
+      "type": "ItemIdReference",
       "isEditable": true,
       "encodingCodePage": null,
       "minimum": null,
       "maximum": null,
       "bitMask": null,
       "bitShift": 0,
-      "isVisible": true
+      "isVisible": true,
+      "reference": {"targetFile": "Desc.iff", "displayField": "Description"}
     },
     {
       "name": "Reward1Quantity",
@@ -595,14 +602,15 @@
       "name": "ClearGrandPrixTypeId",
       "offset": 292,
       "width": 4,
-      "type": "UInt32",
+      "type": "ItemIdReference",
       "isEditable": true,
       "encodingCodePage": null,
       "minimum": null,
       "maximum": null,
       "bitMask": null,
       "bitShift": 0,
-      "isVisible": true
+      "isVisible": true,
+      "reference": {"targetFile": "GrandPrixData.iff", "targetKeyField": "TypeId", "iconField": "Image"}
     },
     {
       "name": "Locked",

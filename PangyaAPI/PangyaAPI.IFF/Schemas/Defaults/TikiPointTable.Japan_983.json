@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 2,
+  "defaultRevision": 1,
+  "fileName": "TikiPointTable.iff",
+  "region": "Japan_983",
+  "minimumRecordSize": 48,
+  "isEditable": true,
+  "defaultStringSize": 48,
+  "fields": [
+    { "name": "Index", "offset": 0, "width": 4, "type": "UInt32" },
+    { "name": "Enabled", "offset": 4, "width": 1, "type": "Boolean" },
+    { "name": "Category", "offset": 5, "width": 32, "type": "FixedString", "encodingCodePage": 932 },
+    { "name": "Minimum", "offset": 40, "width": 4, "type": "UInt32" },
+    { "name": "Maximum", "offset": 44, "width": 4, "type": "UInt32" }
+  ],
+  "keyField": "Index"
+}

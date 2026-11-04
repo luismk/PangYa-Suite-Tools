@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 2,
+  "defaultRevision": 1,
+  "fileName": "ChildItem.iff",
+  "region": "Japan_983",
+  "minimumRecordSize": 72,
+  "isEditable": true,
+  "defaultStringSize": 64,
+  "fields": [
+    { "name": "Enabled", "offset": 0, "width": 1, "type": "Boolean" },
+    { "name": "ItemId", "offset": 4, "width": 4, "type": "UInt32" },
+    { "name": "Name", "offset": 8, "width": 40, "type": "FixedString", "encodingCodePage": 932 },
+    { "name": "Level", "offset": 48, "width": 1, "type": "BitField", "bitMask": 127 },
+    { "name": "IsUnderLevel", "offset": 48, "width": 1, "type": "BooleanBitField", "bitMask": 128 },
+    { "name": "ShopFlags", "offset": 49, "width": 1, "type": "Byte", "isEditable": false },
+    { "name": "IsDisplay", "offset": 49, "width": 1, "type": "BooleanBitField", "bitMask": 1 },
+    { "name": "IsCash", "offset": 49, "width": 1, "type": "BooleanBitField", "bitMask": 2 },
+    { "name": "IsSaleable", "offset": 49, "width": 1, "type": "BooleanBitField", "bitMask": 4 },
+    { "name": "NumberPrice", "offset": 52, "width": 4, "type": "UInt32" },
+    { "name": "NumberFlag", "offset": 56, "width": 1, "type": "Byte" },
+    { "name": "Number", "offset": 58, "width": 2, "type": "UInt16" },
+    { "name": "TimePrice", "offset": 60, "width": 4, "type": "UInt32" },
+    { "name": "TimeFlag", "offset": 64, "width": 1, "type": "Byte" },
+    { "name": "Time", "offset": 66, "width": 2, "type": "UInt16" },
+    { "name": "FailPercent", "offset": 68, "width": 2, "type": "Int16" }
+  ],
+  "keyField": "ItemId"
+}

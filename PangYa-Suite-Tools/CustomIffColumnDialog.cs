@@ -58,7 +58,7 @@ internal sealed class CustomIffColumnDialog : Form
         _width.Maximum = recordSize;
         _type.DropDownStyle = ComboBoxStyle.DropDownList;
         _type.FormattingEnabled = true;
-        _type.Items.AddRange(Enum.GetValues<IffFieldType>().Cast<object>().ToArray());
+        _type.Items.AddRange(IffFieldTypeDisplay.SelectableTypes(field?.Type));
         _type.Format += IffFieldTypeDisplay.FormatComboBoxItem;
         _referenceTargetFile.DropDownStyle = ComboBoxStyle.DropDown;
         foreach (string fileName in (availableIffFiles ?? []).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(name => name))
@@ -114,8 +114,8 @@ internal sealed class CustomIffColumnDialog : Form
         IffFieldType previousType = SelectedType;
         _type.SelectedIndexChanged += (_, _) =>
         {
-            if (field is null && SelectedType is IffFieldType.FixedString or IffFieldType.Icon or IffFieldType.Sound &&
-                previousType is not (IffFieldType.FixedString or IffFieldType.Icon or IffFieldType.Sound))
+            if (field is null && SelectedType is IffFieldType.FixedString or IffFieldType.Icon or IffFieldType.ImageResource or IffFieldType.Sound &&
+                previousType is not (IffFieldType.FixedString or IffFieldType.Icon or IffFieldType.ImageResource or IffFieldType.Sound))
                 _width.Value = Math.Min(defaultStringSize, decimal.ToInt32(_width.Maximum));
             if (field is null && SelectedType == IffFieldType.LongString && previousType != IffFieldType.LongString)
                 _width.Value = Math.Min(defaultLongStringSize, decimal.ToInt32(_width.Maximum));
@@ -188,11 +188,11 @@ internal sealed class CustomIffColumnDialog : Form
             FieldDefinition = new IffFieldDefinition(
                 _name.Text.Trim(), decimal.ToInt32(_offset.Value), decimal.ToInt32(_width.Value),
                 (IffFieldType)_type.SelectedItem!, _editable.Checked,
-                (SelectedType is IffFieldType.FixedString or IffFieldType.LongString or IffFieldType.Icon or IffFieldType.Sound ? (_encoding.SelectedItem as SchemaEncodingOption)?.CodePage : null),
+                (SelectedType is IffFieldType.FixedString or IffFieldType.LongString or IffFieldType.Icon or IffFieldType.ImageResource or IffFieldType.Sound ? (_encoding.SelectedItem as SchemaEncodingOption)?.CodePage : null),
                 ParseNullableLong(_minimum.Text), ParseNullableLong(_maximum.Text),
                 ParseNullableUInt(_bitMask.Text), decimal.ToInt32(_bitShift.Value), _visible.Checked,
                 BuildReferenceDefinition(),
-                SelectedType == IffFieldType.Icon && !string.IsNullOrWhiteSpace(_iconPath.Text)
+                SelectedType is IffFieldType.Icon or IffFieldType.ImageResource && !string.IsNullOrWhiteSpace(_iconPath.Text)
                     ? _iconPath.Text.Trim()
                     : null,
                 SelectedType == IffFieldType.Sound && !string.IsNullOrWhiteSpace(_soundPath.Text)
@@ -217,7 +217,7 @@ internal sealed class CustomIffColumnDialog : Form
 
     private void UpdateTypeState()
     {
-        bool isString = SelectedType is IffFieldType.FixedString or IffFieldType.LongString or IffFieldType.Icon or IffFieldType.Sound;
+        bool isString = SelectedType is IffFieldType.FixedString or IffFieldType.LongString or IffFieldType.Icon or IffFieldType.ImageResource or IffFieldType.Sound;
         bool isNumeric = SelectedType is IffFieldType.Byte or IffFieldType.UInt16 or IffFieldType.Int16 or
             IffFieldType.UInt32 or IffFieldType.ItemIdReference or IffFieldType.Int32 or IffFieldType.Single or
             IffFieldType.Int64 or IffFieldType.BitField;
@@ -232,7 +232,7 @@ internal sealed class CustomIffColumnDialog : Form
         SetRowVisible(12, isReference);
         SetRowVisible(13, isReference);
         SetRowVisible(14, isReference);
-        SetRowVisible(15, SelectedType == IffFieldType.Icon);
+        SetRowVisible(15, SelectedType is IffFieldType.Icon or IffFieldType.ImageResource);
         SetRowVisible(16, SelectedType == IffFieldType.Sound);
         SetRowVisible(17, isReference);
     }

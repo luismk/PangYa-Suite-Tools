@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "defaultRevision": 1,
+  "defaultRevision": 2,
   "fileName": "LevelUpPrizeItem.iff",
   "region": "JP",
   "minimumRecordSize": 192,
@@ -49,27 +49,29 @@
       "name": "Item1TypeId",
       "offset": 36,
       "width": 4,
-      "type": "UInt32",
+      "type": "ItemIdReference",
       "isEditable": true,
       "encodingCodePage": null,
       "minimum": null,
       "maximum": null,
       "bitMask": null,
       "bitShift": 0,
-      "isVisible": true
+      "isVisible": true,
+      "reference": {"targetFile": "Desc.iff", "displayField": "Description"}
     },
     {
       "name": "Item2TypeId",
       "offset": 40,
       "width": 4,
-      "type": "UInt32",
+      "type": "ItemIdReference",
       "isEditable": true,
       "encodingCodePage": null,
       "minimum": null,
       "maximum": null,
       "bitMask": null,
       "bitShift": 0,
-      "isVisible": true
+      "isVisible": true,
+      "reference": {"targetFile": "Desc.iff", "displayField": "Description"}
     },
     {
       "name": "Item1Quantity",

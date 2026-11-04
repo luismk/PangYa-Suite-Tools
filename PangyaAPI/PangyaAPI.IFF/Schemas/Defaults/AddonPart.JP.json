@@ -1,14 +1,14 @@
 {
-  "schemaVersion": 2, "defaultRevision": 1, "fileName": "AddonPart.iff", "region": "JP", "minimumRecordSize": 288, "isEditable": true, "keyField": "ItemId",
+  "schemaVersion": 2, "defaultRevision": 2, "fileName": "AddonPart.iff", "region": "JP", "minimumRecordSize": 288, "isEditable": true, "keyField": "ItemId",
   "fields": [
     { "name": "Enabled", "offset": 0, "width": 4, "type": "UInt32" },
-    { "name": "ItemId", "offset": 4, "width": 4, "type": "UInt32" },
+    { "name": "ItemId", "offset": 4, "width": 4, "type": "ItemIdReference", "reference": {"targetFile": "Part.iff"} },
     { "name": "Name", "offset": 8, "width": 40, "type": "FixedString", "encodingCodePage": 932 },
-    { "name": "Texture1", "offset": 48, "width": 40, "type": "FixedString", "encodingCodePage": 932 },
-    { "name": "Texture2", "offset": 88, "width": 40, "type": "FixedString", "encodingCodePage": 932 },
-    { "name": "Texture3", "offset": 128, "width": 40, "type": "FixedString", "encodingCodePage": 932 },
-    { "name": "Texture4", "offset": 168, "width": 40, "type": "FixedString", "encodingCodePage": 932 },
-    { "name": "Texture5", "offset": 208, "width": 40, "type": "FixedString", "encodingCodePage": 932 },
-    { "name": "Texture6", "offset": 248, "width": 40, "type": "FixedString", "encodingCodePage": 932 }
+    { "name": "Texture1", "offset": 48, "width": 40, "type": "ImageResource", "encodingCodePage": 932 },
+    { "name": "Texture2", "offset": 88, "width": 40, "type": "ImageResource", "encodingCodePage": 932 },
+    { "name": "Texture3", "offset": 128, "width": 40, "type": "ImageResource", "encodingCodePage": 932 },
+    { "name": "Texture4", "offset": 168, "width": 40, "type": "ImageResource", "encodingCodePage": 932 },
+    { "name": "Texture5", "offset": 208, "width": 40, "type": "ImageResource", "encodingCodePage": 932 },
+    { "name": "Texture6", "offset": 248, "width": 40, "type": "ImageResource", "encodingCodePage": 932 }
   ]
 }

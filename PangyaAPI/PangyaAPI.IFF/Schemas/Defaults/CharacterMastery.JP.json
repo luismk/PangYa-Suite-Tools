@@ -1,7 +1,7 @@
 {
-  "schemaVersion": 2, "defaultRevision": 1, "fileName": "CharacterMastery.iff", "region": "JP", "minimumRecordSize": 60, "isEditable": true, "keyField": "TypeId",
+  "schemaVersion": 2, "defaultRevision": 2, "fileName": "CharacterMastery.iff", "region": "JP", "minimumRecordSize": 60, "isEditable": true, "keyField": "TypeId",
   "fields": [
-    { "name": "Active", "offset": 0, "width": 4, "type": "UInt32" }, { "name": "TypeId", "offset": 4, "width": 4, "type": "UInt32" },
+    { "name": "Active", "offset": 0, "width": 4, "type": "UInt32" }, { "name": "TypeId", "offset": 4, "width": 4, "type": "ItemIdReference", "reference": {"targetFile": "Character.iff"} },
     { "name": "Sequence", "offset": 8, "width": 4, "type": "UInt32" }, { "name": "Stats", "offset": 12, "width": 4, "type": "UInt32" },
     { "name": "Level", "offset": 16, "width": 4, "type": "UInt32" }, { "name": "ConditionData", "offset": 20, "width": 40, "type": "Raw" }
   ]

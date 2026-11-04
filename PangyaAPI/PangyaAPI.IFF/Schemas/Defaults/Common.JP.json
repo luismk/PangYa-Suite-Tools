@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "defaultRevision": 1,
+  "defaultRevision": 2,
   "keyField": "ItemId",
   "fileName": "Common.iff",
   "region": "JP",
@@ -141,7 +141,7 @@
       "name": "Icon",
       "offset": 73,
       "width": 64,
-      "type": "FixedString",
+      "type": "ImageResource",
       "isEditable": true,
       "encodingCodePage": 28591,
       "minimum": null,

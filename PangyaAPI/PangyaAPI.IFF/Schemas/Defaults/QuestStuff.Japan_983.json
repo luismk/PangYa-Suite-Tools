@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 2,
+  "defaultRevision": 1,
+  "fileName": "QuestStuff.iff",
+  "region": "Japan_983",
+  "minimumRecordSize": 268,
+  "isEditable": true,
+  "defaultStringSize": 64,
+  "base": {
+    "name": "Common"
+  },
+  "fields": [
+    { "name": "QuestData", "offset": 192, "width": 76, "type": "Raw" }
+  ]
+}

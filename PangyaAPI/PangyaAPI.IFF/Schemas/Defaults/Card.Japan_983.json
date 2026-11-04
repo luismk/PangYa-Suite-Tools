@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 2,
+  "defaultRevision": 2,
+  "fileName": "Card.iff",
+  "region": "Japan_983",
+  "minimumRecordSize": 384,
+  "isEditable": true,
+  "defaultStringSize": 64,
+  "fields": [
+    { "name": "RareType", "offset": 192, "width": 1, "type": "Byte", "isEditable": true },
+    { "name": "Image", "offset": 193, "width": 40, "type": "ImageResource", "isEditable": true, "encodingCodePage": 932 },
+    { "name": "COM1", "offset": 234, "width": 2, "type": "Int16", "isEditable": true },
+    { "name": "COM2", "offset": 236, "width": 2, "type": "Int16", "isEditable": true },
+    { "name": "COM3", "offset": 238, "width": 2, "type": "Int16", "isEditable": true },
+    { "name": "COM4", "offset": 240, "width": 2, "type": "Int16", "isEditable": true },
+    { "name": "COM5", "offset": 242, "width": 2, "type": "Int16", "isEditable": true },
+    { "name": "Avility", "offset": 244, "width": 2, "type": "UInt16", "isEditable": true },
+    { "name": "AvilityValue", "offset": 246, "width": 2, "type": "UInt16", "isEditable": true },
+    { "name": "SubIcon", "offset": 248, "width": 40, "type": "ImageResource", "isEditable": true, "encodingCodePage": 932 },
+    { "name": "SlotImg", "offset": 288, "width": 40, "type": "ImageResource", "isEditable": true, "encodingCodePage": 932 },
+    { "name": "BuffImg", "offset": 328, "width": 40, "type": "ImageResource", "isEditable": true, "encodingCodePage": 932 },
+    { "name": "UseTime", "offset": 368, "width": 2, "type": "UInt16", "isEditable": true },
+    { "name": "Volume", "offset": 370, "width": 2, "type": "UInt16", "isEditable": true },
+    { "name": "CardIndex", "offset": 372, "width": 2, "type": "UInt16", "isEditable": true },
+    { "name": "unk983_178", "offset": 376, "width": 4, "type": "UInt32", "isEditable": true },
+    { "name": "unk983_17c", "offset": 380, "width": 4, "type": "UInt32", "isEditable": true }
+  ],
+  "base": {
+    "name": "Common"
+  }
+}

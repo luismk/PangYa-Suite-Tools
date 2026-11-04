@@ -1,7 +1,7 @@
 {
-  "schemaVersion": 2, "defaultRevision": 1, "fileName": "GrandPrixConditionEquip.iff", "region": "JP", "minimumRecordSize": 528, "isEditable": true, "keyField": "TypeId",
+  "schemaVersion": 2, "defaultRevision": 2, "fileName": "GrandPrixConditionEquip.iff", "region": "JP", "minimumRecordSize": 528, "isEditable": true, "keyField": "TypeId",
   "fields": [
-    { "name": "Active", "offset": 0, "width": 4, "type": "UInt32" }, { "name": "TypeId", "offset": 4, "width": 4, "type": "UInt32" },
+    { "name": "Active", "offset": 0, "width": 4, "type": "UInt32" }, { "name": "TypeId", "offset": 4, "width": 4, "type": "ItemIdReference", "reference": {"targetFile": "GrandPrixData.iff", "targetKeyField": "TypeId", "iconField": "Image"} },
     { "name": "ItemTypeId", "offset": 8, "width": 4, "type": "ItemIdReference", "reference": { "targetFile": "Item.iff" } },
     { "name": "Info", "offset": 12, "width": 516, "type": "LongString", "encodingCodePage": 932 }
   ]

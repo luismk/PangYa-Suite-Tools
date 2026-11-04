@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "defaultRevision": 1,
+  "defaultRevision": 2,
   "fileName": "MemorialShopRareItem.iff",
   "region": "JP",
   "minimumRecordSize": 68,
@@ -49,14 +49,15 @@
       "name": "TypeId",
       "offset": 12,
       "width": 4,
-      "type": "UInt32",
+      "type": "ItemIdReference",
       "isEditable": true,
       "encodingCodePage": null,
       "minimum": null,
       "maximum": null,
       "bitMask": null,
       "bitShift": 0,
-      "isVisible": true
+      "isVisible": true,
+      "reference": {"targetFile": "Desc.iff", "displayField": "Description"}
     },
     {
       "name": "Probability",

@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 2,
+  "defaultRevision": 1,
+  "fileName": "QuestDrop.iff",
+  "region": "Japan_983",
+  "minimumRecordSize": 292,
+  "isEditable": true,
+  "defaultStringSize": 64,
+  "fields": [
+    { "name": "DropStart", "offset": 192, "width": 16, "type": "DateTime" },
+    { "name": "DropEnd", "offset": 208, "width": 16, "type": "DateTime" },
+    { "name": "DropEffect", "offset": 224, "width": 40, "type": "FixedString", "encodingCodePage": 932 },
+    { "name": "DropCycle", "offset": 264, "width": 1, "type": "Byte" },
+    { "name": "HolesToPlay1", "offset": 266, "width": 2, "type": "UInt16" },
+    { "name": "HolesToPlay2", "offset": 268, "width": 2, "type": "UInt16" },
+    { "name": "HolesToPlay3", "offset": 270, "width": 2, "type": "UInt16" },
+    { "name": "HolesToPlay4", "offset": 272, "width": 2, "type": "UInt16" },
+    { "name": "HolesToPlay5", "offset": 274, "width": 2, "type": "UInt16" },
+    { "name": "HolesToPlay6", "offset": 276, "width": 2, "type": "UInt16" },
+    { "name": "HolesToPlay7", "offset": 278, "width": 2, "type": "UInt16" },
+    { "name": "HolesToPlay8", "offset": 280, "width": 2, "type": "UInt16" },
+    { "name": "HolesToPlay9", "offset": 282, "width": 2, "type": "UInt16" },
+    { "name": "HolesToPlay10", "offset": 284, "width": 2, "type": "UInt16" },
+    { "name": "MapDifficulty", "offset": 286, "width": 1, "type": "Byte" },
+    { "name": "HoleDrop", "offset": 287, "width": 1, "type": "Byte" },
+    { "name": "TimeDrop", "offset": 288, "width": 1, "type": "Byte" }
+  ],
+  "base": {
+    "name": "Common"
+  }
+}

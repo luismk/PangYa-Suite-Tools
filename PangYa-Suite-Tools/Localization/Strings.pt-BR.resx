@@ -870,6 +870,7 @@
   <data name="IFFManager_SchemaUpdateLocalRevision" xml:space="preserve"><value>Revisão local</value></data>
   <data name="IFFManager_SchemaUpdateBundledRevision" xml:space="preserve"><value>Revisão padrão</value></data>
   <data name="IFFManager_SchemaUpdateAction" xml:space="preserve"><value>Ação</value></data>
+  <data name="IFFManager_SchemaUpdateUseForAll" xml:space="preserve"><value>Usar esta ação para todos os itens</value></data>
   <data name="IFFManager_SchemaUpdateKeep" xml:space="preserve"><value>Manter por enquanto</value></data>
   <data name="IFFManager_SchemaUpdateReplace" xml:space="preserve"><value>Substituir pelo padrão incluído</value></data>
   <data name="IFFManager_SchemaUpdateUseMine" xml:space="preserve"><value>Usar minha definição como padrão</value></data>
@@ -882,6 +883,7 @@
   <data name="IFFManager_RegionAuto" xml:space="preserve"><value>Detectar automaticamente</value></data>
   <data name="IFFManager_RegionThailand" xml:space="preserve"><value>Tailândia</value></data>
   <data name="IFFManager_RegionJapan" xml:space="preserve"><value>Japão</value></data>
+  <data name="IFFManager_RegionJapan983" xml:space="preserve"><value>Japão (983)</value></data>
   <data name="IFFManager_RegionGlobal" xml:space="preserve"><value>Global</value></data>
   <data name="IFFManager_UnknownRegionTitle" xml:space="preserve"><value>Região IFF desconhecida</value></data>
   <data name="IFFManager_UnknownRegionDescription" xml:space="preserve"><value>O cabeçalho não corresponde a uma região conhecida. Revise-o e selecione a região do esquema.</value></data>

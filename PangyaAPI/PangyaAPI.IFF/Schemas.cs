@@ -4,7 +4,7 @@ using System.Text;
 
 namespace PangyaAPI.IFF;
 
-public enum IffFieldType { Boolean, Byte, SByte, UInt16, Int16, UInt32, Int32, Single, BitField, BooleanBitField, ZeroBoolean, FixedString, LongString, DateTime, Raw, ByteRangeBoolean, ItemIdReference, Icon, Sound, Int64, UInt64 }
+public enum IffFieldType { Boolean, Byte, SByte, UInt16, Int16, UInt32, Int32, Single, BitField, BooleanBitField, ZeroBoolean, FixedString, LongString, DateTime, Raw, ByteRangeBoolean, ItemIdReference, Icon, Sound, Int64, UInt64, ImageResource }
 
 public sealed record IffField(
     string Name, int Offset, int Width, IffFieldType Type, bool IsEditable = true,
@@ -34,7 +34,7 @@ public sealed record IffField(
             IffFieldType.BitField => ReadBitField(value),
             IffFieldType.BooleanBitField => ReadBooleanBitField(value),
             IffFieldType.ZeroBoolean => ReadUnsigned(value) == 0,
-            IffFieldType.FixedString or IffFieldType.LongString or IffFieldType.Icon or IffFieldType.Sound => DecodeString(value, stringEncoding),
+            IffFieldType.FixedString or IffFieldType.LongString or IffFieldType.Icon or IffFieldType.ImageResource or IffFieldType.Sound => DecodeString(value, stringEncoding),
             IffFieldType.DateTime => DecodeDate(value),
             IffFieldType.ByteRangeBoolean => value.IndexOfAnyExcept((byte)0) >= 0,
             _ => Convert.ToHexString(value)
@@ -67,6 +67,7 @@ public sealed record IffField(
             case IffFieldType.FixedString:
             case IffFieldType.LongString:
             case IffFieldType.Icon:
+            case IffFieldType.ImageResource:
             case IffFieldType.Sound:
                 EncodeString(target, Convert.ToString(input, CultureInfo.InvariantCulture) ?? string.Empty, stringEncoding);
                 break;
@@ -247,4 +248,5 @@ public sealed record IffSchema(
     IReadOnlyList<IffField>? LocalFields = null,
     int DefaultRevision = 0,
     string? KeyField = null,
-    bool IsOpaque = false);
+    bool IsOpaque = false,
+    bool IsKeyless = false);

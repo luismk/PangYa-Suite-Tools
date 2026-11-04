@@ -17,9 +17,26 @@ public sealed record IffFormatProfile(string Variant, IReadOnlyList<string> Sche
 public readonly record struct IffHeader(ushort RecordCount, ushort Revision, byte Magic, byte[] Reserved)
 {
     public const int BinarySize = 8;
+    public const string Japan983Region = "Japan_983";
+    internal static IffFormatProfile Japan983Profile => Japan(Japan983Region);
 
-    public IffFormatProfile? FormatProfile => DetectFormatProfile(Revision, Magic);
+    public IffFormatProfile? FormatProfile => ResolveFormatProfile();
     public string Region => FormatProfile?.Variant ?? "Unknown";
+
+    public IffFormatProfile? ResolveFormatProfile(string? regionHint = null)
+    {
+        IffFormatProfile? profile = DetectFormatProfile(Revision, Magic);
+        // JP 983 stores a 32-bit version. Its linkage can also be 57, shared with Global.
+        bool japanHint = string.Equals(regionHint, "JP", StringComparison.OrdinalIgnoreCase);
+        if (Magic == 13 && Reserved is [0, 0, 0] &&
+            ((Revision == 0 && regionHint is null) ||
+                (japanHint && (profile is null || Revision == 57))))
+            return Japan983Profile;
+        return profile;
+    }
+
+    public static IReadOnlyList<string> GetSchemaRegions(string region) =>
+        region.Equals(Japan983Region, StringComparison.OrdinalIgnoreCase) ? [Japan983Region, "JP"] : [region];
 
     public static IffFormatProfile? DetectFormatProfile(ushort revision, byte magic)
     {

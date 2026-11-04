@@ -99,8 +99,9 @@ public sealed class IffCatalog
             await using IffReader reader = IffReader.Open(stream, Path.GetFileName(entry.Name), new IffReaderOptions(
                 options.MaximumRecordSize, options.MaximumRecordCount, LeaveOpen: true, options.SchemaProvider,
                 configuredRegion, container.FileNameRegion));
-            if (reader.Info.Schema is null || reader.Info.SchemaWarning is not null &&
-                reader.Info.Schema.Fields.Any(field => IffSchemaCoverage.IsCatchAllRawRecord(field, reader.Info.RecordSize)))
+            if (reader.Info.Header.RecordCount > 0 &&
+                (reader.Info.Schema is null || reader.Info.SchemaWarning is not null &&
+                    reader.Info.Schema.Fields.Any(field => IffSchemaCoverage.IsCatchAllRawRecord(field, reader.Info.RecordSize))))
                 throw new InvalidDataException(reader.Info.SchemaWarning ?? $"No schema is defined for '{entry.Name}'.");
 
             var records = new List<IffRecord>(reader.Info.Header.RecordCount);

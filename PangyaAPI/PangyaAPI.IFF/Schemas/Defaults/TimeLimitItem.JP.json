@@ -1,9 +1,9 @@
 {
-  "schemaVersion": 2, "defaultRevision": 1, "fileName": "TimeLimitItem.iff", "region": "JP", "minimumRecordSize": 100, "isEditable": true, "keyField": "TypeId",
+  "schemaVersion": 2, "defaultRevision": 2, "fileName": "TimeLimitItem.iff", "region": "JP", "minimumRecordSize": 100, "isEditable": true, "keyField": "TypeId",
   "fields": [
-    { "name": "Active", "offset": 0, "width": 4, "type": "UInt32" }, { "name": "TypeId", "offset": 4, "width": 4, "type": "UInt32" },
+    { "name": "Active", "offset": 0, "width": 4, "type": "UInt32" }, { "name": "TypeId", "offset": 4, "width": 4, "type": "ItemIdReference", "reference": {"targetFile": "Desc.iff", "displayField": "Description"} },
     { "name": "Name", "offset": 8, "width": 40, "type": "FixedString", "encodingCodePage": 932 },
-    { "name": "Icon", "offset": 48, "width": 40, "type": "Icon", "encodingCodePage": 932 },
+    { "name": "Icon", "offset": 48, "width": 40, "type": "ImageResource", "encodingCodePage": 932 },
     { "name": "Type", "offset": 88, "width": 4, "type": "UInt32" }, { "name": "Percent", "offset": 92, "width": 4, "type": "UInt32" },
     { "name": "Time", "offset": 96, "width": 4, "type": "UInt32" }
   ]

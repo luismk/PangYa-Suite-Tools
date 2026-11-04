@@ -349,7 +349,7 @@ internal sealed class IffSchemaManagerDialog : Form
             IffFieldType.ItemIdReference when width == 4 => IffFieldType.ItemIdReference,
             IffFieldType.Int32 when width == 2 => IffFieldType.Int16,
             IffFieldType.Int64 when width == 4 => IffFieldType.Int32,
-            IffFieldType.FixedString or IffFieldType.LongString or IffFieldType.Icon or IffFieldType.Sound or IffFieldType.Raw or IffFieldType.ByteRangeBoolean => field.Type,
+            IffFieldType.FixedString or IffFieldType.LongString or IffFieldType.Icon or IffFieldType.ImageResource or IffFieldType.Sound or IffFieldType.Raw or IffFieldType.ByteRangeBoolean => field.Type,
             IffFieldType.ZeroBoolean when width is 1 or 2 or 4 => field.Type,
             IffFieldType.BitField when width is >= 1 and <= 4 &&
                 field.BitMask is uint bitMask && (bitMask & ~BitFieldWidthMask(width)) == 0 => field.Type,
@@ -362,7 +362,7 @@ internal sealed class IffSchemaManagerDialog : Form
         {
             Width = width,
             Type = type,
-            EncodingCodePage = type is IffFieldType.FixedString or IffFieldType.LongString or IffFieldType.Icon or IffFieldType.Sound ? field.EncodingCodePage : null,
+            EncodingCodePage = type is IffFieldType.FixedString or IffFieldType.LongString or IffFieldType.Icon or IffFieldType.ImageResource or IffFieldType.Sound ? field.EncodingCodePage : null,
             BitMask = keepBitDefinition ? field.BitMask : null,
             BitShift = keepBitDefinition ? field.BitShift : 0
         };

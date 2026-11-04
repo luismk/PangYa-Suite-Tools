@@ -853,6 +853,7 @@ Déclencheur :</value>
   <data name="IFFManager_SchemaUpdateLocalRevision" xml:space="preserve"><value>Révision locale</value></data>
   <data name="IFFManager_SchemaUpdateBundledRevision" xml:space="preserve"><value>Révision par défaut</value></data>
   <data name="IFFManager_SchemaUpdateAction" xml:space="preserve"><value>Action</value></data>
+  <data name="IFFManager_SchemaUpdateUseForAll" xml:space="preserve"><value>Utiliser cette action pour tous les éléments</value></data>
   <data name="IFFManager_SchemaUpdateKeep" xml:space="preserve"><value>Conserver pour l'instant</value></data>
   <data name="IFFManager_SchemaUpdateReplace" xml:space="preserve"><value>Remplacer par le schéma intégré</value></data>
   <data name="IFFManager_SchemaUpdateUseMine" xml:space="preserve"><value>Utiliser ma définition par défaut</value></data>
@@ -865,6 +866,7 @@ Déclencheur :</value>
   <data name="IFFManager_RegionAuto" xml:space="preserve"><value>Détection automatique</value></data>
   <data name="IFFManager_RegionThailand" xml:space="preserve"><value>Thaïlande</value></data>
   <data name="IFFManager_RegionJapan" xml:space="preserve"><value>Japon</value></data>
+  <data name="IFFManager_RegionJapan983" xml:space="preserve"><value>Japon (983)</value></data>
   <data name="IFFManager_RegionGlobal" xml:space="preserve"><value>Global</value></data>
   <data name="IFFManager_UnknownRegionTitle" xml:space="preserve"><value>Région IFF inconnue</value></data>
   <data name="IFFManager_UnknownRegionDescription" xml:space="preserve"><value>L’en-tête ne correspond à aucune région connue. Vérifiez-le et sélectionnez la région du schéma.</value></data>

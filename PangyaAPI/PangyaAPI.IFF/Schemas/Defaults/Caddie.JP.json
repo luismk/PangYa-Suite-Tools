@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "defaultRevision": 1,
+  "defaultRevision": 2,
   "fileName": "Caddie.iff",
   "region": "JP",
   "minimumRecordSize": 248,
@@ -23,7 +23,7 @@
       "name": "SecondaryIcon",
       "offset": 196,
       "width": 40,
-      "type": "FixedString",
+      "type": "ImageResource",
       "isEditable": true,
       "encodingCodePage": 28591,
       "minimum": null,

@@ -1,4 +1,5 @@
 using System.Buffers.Binary;
+using System.IO.Compression;
 using PangyaAPI.IFF;
 using Xunit;
 
@@ -6,18 +7,20 @@ namespace PangyaAPI.Tests;
 
 public sealed class IffCatalogTests
 {
-    [Fact]
-    public void JpSchemas_MaterializeWithCompleteCoverage()
+    [Theory]
+    [InlineData("JP")]
+    [InlineData(IffHeader.Japan983Region)]
+    public void JpSchemas_MaterializeWithCompleteCoverage(string region)
     {
         var provider = new EmbeddedIffSchemaProvider();
         IffSchemaDefinition[] definitions = provider.LoadDefinitions()
-            .Where(definition => definition.Region == "JP")
+            .Where(definition => definition.Region == region)
             .ToArray();
 
         Assert.NotEmpty(definitions);
         foreach (IffSchemaDefinition definition in definitions)
         {
-            IffSchemaResolution resolution = provider.Resolve(definition.FileName, "JP", definition.MinimumRecordSize);
+            IffSchemaResolution resolution = provider.Resolve(definition.FileName, region, definition.MinimumRecordSize);
             Assert.True(resolution.Schema is not null, $"{definition.FileName}: {resolution.Warning}");
             IffSchema schema = resolution.Schema!;
             Assert.Equal(0, IffSchemaCoverage.Calculate(schema, definition.MinimumRecordSize).UnrepresentedBytes);
@@ -82,6 +85,73 @@ public sealed class IffCatalogTests
         IffRecord record = catalog.GetTable("PointShop").GetRequired(42);
         Assert.Equal((uint)900, record.GetUInt32("Points"));
         Assert.Equal("JP", catalog.Region);
+    }
+
+    [Fact]
+    public void Japan983Schemas_IdentifyImageResourcesAndItemReferences()
+    {
+        var provider = new EmbeddedIffSchemaProvider();
+        IReadOnlyList<string> regions = IffHeader.GetSchemaRegions(IffHeader.Japan983Region);
+        IffSchema part = Assert.IsType<IffSchema>(provider.Resolve("Part.iff", regions, 568).Schema);
+        Assert.Equal(IffFieldType.ImageResource, part.Fields.Single(field => field.Name == "Icon").Type);
+        Assert.Equal(IffFieldType.ImageResource, part.Fields.Single(field => field.Name == "Texture1").Type);
+        Assert.Equal(IffFieldType.UInt32, part.Fields.Single(field => field.Name == "ItemId").Type);
+        IffField subPart = part.Fields.Single(field => field.Name == "SubPart1");
+        Assert.Equal(IffFieldType.ItemIdReference, subPart.Type);
+        Assert.Equal("Part.iff", subPart.Reference?.TargetFile);
+
+        IffSchema furniture = Assert.IsType<IffSchema>(provider.Resolve("Furniture.iff", regions, 512).Schema);
+        Assert.Equal(IffFieldType.ImageResource, furniture.Fields.Single(field => field.Name == "Sprite3").Type);
+
+        IffSchema clubSet = Assert.IsType<IffSchema>(provider.Resolve("ClubSet.iff", regions, 260).Schema);
+        IffField club = clubSet.Fields.Single(field => field.Name == "ClubIds1");
+        Assert.Equal(IffFieldType.ItemIdReference, club.Type);
+        Assert.Equal("Club.iff", club.Reference?.TargetFile);
+
+        IffSchema reward = Assert.IsType<IffSchema>(provider.Resolve("GrandPrixRankReward.iff", regions, 76).Schema);
+        IffField rewardItem = reward.Fields.Single(field => field.Name == "Reward1TypeId");
+        Assert.Equal(IffFieldType.ItemIdReference, rewardItem.Type);
+        Assert.Equal("Desc.iff", rewardItem.Reference?.TargetFile);
+    }
+
+    [Fact]
+    public async Task Catalog_LoadsJapan983ArchiveWithRepeatedReferencesAndEmptyTable()
+    {
+        using var directory = new TemporaryDirectory();
+        string path = Path.Combine(directory.Path, "pangya_jp.iff");
+        using (ZipArchive archive = ZipFile.Open(path, ZipArchiveMode.Create))
+        {
+            byte[] item = new byte[8 + 248];
+            item[0] = 1;
+            item[4] = 13;
+            BinaryPrimitives.WriteUInt32LittleEndian(item.AsSpan(8 + 4), 42);
+            BinaryPrimitives.WriteUInt32LittleEndian(item.AsSpan(8 + 116), 120);
+            WriteEntry(archive, "Item.iff", item);
+
+            byte[] abilities = new byte[8 + 2 * 60];
+            abilities[0] = 2;
+            abilities[2] = 57;
+            abilities[4] = 13;
+            BinaryPrimitives.WriteUInt32LittleEndian(abilities.AsSpan(8 + 4), 42);
+            BinaryPrimitives.WriteUInt32LittleEndian(abilities.AsSpan(8 + 60 + 4), 42);
+            WriteEntry(archive, "FurnitureAbility.iff", abilities);
+            WriteEntry(archive, "ScratchRewardSetting.iff", [0, 0, 57, 0, 13, 0, 0, 0]);
+        }
+
+        IffCatalog catalog = await IffCatalog.LoadAsync(path);
+
+        Assert.Equal(IffHeader.Japan983Region, catalog.Region);
+        Assert.Equal(120u, catalog.GetTable("Item").GetRequired(42).GetUInt32("Price"));
+        IffTable furnitureAbility = catalog.GetTable("FurnitureAbility");
+        Assert.Null(furnitureAbility.KeyField);
+        Assert.Equal(2, furnitureAbility.Records.Count);
+        Assert.Empty(catalog.GetTable("ScratchRewardSetting").Records);
+
+        static void WriteEntry(ZipArchive archive, string name, byte[] bytes)
+        {
+            using Stream entry = archive.CreateEntry(name).Open();
+            entry.Write(bytes);
+        }
     }
 
     [Fact]

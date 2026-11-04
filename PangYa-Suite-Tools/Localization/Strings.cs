@@ -431,6 +431,7 @@ internal static class Strings
     public static string IFFManager_RegionAuto => ResourceManager.GetString(nameof(IFFManager_RegionAuto), Culture) ?? "";
     public static string IFFManager_RegionThailand => ResourceManager.GetString(nameof(IFFManager_RegionThailand), Culture) ?? "";
     public static string IFFManager_RegionJapan => ResourceManager.GetString(nameof(IFFManager_RegionJapan), Culture) ?? "";
+    public static string IFFManager_RegionJapan983 => ResourceManager.GetString(nameof(IFFManager_RegionJapan983), Culture) ?? "";
     public static string IFFManager_RegionGlobal => ResourceManager.GetString(nameof(IFFManager_RegionGlobal), Culture) ?? "";
     public static string IFFManager_RegionAppliesNextLoad => ResourceManager.GetString(nameof(IFFManager_RegionAppliesNextLoad), Culture) ?? "";
     public static string IFFManager_UnknownRegionTitle => ResourceManager.GetString(nameof(IFFManager_UnknownRegionTitle), Culture) ?? "";
@@ -483,6 +484,7 @@ internal static class Strings
     public static string IFFManager_SchemaUpdateLocalRevision => ResourceManager.GetString(nameof(IFFManager_SchemaUpdateLocalRevision), Culture) ?? "";
     public static string IFFManager_SchemaUpdateBundledRevision => ResourceManager.GetString(nameof(IFFManager_SchemaUpdateBundledRevision), Culture) ?? "";
     public static string IFFManager_SchemaUpdateAction => ResourceManager.GetString(nameof(IFFManager_SchemaUpdateAction), Culture) ?? "";
+    public static string IFFManager_SchemaUpdateUseForAll => ResourceManager.GetString(nameof(IFFManager_SchemaUpdateUseForAll), Culture) ?? "";
     public static string IFFManager_SchemaUpdateKeep => ResourceManager.GetString(nameof(IFFManager_SchemaUpdateKeep), Culture) ?? "";
     public static string IFFManager_SchemaUpdateReplace => ResourceManager.GetString(nameof(IFFManager_SchemaUpdateReplace), Culture) ?? "";
     public static string IFFManager_SchemaUpdateUseMine => ResourceManager.GetString(nameof(IFFManager_SchemaUpdateUseMine), Culture) ?? "";

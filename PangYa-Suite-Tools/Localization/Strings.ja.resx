@@ -918,6 +918,7 @@ IFFファイルのディレクトリを選択してください。</value>
   <data name="IFFManager_SchemaUpdateLocalRevision" xml:space="preserve"><value>ローカルリビジョン</value></data>
   <data name="IFFManager_SchemaUpdateBundledRevision" xml:space="preserve"><value>既定リビジョン</value></data>
   <data name="IFFManager_SchemaUpdateAction" xml:space="preserve"><value>操作</value></data>
+  <data name="IFFManager_SchemaUpdateUseForAll" xml:space="preserve"><value>この操作をすべての項目に適用</value></data>
   <data name="IFFManager_SchemaUpdateKeep" xml:space="preserve"><value>今は保持</value></data>
   <data name="IFFManager_SchemaUpdateReplace" xml:space="preserve"><value>組み込みの既定で置換</value></data>
   <data name="IFFManager_SchemaUpdateUseMine" xml:space="preserve"><value>自分の定義を既定として使用</value></data>
@@ -930,6 +931,7 @@ IFFファイルのディレクトリを選択してください。</value>
   <data name="IFFManager_RegionAuto" xml:space="preserve"><value>自動検出</value></data>
   <data name="IFFManager_RegionThailand" xml:space="preserve"><value>タイ</value></data>
   <data name="IFFManager_RegionJapan" xml:space="preserve"><value>日本</value></data>
+  <data name="IFFManager_RegionJapan983" xml:space="preserve"><value>日本 (983)</value></data>
   <data name="IFFManager_RegionGlobal" xml:space="preserve"><value>グローバル</value></data>
   <data name="IFFManager_UnknownRegionTitle" xml:space="preserve"><value>不明な IFF リージョン</value></data>
   <data name="IFFManager_UnknownRegionDescription" xml:space="preserve"><value>ヘッダーは既知のリージョンと一致しません。内容を確認し、使用するスキーマリージョンを選択してください。</value></data>

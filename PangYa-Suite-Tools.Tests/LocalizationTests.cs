@@ -1149,7 +1149,7 @@ public sealed class LocalizationTests : IDisposable
                 Assert.DoesNotContain(PrivateField<StatusStrip>(iff, "statusStrip").Items.Cast<ToolStripItem>(),
                     item => item.Name is "lblStringEncoding" or "cboStringEncoding");
                 var regionSelector = PrivateField<ToolStripDropDownButton>(iff, "_toolbarRegion");
-                Assert.Equal(4, regionSelector.DropDownItems.Count);
+                Assert.Equal(5, regionSelector.DropDownItems.Count);
                 Assert.Contains(Strings.IFFManager_RegionAuto, regionSelector.Text);
                 Assert.Contains(regionSelector.DropDownItems.OfType<ToolStripMenuItem>(),
                     item => item.Text == Strings.IFFManager_RegionGlobal);
@@ -1263,10 +1263,10 @@ public sealed class LocalizationTests : IDisposable
                     ComboBox typeCombo = PrivateField<ComboBox>(dialog, "_type");
                     ComboBox encodingCombo = PrivateField<ComboBox>(dialog, "_encoding");
                     Assert.Equal(type, typeCombo.SelectedItem);
-                    Assert.Equal(Enum.GetValues<IffFieldType>().Length, typeCombo.Items.Count);
+                    Assert.Equal(Enum.GetValues<IffFieldType>().Length - 1, typeCombo.Items.Count);
                     Assert.Equal(Strings.IFFManager_FieldTypeImageResource,
-                        typeCombo.GetItemText(IffFieldType.Icon));
-                    Assert.Equal(type is IffFieldType.FixedString or IffFieldType.LongString or IffFieldType.Icon or IffFieldType.Sound, encodingCombo.Enabled);
+                        typeCombo.GetItemText(type == IffFieldType.Icon ? IffFieldType.Icon : IffFieldType.ImageResource));
+                    Assert.Equal(type is IffFieldType.FixedString or IffFieldType.LongString or IffFieldType.Icon or IffFieldType.ImageResource or IffFieldType.Sound, encodingCombo.Enabled);
                     Assert.NotEmpty(encodingCombo.Items);
                     Assert.Equal(field.IsVisible ?? true, PrivateField<CheckBox>(dialog, "_visible").Checked);
                 }
@@ -1353,7 +1353,7 @@ public sealed class LocalizationTests : IDisposable
                 TextBox referenceKey = PrivateField<TextBox>(dialog, "_referenceTargetKeyField");
                 TableLayoutPanel layout = PrivateField<TableLayoutPanel>(dialog, "_layout");
 
-                type.SelectedItem = IffFieldType.Icon;
+                type.SelectedItem = IffFieldType.ImageResource;
                 Assert.True(IsRowVisible(layout, 15));
                 Assert.True(iconPath.Enabled);
                 Assert.False(IsRowVisible(layout, 16));
@@ -2188,7 +2188,7 @@ public sealed class LocalizationTests : IDisposable
     }
 
     [Fact]
-    public void SchemaUpdateDialog_DefaultsToKeepAndShowsBothDefinitions()
+    public void SchemaUpdateDialog_PreviewsDefinitionsAndCanCopyTheSelectedActionToAllRows()
     {
         Exception? failure = null;
         var thread = new Thread(() =>
@@ -2204,17 +2204,28 @@ public sealed class LocalizationTests : IDisposable
                 };
                 var candidate = new IffSchemaUpdateCandidate("Item.iff", "JP", "Item.JP.json",
                     local, bundled, IffSchemaJson.Serialize(local), IffSchemaJson.Serialize(bundled));
-                using var dialog = new IffSchemaUpdateDialog([candidate]);
+                using var dialog = new IffSchemaUpdateDialog([candidate, candidate with { FileName = "Ball.iff" }]);
                 DataGridView grid = PrivateField<DataGridView>(dialog, "_updates");
 
-                IffSchemaUpdateSelection initial = Assert.Single(dialog.Selections);
-                Assert.Equal(IffSchemaUpdateAction.KeepForNow, initial.Action);
+                Assert.All(dialog.Selections, initial => Assert.Equal(IffSchemaUpdateAction.KeepForNow, initial.Action));
                 Assert.Equal(Strings.IFFManager_SchemaUpdateFile, grid.Columns[0].HeaderText);
                 Assert.Contains("Local", PrivateField<TextBox>(dialog, "_localJson").Text);
                 Assert.Contains("Bundled", PrivateField<TextBox>(dialog, "_bundledJson").Text);
 
-                grid.Rows[0].Cells[4].Value = IffSchemaUpdateAction.UseLocalDefinition;
-                Assert.Equal(IffSchemaUpdateAction.UseLocalDefinition, Assert.Single(dialog.Selections).Action);
+                dialog.Show();
+                grid.CurrentCell = grid.Rows[1].Cells[4];
+                Assert.True(grid.BeginEdit(true));
+                var actionEditor = Assert.IsAssignableFrom<ComboBox>(grid.EditingControl);
+                actionEditor.SelectedIndex = 2;
+                Button useForAll = dialog.Controls.Find("btnSchemaUpdateUseForAll", true).OfType<Button>().Single();
+                Assert.Equal(Strings.IFFManager_SchemaUpdateUseForAll, useForAll.Text);
+                useForAll.PerformClick();
+
+                Assert.All(dialog.Selections, selection => Assert.Equal(IffSchemaUpdateAction.UseLocalDefinition, selection.Action));
+                Assert.Equal(DialogResult.None, dialog.DialogResult);
+                grid.Rows[0].Cells[4].Value = IffSchemaUpdateAction.KeepForNow;
+                Assert.Equal(IffSchemaUpdateAction.KeepForNow, dialog.Selections[0].Action);
+                Assert.Equal(IffSchemaUpdateAction.UseLocalDefinition, dialog.Selections[1].Action);
             }
             catch (Exception ex) { failure = ex; }
         });
@@ -2618,11 +2629,11 @@ public sealed class LocalizationTests : IDisposable
                 ComboBox type = dialog.Controls.Find("cboRawFieldType", true).OfType<ComboBox>().Single();
                 TextBox value = dialog.Controls.Find("txtSelectedRawValue", true).OfType<TextBox>().Single();
                 Assert.Equal(Strings.IFFManager_FieldTypeImageResource,
-                    type.GetItemText(IffFieldType.Icon));
+                    type.GetItemText(IffFieldType.ImageResource));
                 MethodInfo select = typeof(RawRecordColumnDialog).GetMethod("SelectByteRange",
                     BindingFlags.Instance | BindingFlags.NonPublic)!;
 
-                foreach (IffFieldType stringType in new[] { IffFieldType.FixedString, IffFieldType.Icon, IffFieldType.Sound })
+                foreach (IffFieldType stringType in new[] { IffFieldType.FixedString, IffFieldType.ImageResource, IffFieldType.Sound })
                 {
                     type.SelectedItem = stringType;
                     select.Invoke(dialog, [0, 3]);

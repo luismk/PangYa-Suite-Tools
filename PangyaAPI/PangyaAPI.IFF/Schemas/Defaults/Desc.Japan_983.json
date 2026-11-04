@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "defaultRevision": 1,
+  "fileName": "Desc.iff",
+  "region": "Japan_983",
+  "minimumRecordSize": 516,
+  "isEditable": true,
+  "fields": [
+    { "name": "ItemId", "offset": 0, "width": 4, "type": "UInt32", "isEditable": true, "bitShift": 0, "isVisible": true },
+    { "name": "Description", "offset": 4, "width": 512, "type": "FixedString", "isEditable": true, "encodingCodePage": 932, "bitShift": 0, "isVisible": true }
+  ],
+  "defaultStringSize": 512
+}

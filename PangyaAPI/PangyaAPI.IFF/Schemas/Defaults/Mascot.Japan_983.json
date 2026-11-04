@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 2,
+  "defaultRevision": 2,
+  "fileName": "Mascot.iff",
+  "region": "Japan_983",
+  "minimumRecordSize": 304,
+  "isEditable": true,
+  "defaultStringSize": 64,
+  "fields": [
+    { "name": "SecondaryIcon", "offset": 192, "width": 40, "type": "ImageResource", "isEditable": true, "encodingCodePage": 932 },
+    { "name": "MsgTex", "offset": 232, "width": 40, "type": "ImageResource", "isEditable": true, "encodingCodePage": 932 },
+    { "name": "COM1", "offset": 272, "width": 1, "type": "SByte", "isEditable": true },
+    { "name": "COM2", "offset": 273, "width": 1, "type": "SByte", "isEditable": true },
+    { "name": "COM3", "offset": 274, "width": 1, "type": "SByte", "isEditable": true },
+    { "name": "COM4", "offset": 275, "width": 1, "type": "SByte", "isEditable": true },
+    { "name": "COM5", "offset": 276, "width": 1, "type": "SByte", "isEditable": true },
+    { "name": "Attr1", "offset": 277, "width": 1, "type": "SByte", "isEditable": true },
+    { "name": "Attr2", "offset": 278, "width": 1, "type": "SByte", "isEditable": true },
+    { "name": "Attr3", "offset": 279, "width": 1, "type": "SByte", "isEditable": true },
+    { "name": "Attr4", "offset": 280, "width": 1, "type": "SByte", "isEditable": true },
+    { "name": "Attr5", "offset": 281, "width": 1, "type": "SByte", "isEditable": true },
+    { "name": "DriveUp", "offset": 282, "width": 1, "type": "SByte", "isEditable": true },
+    { "name": "ItemDropUp", "offset": 284, "width": 2, "type": "UInt16", "isEditable": true },
+    { "name": "ComboUp", "offset": 286, "width": 2, "type": "UInt16", "isEditable": true },
+    { "name": "PangUp", "offset": 288, "width": 2, "type": "UInt16", "isEditable": true },
+    { "name": "ExpUp", "offset": 290, "width": 2, "type": "UInt16", "isEditable": true },
+    { "name": "ItemSlot", "offset": 292, "width": 1, "type": "Byte", "isEditable": true },
+    { "name": "ShowMsg", "offset": 293, "width": 1, "type": "Byte", "isEditable": true },
+    { "name": "MsgFee", "offset": 296, "width": 4, "type": "UInt32", "isEditable": true },
+    { "name": "unk983_12c", "offset": 300, "width": 4, "type": "UInt32", "isEditable": true }
+  ],
+  "base": {
+    "name": "Common"
+  }
+}

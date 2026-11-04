@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 2,
+  "defaultRevision": 2,
+  "fileName": "Part.iff",
+  "region": "Japan_983",
+  "minimumRecordSize": 568,
+  "isEditable": true,
+  "defaultStringSize": 64,
+  "fields": [
+    { "name": "SecondaryIcon", "offset": 192, "width": 40, "type": "ImageResource", "isEditable": true, "encodingCodePage": 932 },
+    { "name": "Category", "offset": 232, "width": 1, "type": "Byte", "isEditable": true },
+    { "name": "PosMask", "offset": 236, "width": 4, "type": "UInt32", "isEditable": true },
+    { "name": "HideMask", "offset": 240, "width": 4, "type": "UInt32", "isEditable": true },
+    { "name": "Texture1", "offset": 244, "width": 40, "type": "ImageResource", "isEditable": true, "encodingCodePage": 932 },
+    { "name": "Texture2", "offset": 284, "width": 40, "type": "ImageResource", "isEditable": true, "encodingCodePage": 932 },
+    { "name": "Texture3", "offset": 324, "width": 40, "type": "ImageResource", "isEditable": true, "encodingCodePage": 932 },
+    { "name": "OrgTex1", "offset": 364, "width": 40, "type": "ImageResource", "isEditable": true, "encodingCodePage": 932 },
+    { "name": "OrgTex2", "offset": 404, "width": 40, "type": "ImageResource", "isEditable": true, "encodingCodePage": 932 },
+    { "name": "OrgTex3", "offset": 444, "width": 40, "type": "ImageResource", "isEditable": true, "encodingCodePage": 932 },
+    { "name": "Attr1", "offset": 484, "width": 2, "type": "Int16", "isEditable": true },
+    { "name": "Attr2", "offset": 486, "width": 2, "type": "Int16", "isEditable": true },
+    { "name": "Attr3", "offset": 488, "width": 2, "type": "Int16", "isEditable": true },
+    { "name": "Attr4", "offset": 490, "width": 2, "type": "Int16", "isEditable": true },
+    { "name": "Attr5", "offset": 492, "width": 2, "type": "Int16", "isEditable": true },
+    { "name": "Slot1", "offset": 494, "width": 2, "type": "Int16", "isEditable": true },
+    { "name": "Slot2", "offset": 496, "width": 2, "type": "Int16", "isEditable": true },
+    { "name": "Slot3", "offset": 498, "width": 2, "type": "Int16", "isEditable": true },
+    { "name": "Slot4", "offset": 500, "width": 2, "type": "Int16", "isEditable": true },
+    { "name": "Slot5", "offset": 502, "width": 2, "type": "Int16", "isEditable": true },
+    { "name": "EquippableWith", "offset": 504, "width": 40, "type": "FixedString", "isEditable": true, "encodingCodePage": 932 },
+    { "name": "SubPart1", "offset": 544, "width": 4, "type": "ItemIdReference", "isEditable": true, "reference": {"targetFile": "Part.iff"} },
+    { "name": "SubPart2", "offset": 548, "width": 4, "type": "ItemIdReference", "isEditable": true, "reference": {"targetFile": "Part.iff"} },
+    { "name": "CharacterSlot", "offset": 552, "width": 2, "type": "Int16", "isEditable": true },
+    { "name": "CaddieSlot", "offset": 554, "width": 2, "type": "Int16", "isEditable": true },
+    { "name": "NpcSlot983", "offset": 556, "width": 2, "type": "Int16", "isEditable": true },
+    { "name": "RentalPrice", "offset": 560, "width": 4, "type": "UInt32", "isEditable": true },
+    { "name": "Beginner", "offset": 564, "width": 1, "type": "Byte", "isEditable": true },
+    { "name": "Point", "offset": 566, "width": 2, "type": "Int16", "isEditable": true }
+  ],
+  "base": {
+    "name": "Common"
+  }
+}
