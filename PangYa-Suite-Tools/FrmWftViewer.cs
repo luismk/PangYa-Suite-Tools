@@ -241,11 +241,12 @@ internal sealed class FrmWftViewer : Form
         using var cancellation = new CancellationTokenSource();
         _exportCancellation = cancellation;
         SetExporting(true);
+        bool reportProgress = true;
         try
         {
             var progress = new Progress<WftTrueTypeExportProgress>(value =>
             {
-                if (IsDisposed || cancellation.IsCancellationRequested) return;
+                if (!reportProgress || IsDisposed || cancellation.IsCancellationRequested) return;
                 _statusLabel.Text = string.Format(LocalizationManager.CurrentCulture,
                     Strings.WftViewer_ExportProgressFormat, value.ProcessedGlyphRecords,
                     value.TotalGlyphRecords);
@@ -257,6 +258,7 @@ internal sealed class FrmWftViewer : Form
                 WftTrueTypeExporter.Export(font, stream, options, cancellation.Token, progress);
                 stream.Flush(flushToDisk: true);
             }, cancellation.Token);
+            reportProgress = false;
             cancellation.Token.ThrowIfCancellationRequested();
             File.Move(temporaryPath, fullPath, overwrite: true);
             _statusLabel.Text = string.Format(LocalizationManager.CurrentCulture,
@@ -272,6 +274,7 @@ internal sealed class FrmWftViewer : Form
                                    InvalidDataException or ArgumentException or
                                    OverflowException or ObjectDisposedException)
         {
+            reportProgress = false;
             _statusLabel.Text = string.Format(LocalizationManager.CurrentCulture,
                 Strings.WftViewer_ExportFailed, ex.Message);
             AppLogger.Instance.Log(LogSource,
