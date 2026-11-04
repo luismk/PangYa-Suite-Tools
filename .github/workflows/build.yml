@@ -18,7 +18,8 @@ env:
   CONFIGURATION: Release
   DOTNET_VERSION: 10.0.x
   APP_PROJECT: PangYa-Suite-Tools/PangYa-Suite-Tools.csproj
-  SOLUTION_FILE: PangYa-Suite-Tools.slnx
+  SOLUTION_FILE: PangYa-Suite-Tools.CI.slnf
+  NUGET_SOURCE: https://api.nuget.org/v3/index.json
   OUTPUT_DIR: artifacts
 
 jobs:
@@ -36,13 +37,13 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Restore
-        run: dotnet restore "${{ env.SOLUTION_FILE }}"
+        run: dotnet restore "${{ env.SOLUTION_FILE }}" --source "${{ env.NUGET_SOURCE }}"
 
       - name: Build
-        run: dotnet build "${{ env.APP_PROJECT }}" --configuration "${{ env.CONFIGURATION }}" --no-restore
+        run: dotnet build "${{ env.SOLUTION_FILE }}" --configuration "${{ env.CONFIGURATION }}" --no-restore
 
-      - name: Test binary formats
-        run: dotnet test "${{ env.SOLUTION_FILE }}" --configuration "${{ env.CONFIGURATION }}" --no-restore
+      - name: Test
+        run: dotnet test "${{ env.SOLUTION_FILE }}" --configuration "${{ env.CONFIGURATION }}" --no-build
 
       - name: Determine NuGet package version
         id: package-version
@@ -93,6 +94,7 @@ jobs:
           --configuration "${{ env.CONFIGURATION }}"
           --runtime win-x64
           --self-contained false
+          -p:RestoreSources="${{ env.NUGET_SOURCE }}"
           --output "${{ env.OUTPUT_DIR }}/PangYa-Suite-Tools-win-x64"
 
       - name: Package
