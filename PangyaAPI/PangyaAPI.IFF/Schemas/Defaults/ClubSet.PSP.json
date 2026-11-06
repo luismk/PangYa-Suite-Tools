@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 2,
+  "defaultRevision": 1,
+  "fileName": "ClubSet.iff",
+  "region": "PSP",
+  "minimumRecordSize": 176,
+  "isEditable": true,
+  "defaultStringSize": 40,
+  "keyField": "ItemId",
+  "fields": [
+    {
+      "name": "Stat1",
+      "offset": 132,
+      "width": 4,
+      "type": "Int32",
+      "isEditable": true
+    },
+    {
+      "name": "Stat2",
+      "offset": 136,
+      "width": 4,
+      "type": "Int32",
+      "isEditable": true
+    },
+    {
+      "name": "Stat3",
+      "offset": 140,
+      "width": 4,
+      "type": "Int32",
+      "isEditable": true
+    },
+    {
+      "name": "Stat4",
+      "offset": 144,
+      "width": 4,
+      "type": "Int32",
+      "isEditable": true
+    },
+    {
+      "name": "Stat5",
+      "offset": 148,
+      "width": 4,
+      "type": "Int32",
+      "isEditable": true
+    },
+    {
+      "name": "Requirement",
+      "offset": 48,
+      "width": 4,
+      "type": "UInt32",
+      "isEditable": true
+    }
+  ],
+  "base": {
+    "name": "Common",
+    "region": "PSP"
+  }
+}

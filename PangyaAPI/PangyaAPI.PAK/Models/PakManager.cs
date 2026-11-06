@@ -57,6 +57,22 @@ public static class PakManager
             replacements[archivePath] = source;
         }
 
+        if (reader.IsPspArchive)
+        {
+            var positions = reader.Entries.Select((entry, ordinal) => (entry.Name, ordinal))
+                .ToLookup(item => Normalize(item.Name), StringComparer.OrdinalIgnoreCase);
+            var pspReplacements = new Dictionary<int, string>();
+            foreach (var (name, source) in replacements)
+            {
+                var matches = positions[name].ToArray();
+                if (matches.Length != 1)
+                    throw new InvalidDataException($"PSP PAK injection requires one existing match for '{name}'.");
+                pspReplacements.Add(matches[0].ordinal, source.FullName);
+            }
+            PspPakArchive.ReplaceEntries(reader.ArchivePath, pspReplacements, onProgress, SaveBck, cancellationToken);
+            return;
+        }
+
         var buildItems = ExistingBuildItems(reader, entry =>
         {
             if (!replacements.Remove(Normalize(entry.Name), out FileInfo? replacement)) return null;
@@ -321,6 +337,9 @@ public static class PakManager
                                 bool preserveExistingPayloadTypes = false,
                                 bool reuseExistingCompressedPayloads = true)
     {
+        if (reader.IsPspArchive)
+            throw new NotSupportedException("Use file injection to replace existing PSP PAK payloads.");
+
         string destination = Path.GetFullPath(pakPath);
         string candidate = destination + $".{Guid.NewGuid():N}.tmp";
         string backup = destination + ".bak";

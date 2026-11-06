@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 2,
+  "defaultRevision": 1,
+  "fileName": "Common.iff",
+  "region": "PSP",
+  "minimumRecordSize": 48,
+  "isEditable": true,
+  "defaultStringSize": 40,
+  "keyField": "ItemId",
+  "fields": [
+    {
+      "name": "Enabled",
+      "offset": 0,
+      "width": 1,
+      "type": "Byte",
+      "isEditable": true
+    },
+    {
+      "name": "ItemId",
+      "offset": 4,
+      "width": 4,
+      "type": "UInt32",
+      "isEditable": true
+    },
+    {
+      "name": "Name",
+      "offset": 8,
+      "width": 40,
+      "type": "FixedString",
+      "isEditable": true,
+      "encodingCodePage": 949
+    }
+  ]
+}

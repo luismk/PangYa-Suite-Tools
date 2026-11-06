@@ -1153,4 +1153,6 @@ IFFファイルのディレクトリを選択してください。</value>
   <data name="UpdateList_VerificationFailedFormat" xml:space="preserve"><value>更新リストの検証に失敗しました: {0}</value></data>
   <data name="UpdateList_InvalidVerificationRoot" xml:space="preserve"><value>検証する前に更新リストを読み込み、有効な PangYa ルートフォルダーを選択してください。</value></data>
   <data name="UiEditor_StartupWallpaper" xml:space="preserve"><value>起動時の壁紙</value></data>
+  <data name="IFFManager_RegionPsp" xml:space="preserve"><value>PSP</value></data>
+  <data name="UiEditor_OpenReference" xml:space="preserve"><value>参照ファイルを新しいウィンドウで開く</value></data>
 </root>

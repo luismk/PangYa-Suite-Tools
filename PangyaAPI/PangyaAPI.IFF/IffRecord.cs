@@ -103,6 +103,6 @@ public sealed class IffRecord
 public sealed record IffDocumentInfo(string FileName, string Region, int RecordSize, IffSchema? Schema, IffHeader Header,
     string? SchemaWarning = null);
 
-public sealed record IffReaderOptions(int MaximumRecordSize = 1024 * 1024, ushort MaximumRecordCount = ushort.MaxValue,
+public sealed record IffReaderOptions(int MaximumRecordSize = 1024 * 1024, int MaximumRecordCount = ushort.MaxValue,
     bool LeaveOpen = false, IIffSchemaProvider? SchemaProvider = null, string? SchemaRegion = null,
     string? FallbackSchemaRegion = null);

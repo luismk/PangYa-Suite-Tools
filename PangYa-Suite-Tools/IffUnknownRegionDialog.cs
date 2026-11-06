@@ -57,6 +57,7 @@ internal sealed class IffUnknownRegionDialog : Form
             new Choice(Strings.IFFManager_RegionThailand, "TH"),
             new Choice(Strings.IFFManager_RegionJapan, "JP"),
             new Choice(Strings.IFFManager_RegionJapan983, IffHeader.Japan983Region),
+            new Choice(Strings.IFFManager_RegionPsp, IffHeader.PspRegion),
             new Choice(Strings.IFFManager_RegionGlobal, "Global")
         ]);
         _region.SelectedIndex = 0;

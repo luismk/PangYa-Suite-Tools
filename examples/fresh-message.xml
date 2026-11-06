@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resource>
+  <element type="FORM" name="message_demo" size="360 180">
+    <item type="STATIC" name="heading" caption="Fresh form message preview" pos="12 10">
+      <param name="color" var="ffffffff"/>
+    </item>
+    <item type="STATIC" name="message" caption="Initial static message" pos="12 36">
+      <param name="color" var="ffffcc00"/>
+    </item>
+    <item type="EDIT" name="message" rect="12 62 348 166">
+      <param name="multiline" var="1"/>
+      <param name="readonly" var="true"/>
+      <param name="lineheight" var="18"/>
+      <param name="leftmargin" var="6"/>
+      <param name="topmargin" var="4"/>
+      <param name="bgcolor" var="ff182430"/>
+      <param name="bordercolor" var="ff668899"/>
+      <param name="fontcolor" var="ffffffff"/>
+    </item>
+  </element>
+</resource>

@@ -1175,4 +1175,6 @@ Avbryt: Stoppa extraheringen.</value></data>
   <data name="UpdateList_VerificationFailedFormat" xml:space="preserve"><value>Verifieringen av uppdateringslistan misslyckades: {0}</value></data>
   <data name="UpdateList_InvalidVerificationRoot" xml:space="preserve"><value>Läs in en uppdateringslista och välj en giltig PangYa-rotmapp före verifiering.</value></data>
   <data name="UiEditor_StartupWallpaper" xml:space="preserve"><value>Startbakgrund</value></data>
+  <data name="IFFManager_RegionPsp" xml:space="preserve"><value>PSP</value></data>
+  <data name="UiEditor_OpenReference" xml:space="preserve"><value>Öppna referens i nytt fönster</value></data>
 </root>

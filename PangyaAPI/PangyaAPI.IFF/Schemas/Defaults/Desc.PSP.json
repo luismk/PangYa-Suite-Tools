@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 2,
+  "defaultRevision": 1,
+  "fileName": "Desc.iff",
+  "region": "PSP",
+  "minimumRecordSize": 516,
+  "isEditable": true,
+  "defaultStringSize": 40,
+  "keyField": "ItemId",
+  "fields": [
+    {
+      "name": "ItemId",
+      "offset": 0,
+      "width": 4,
+      "type": "UInt32",
+      "isEditable": true
+    },
+    {
+      "name": "Description",
+      "offset": 4,
+      "width": 512,
+      "type": "LongString",
+      "isEditable": true,
+      "encodingCodePage": 949
+    }
+  ]
+}

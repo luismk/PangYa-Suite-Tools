@@ -240,6 +240,7 @@ public partial class FrmIFFManager : Form
             new(Strings.IFFManager_RegionThailand, "TH"),
             new(Strings.IFFManager_RegionJapan, "JP"),
             new(Strings.IFFManager_RegionJapan983, IffHeader.Japan983Region),
+            new(Strings.IFFManager_RegionPsp, IffHeader.PspRegion),
             new(Strings.IFFManager_RegionGlobal, "Global")
         };
         if (detectedRegion is not null)
@@ -744,9 +745,9 @@ public partial class FrmIFFManager : Form
         string? fallbackRegion,
         CancellationToken token)
     {
-        await using (IffReader probe = IffReader.Open(stream, fileName,
+        await using (IffReader probe = await Task.Run(() => IffReader.Open(stream, fileName,
             new(LeaveOpen: true, SchemaProvider: _schemaProvider, SchemaRegion: selectedRegion,
-                FallbackSchemaRegion: fallbackRegion)))
+                FallbackSchemaRegion: fallbackRegion)), token))
         {
             if (RequiresRegionSelection(probe.Info))
             {
@@ -756,9 +757,9 @@ public partial class FrmIFFManager : Form
             }
         }
 
-        await using IffReader reader = IffReader.Open(stream, fileName,
+        await using IffReader reader = await Task.Run(() => IffReader.Open(stream, fileName,
             new(LeaveOpen: true, SchemaProvider: _schemaProvider, SchemaRegion: selectedRegion,
-                FallbackSchemaRegion: fallbackRegion));
+                FallbackSchemaRegion: fallbackRegion)), token);
         var records = new List<IffRecord>(reader.Info.Header.RecordCount);
         await foreach (IffRecord record in reader.ReadRecordsAsync(token)) records.Add(record);
         return (reader.Info, records, selectedRegion);

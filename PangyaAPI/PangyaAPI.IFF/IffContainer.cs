@@ -76,6 +76,13 @@ public sealed class IffContainer : IDisposable, IAsyncDisposable
             await input.ReadExactlyAsync(signature, cancellationToken).ConfigureAwait(false);
 
         if (IsZip(signature)) return new IffContainer(fullPath, fullPath, IffContainerKind.ZipArchive, null, null);
+        if (Path.GetFileName(fullPath).Equals("Title.iff", StringComparison.OrdinalIgnoreCase))
+        {
+            await using var title = new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            if (await Task.Run(() => PspIffFormat.TryReadHeaderlessTitle(title, fullPath, ushort.MaxValue, out _),
+                cancellationToken).ConfigureAwait(false))
+                return new IffContainer(fullPath);
+        }
         if (LooksLikeLooseIff(fullPath, signature, new FileInfo(fullPath).Length)) return new IffContainer(fullPath);
 
         string tempDirectory = options.TemporaryDirectory ?? Path.GetTempPath();

@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 2,
+  "defaultRevision": 1,
+  "fileName": "Caddie.iff",
+  "region": "PSP",
+  "minimumRecordSize": 176,
+  "isEditable": true,
+  "defaultStringSize": 40,
+  "keyField": "ItemId",
+  "fields": [
+    {
+      "name": "Stat1",
+      "offset": 160,
+      "width": 2,
+      "type": "Int16",
+      "isEditable": true
+    },
+    {
+      "name": "Stat2",
+      "offset": 162,
+      "width": 2,
+      "type": "Int16",
+      "isEditable": true
+    },
+    {
+      "name": "Stat3",
+      "offset": 164,
+      "width": 2,
+      "type": "Int16",
+      "isEditable": true
+    },
+    {
+      "name": "Stat4",
+      "offset": 166,
+      "width": 2,
+      "type": "Int16",
+      "isEditable": true
+    },
+    {
+      "name": "Stat5",
+      "offset": 168,
+      "width": 2,
+      "type": "Int16",
+      "isEditable": true
+    },
+    {
+      "name": "Requirement",
+      "offset": 48,
+      "width": 4,
+      "type": "UInt32",
+      "isEditable": true
+    }
+  ],
+  "base": {
+    "name": "Common",
+    "region": "PSP"
+  }
+}

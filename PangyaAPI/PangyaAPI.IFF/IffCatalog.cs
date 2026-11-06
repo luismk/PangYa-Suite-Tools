@@ -7,7 +7,7 @@ public sealed record IffCatalogOptions(
     IReadOnlyCollection<string>? RequiredTables = null,
     IIffSchemaProvider? SchemaProvider = null,
     int MaximumRecordSize = 1024 * 1024,
-    ushort MaximumRecordCount = ushort.MaxValue);
+    int MaximumRecordCount = ushort.MaxValue);
 
 public sealed class IffTable
 {
