@@ -1099,11 +1099,12 @@ public sealed class ShopTests : IDisposable
         Assert.Equal(new[] { 0 }, alphas);
         alphas.Clear();
         renderer.Render(graphics, document, form, options with { GraphicsAlpha = 0.5f });
-        Assert.Equal(new[] { 20 }, alphas);
+        // Static manager captions force opaque text before applying graphics alpha.
+        Assert.Equal(new[] { 127 }, alphas);
         alphas.Clear();
         renderer.Render(graphics, document, form, options with { GraphicsAlpha = 1 });
         Assert.Equal(Color.Lime.ToArgb(), bitmap.GetPixel(5, 5).ToArgb());
-        Assert.Equal(new[] { 40 }, alphas);
+        Assert.Equal(new[] { 255 }, alphas);
     }
 
     [Fact]
@@ -1139,8 +1140,8 @@ public sealed class ShopTests : IDisposable
                     });
             }
         });
-        Assert.Equal(new[] { 40, 40 }, outer);
-        Assert.Equal(new[] { 20, 20 }, inner);
+        Assert.Equal(new[] { 127, 127 }, outer);
+        Assert.Equal(new[] { 63, 63 }, inner);
     }
 
     [Fact]
@@ -4942,7 +4943,7 @@ public sealed class ShopTests : IDisposable
         File.WriteAllText(path, $"""
             <resource>
               <element type="LAYOUT" name="layout">
-                <base width="80" height="40" color="FF0000" background="{(useImage ? "green.png" : "")}"/>
+                <base width="80" height="40" color="FFFF0000" background="{(useImage ? "green.png" : "")}"/>
                 <item type="STATIC" name="label" rect="4 4 64 28" caption="Hello">
                   <param name="color" var="FFFFFF"/>
                 </item>

@@ -78,7 +78,9 @@ internal sealed class PangyaPreviewBitmapFont
     private WftGlyph? GetGlyph(Rune character, out bool multibyte)
     {
         Span<char> unicode = stackalloc char[2];
-        int chars = character.EncodeToUtf16(unicode);
+        // Code-page fallback can emit one '?' per UTF-16 surrogate. Replace an
+        // unsupported supplementary rune once so it cannot look like a two-byte glyph.
+        int chars = (character.IsBmp ? character : new Rune('?')).EncodeToUtf16(unicode);
         Span<byte> bytes = stackalloc byte[8];
         int count = ShiftJis.GetBytes(unicode[..chars], bytes);
         multibyte = count == 2;
