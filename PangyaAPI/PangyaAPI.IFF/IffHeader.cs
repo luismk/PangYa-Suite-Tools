@@ -14,9 +14,15 @@ public enum IffMagicNumber : byte { Season4 = 11, Season5 = 12, Season5_6_JP_GB 
 public sealed record IffFormatProfile(string Variant, IReadOnlyList<string> SchemaRegions,
     int DefaultStringSize, int DefaultLongStringSize = 512);
 
-public readonly record struct IffHeader(ushort RecordCount, ushort Revision, byte Magic, byte[] Reserved)
+public readonly record struct IffHeader(int RecordCount, ushort Revision, byte Magic, byte[] Reserved)
 {
     public const int BinarySize = 8;
+    public const string PspRegion = "PSP";
+    public bool IsPsp => Magic == 1 && Reserved is [0, 0, 0];
+    // Some shipped PSP Title tables consist only of 0x58-byte records.
+    public bool IsHeaderless { get; init; }
+    public int DataOffset => IsHeaderless ? 0 : BinarySize;
+    internal static IffFormatProfile PspProfile => new(PspRegion, [PspRegion], 40);
     public const string Japan983Region = "Japan_983";
     internal static IffFormatProfile Japan983Profile => Japan(Japan983Region);
 
@@ -25,6 +31,7 @@ public readonly record struct IffHeader(ushort RecordCount, ushort Revision, byt
 
     public IffFormatProfile? ResolveFormatProfile(string? regionHint = null)
     {
+        if (IsPsp) return PspProfile;
         IffFormatProfile? profile = DetectFormatProfile(Revision, Magic);
         // JP 983 stores a 32-bit version. Its linkage can also be 57, shared with Global.
         bool japanHint = string.Equals(regionHint, "JP", StringComparison.OrdinalIgnoreCase);
@@ -61,6 +68,12 @@ public readonly record struct IffHeader(ushort RecordCount, ushort Revision, byt
         if (bytes.Length < BinarySize)
             throw new InvalidDataException("The IFF header is truncated.");
 
+        if (BinaryPrimitives.ReadUInt32LittleEndian(bytes[4..]) == 1)
+        {
+            uint count = BinaryPrimitives.ReadUInt32LittleEndian(bytes);
+            if (count > int.MaxValue) throw new InvalidDataException("The PSP IFF record count is too large.");
+            return new IffHeader((int)count, 0, 1, [0, 0, 0]);
+        }
         return new IffHeader(
             BinaryPrimitives.ReadUInt16LittleEndian(bytes),
             BinaryPrimitives.ReadUInt16LittleEndian(bytes[2..]),
@@ -68,14 +81,23 @@ public readonly record struct IffHeader(ushort RecordCount, ushort Revision, byt
             bytes[5..8].ToArray());
     }
 
-    internal void Write(Span<byte> destination, ushort? count = null)
+    internal void Write(Span<byte> destination, int? count = null)
     {
         if (destination.Length < BinarySize)
             throw new ArgumentException("The destination is too small.", nameof(destination));
         if (Reserved is not { Length: 3 })
             throw new InvalidDataException("The IFF header must contain exactly three reserved bytes.");
 
-        BinaryPrimitives.WriteUInt16LittleEndian(destination, count ?? RecordCount);
+        int recordCount = count ?? RecordCount;
+        if (recordCount < 0) throw new InvalidDataException("The IFF record count cannot be negative.");
+        if (IsPsp)
+        {
+            BinaryPrimitives.WriteUInt32LittleEndian(destination, (uint)recordCount);
+            BinaryPrimitives.WriteUInt32LittleEndian(destination[4..], 1);
+            return;
+        }
+        if (recordCount > ushort.MaxValue) throw new InvalidDataException("PC IFF files cannot contain more than 65535 records.");
+        BinaryPrimitives.WriteUInt16LittleEndian(destination, (ushort)recordCount);
         BinaryPrimitives.WriteUInt16LittleEndian(destination[2..], Revision);
         destination[4] = Magic;
         Reserved.CopyTo(destination[5..]);

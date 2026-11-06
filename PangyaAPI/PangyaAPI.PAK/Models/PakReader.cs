@@ -14,12 +14,15 @@ namespace PangyaAPI.PAK.Models
         private readonly object _ioLock = new();
         private readonly ILogSink? _logSink;
         private readonly string _path;
+        private Dictionary<PakFileEntry, string>? _pspExtractionNames;
         private bool _disposed;
         public uint xorKey = 0x71;
         public PakHeader Header { get; private set; } = new();
         public List<PakFileEntry> Entries { get; } = new();
         public uint[]? LocationKeys { get; private set; }
         public Encoding FileNameEncoding { get; }
+        public bool IsPspArchive => PspPakArchive.IsMemberPath(_path);
+        internal string ArchivePath => _path;
 
         public PakReader(string path, Encoding? fileNameEncoding = null, ILogSink? logSink = null)
         {
@@ -49,6 +52,17 @@ namespace PangyaAPI.PAK.Models
         private void ParseCore(uint[]? forceKeys)
         {
             ThrowIfDisposed();
+            if (IsPspArchive)
+            {
+                using var data = OpenReader();
+                var entries = PspPakArchive.ReadIndex(_path, data.BaseStream.Length, FileNameEncoding);
+                Entries.Clear();
+                Entries.AddRange(entries);
+                _pspExtractionNames = PspPakArchive.GetDuplicateExtractionNames(entries);
+                Header = new PakHeader { NumFileEntry = (uint)entries.Count, Author = "PSPSHARE" };
+                LocationKeys = null;
+                return;
+            }
             using var br = OpenReader();
             long fileLen = br.BaseStream.Length;
 
@@ -207,7 +221,7 @@ namespace PangyaAPI.PAK.Models
             var extractedFiles = new ConcurrentBag<(PakFileEntry Entry, string OutputPath)>();
 
             foreach (var entry in matches)
-                _ = GetSafeOutputPath(baseOutPrefix, entry.Name);
+                _ = GetSafeOutputPath(baseOutPrefix, GetExtractionName(entry));
 
             using var reader = OpenReader();
 
@@ -273,7 +287,7 @@ namespace PangyaAPI.PAK.Models
                 {
                     try
                     {
-                        string outPath = GetSafeOutputPath(baseOutPrefix, name);
+                        string outPath = GetSafeOutputPath(baseOutPrefix, GetExtractionName(entry));
                         string outDir = Path.GetDirectoryName(outPath)!;
                         Directory.CreateDirectory(outDir);
 
@@ -301,6 +315,17 @@ namespace PangyaAPI.PAK.Models
             if (writeManifest)
                 PakExtractionSidecar.WriteManifest(extractedFiles);
             Log($"Extraction completed: {done} of {total} entries processed.");
+        }
+
+        public string GetExtractionName(PakFileEntry entry)
+        {
+            if (!IsPspArchive) return entry.Name;
+
+            var issues = PakEntryNameDiagnostics.Inspect(entry.NameRaw, FileNameEncoding).Kind;
+            if ((issues & ~PakEntryNameIssueKind.EncodingMismatch) != PakEntryNameIssueKind.None)
+                throw new InvalidDataException($"Unsafe PSP PAK entry name: '{entry.Name}'.");
+
+            return _pspExtractionNames?.GetValueOrDefault(entry) ?? entry.Name;
         }
 
         private static string GetSafeOutputPath(string baseOutPrefix, string entryName)
@@ -457,7 +482,8 @@ namespace PangyaAPI.PAK.Models
         }
 
         private BinaryReader OpenReader() => new(
-            new FileStream(_path, FileMode.Open, FileAccess.Read, FileShare.Read),
+            new FileStream(IsPspArchive ? PspPakArchive.DataPath(_path) : _path,
+                FileMode.Open, FileAccess.Read, FileShare.Read),
             Encoding.ASCII,
             leaveOpen: false);
 

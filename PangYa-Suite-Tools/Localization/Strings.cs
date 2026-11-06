@@ -432,6 +432,7 @@ internal static class Strings
     public static string IFFManager_RegionThailand => ResourceManager.GetString(nameof(IFFManager_RegionThailand), Culture) ?? "";
     public static string IFFManager_RegionJapan => ResourceManager.GetString(nameof(IFFManager_RegionJapan), Culture) ?? "";
     public static string IFFManager_RegionJapan983 => ResourceManager.GetString(nameof(IFFManager_RegionJapan983), Culture) ?? "";
+    public static string IFFManager_RegionPsp => ResourceManager.GetString(nameof(IFFManager_RegionPsp), Culture) ?? "";
     public static string IFFManager_RegionGlobal => ResourceManager.GetString(nameof(IFFManager_RegionGlobal), Culture) ?? "";
     public static string IFFManager_RegionAppliesNextLoad => ResourceManager.GetString(nameof(IFFManager_RegionAppliesNextLoad), Culture) ?? "";
     public static string IFFManager_UnknownRegionTitle => ResourceManager.GetString(nameof(IFFManager_UnknownRegionTitle), Culture) ?? "";
@@ -652,6 +653,7 @@ internal static class Strings
     public static string UiEditor_SelectDataFolder => ResourceManager.GetString(nameof(UiEditor_SelectDataFolder), Culture) ?? "";
     public static string UiEditor_NoXmlFiles => ResourceManager.GetString(nameof(UiEditor_NoXmlFiles), Culture) ?? "";
     public static string UiEditor_OpenXml => ResourceManager.GetString(nameof(UiEditor_OpenXml), Culture) ?? "";
+    public static string UiEditor_OpenReference => ResourceManager.GetString(nameof(UiEditor_OpenReference), Culture) ?? "";
     public static string UiEditor_StartupWallpaper => ResourceManager.GetString(nameof(UiEditor_StartupWallpaper), Culture) ?? "";
     public static string UiEditor_XmlFilter => ResourceManager.GetString(nameof(UiEditor_XmlFilter), Culture) ?? "";
     public static string UiEditor_Reload => ResourceManager.GetString(nameof(UiEditor_Reload), Culture) ?? "";

@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 2,
+  "defaultRevision": 1,
+  "fileName": "Title.iff",
+  "region": "PSP",
+  "minimumRecordSize": 88,
+  "isEditable": true,
+  "defaultStringSize": 40,
+  "keyField": "ItemId",
+  "fields": [],
+  "base": {
+    "name": "Common",
+    "region": "PSP"
+  }
+}

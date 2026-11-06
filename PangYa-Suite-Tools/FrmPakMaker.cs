@@ -660,7 +660,7 @@ namespace PangYa_Suite_Tools
 
             foreach (var entry in entries)
             {
-                string relativePath = entry.Name.Replace('\\', '/');
+                string relativePath = _currentReader.GetExtractionName(entry).Replace('\\', '/');
                 if (!string.IsNullOrEmpty(rootToStrip) && relativePath.StartsWith(rootToStrip, StringComparison.OrdinalIgnoreCase))
                     relativePath = relativePath.Substring(rootToStrip.Length);
 
@@ -778,7 +778,7 @@ namespace PangYa_Suite_Tools
             {
                 foreach (var entry in entriesToExtract)
                 {
-                    string relativePath = entry.Name.Replace('\\', '/');
+                    string relativePath = _currentReader.GetExtractionName(entry).Replace('\\', '/');
 
                     if (!string.IsNullOrEmpty(rootToStrip) && relativePath.StartsWith(rootToStrip, StringComparison.OrdinalIgnoreCase))
                     {
@@ -1842,6 +1842,7 @@ namespace PangYa_Suite_Tools
             {
                 bool hasLoadedPak = _currentReader != null;
                 bool canUsePak = hasLoadedPak && !_operationInProgress;
+                bool canEditMetadata = canUsePak && _currentReader?.IsPspArchive != true;
                 bool hasSelection = lstEntries.SelectedItems.Count > 0;
                 bool hasSingleSelection = lstEntries.SelectedItems.Count == 1;
 
@@ -1852,8 +1853,10 @@ namespace PangYa_Suite_Tools
                 if (_toolbarBatchExtract != null) _toolbarBatchExtract.Enabled = !_operationInProgress;
                 btnBatchExtract.Enabled = !_operationInProgress;
                 if (_toolbarExtractSelected != null) _toolbarExtractSelected.Enabled = canUsePak && hasSelection;
-                if (_toolbarRenameSelected != null) _toolbarRenameSelected.Enabled = canUsePak && hasSingleSelection;
-                if (_toolbarRemoveSelected != null) _toolbarRemoveSelected.Enabled = canUsePak && hasSelection;
+                if (_toolbarRenameSelected != null) _toolbarRenameSelected.Enabled = canEditMetadata && hasSingleSelection;
+                if (_toolbarRemoveSelected != null) _toolbarRemoveSelected.Enabled = canEditMetadata && hasSelection;
+                if (_toolbarEditPakSettings != null) _toolbarEditPakSettings.Enabled = canEditMetadata;
+                if (_toolbarChangePakKey != null) _toolbarChangePakKey.Enabled = canEditMetadata;
 
             }
 
@@ -2022,7 +2025,7 @@ namespace PangYa_Suite_Tools
                     {
                         operation.Token.ThrowIfCancellationRequested();
                         // Padroniza o nome do arquivo interno
-                        string relativePath = entry.Name.Replace('\\', '/');
+                        string relativePath = _currentReader!.GetExtractionName(entry).Replace('\\', '/');
 
                         // Se o arquivo começar com a árvore de pastas que queremos cortar, removemos ela
                         if (!string.IsNullOrEmpty(rootToStrip) && relativePath.StartsWith(rootToStrip, StringComparison.OrdinalIgnoreCase))
@@ -2131,7 +2134,7 @@ namespace PangYa_Suite_Tools
                     foreach (var entry in entries)
                     {
                         operation.Token.ThrowIfCancellationRequested();
-                        string outPath = exactPathForSingle ?? Path.Combine(destinationDir, entry.Name.Replace('/', '\\'));
+                        string outPath = exactPathForSingle ?? Path.Combine(destinationDir, _currentReader!.GetExtractionName(entry));
                         _currentReader!.ExtractEntry(entry, outPath, writeManifest: false);
                         extractedFiles.Add((entry, outPath));
 
@@ -2223,7 +2226,7 @@ namespace PangYa_Suite_Tools
                         {
                             extractedFiles.AddRange(batchReader.Entries
                                 .Where(entry => entry.Type != PakFileEntryType.Directory)
-                                .Select(entry => (entry, Path.Combine(specificDestFolder, entry.Name.Replace('/', '\\')))));
+                                .Select(entry => (entry, Path.Combine(specificDestFolder, batchReader.GetExtractionName(entry)))));
                         }
                     });
                 }

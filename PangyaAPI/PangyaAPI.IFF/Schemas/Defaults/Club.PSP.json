@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 2,
+  "defaultRevision": 1,
+  "fileName": "Club.iff",
+  "region": "PSP",
+  "minimumRecordSize": 172,
+  "isEditable": true,
+  "defaultStringSize": 40,
+  "keyField": "ItemId",
+  "fields": [
+    {
+      "name": "Requirement",
+      "offset": 48,
+      "width": 4,
+      "type": "UInt32",
+      "isEditable": true
+    }
+  ],
+  "base": {
+    "name": "Common",
+    "region": "PSP"
+  }
+}

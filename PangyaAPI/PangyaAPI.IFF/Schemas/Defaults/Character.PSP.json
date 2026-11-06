@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 2,
+  "defaultRevision": 1,
+  "fileName": "Character.iff",
+  "region": "PSP",
+  "minimumRecordSize": 352,
+  "isEditable": true,
+  "defaultStringSize": 40,
+  "keyField": "ItemId",
+  "fields": [
+    {
+      "name": "Model",
+      "offset": 116,
+      "width": 40,
+      "type": "FixedString",
+      "isEditable": true,
+      "encodingCodePage": 949
+    },
+    {
+      "name": "Stat1",
+      "offset": 276,
+      "width": 4,
+      "type": "Int32",
+      "isEditable": true
+    },
+    {
+      "name": "Stat2",
+      "offset": 280,
+      "width": 4,
+      "type": "Int32",
+      "isEditable": true
+    },
+    {
+      "name": "Stat3",
+      "offset": 284,
+      "width": 4,
+      "type": "Int32",
+      "isEditable": true
+    },
+    {
+      "name": "Stat4",
+      "offset": 288,
+      "width": 4,
+      "type": "Int32",
+      "isEditable": true
+    },
+    {
+      "name": "Stat5",
+      "offset": 292,
+      "width": 4,
+      "type": "Int32",
+      "isEditable": true
+    },
+    {
+      "name": "PrimarySlotCount",
+      "offset": 296,
+      "width": 1,
+      "type": "Byte",
+      "isEditable": true
+    },
+    {
+      "name": "AdditionalSlotCount",
+      "offset": 297,
+      "width": 1,
+      "type": "Byte",
+      "isEditable": true
+    },
+    {
+      "name": "Requirement",
+      "offset": 48,
+      "width": 4,
+      "type": "UInt32",
+      "isEditable": true
+    }
+  ],
+  "base": {
+    "name": "Common",
+    "region": "PSP"
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 2,
+  "defaultRevision": 1,
+  "fileName": "Course.iff",
+  "region": "PSP",
+  "minimumRecordSize": 284,
+  "isEditable": true,
+  "defaultStringSize": 40,
+  "keyField": "ItemId",
+  "fields": [
+    {
+      "name": "MapAsset",
+      "offset": 56,
+      "width": 40,
+      "type": "FixedString",
+      "isEditable": true,
+      "encodingCodePage": 949
+    },
+    {
+      "name": "PropertyFile",
+      "offset": 200,
+      "width": 40,
+      "type": "FixedString",
+      "isEditable": true,
+      "encodingCodePage": 949
+    },
+    {
+      "name": "Requirement",
+      "offset": 48,
+      "width": 4,
+      "type": "UInt32",
+      "isEditable": true
+    }
+  ],
+  "base": {
+    "name": "Common",
+    "region": "PSP"
+  }
+}

@@ -1,0 +1,86 @@
+{
+  "schemaVersion": 2,
+  "defaultRevision": 1,
+  "fileName": "Parts.iff",
+  "region": "PSP",
+  "minimumRecordSize": 460,
+  "isEditable": true,
+  "defaultStringSize": 40,
+  "keyField": "ItemId",
+  "fields": [
+    {
+      "name": "Model",
+      "offset": 116,
+      "width": 40,
+      "type": "FixedString",
+      "isEditable": true,
+      "encodingCodePage": 949
+    },
+    {
+      "name": "SlotMask",
+      "offset": 160,
+      "width": 4,
+      "type": "UInt32",
+      "isEditable": true
+    },
+    {
+      "name": "Texture1",
+      "offset": 168,
+      "width": 40,
+      "type": "FixedString",
+      "isEditable": true,
+      "encodingCodePage": 949
+    },
+    {
+      "name": "Texture2",
+      "offset": 208,
+      "width": 40,
+      "type": "FixedString",
+      "isEditable": true,
+      "encodingCodePage": 949
+    },
+    {
+      "name": "Texture3",
+      "offset": 248,
+      "width": 40,
+      "type": "FixedString",
+      "isEditable": true,
+      "encodingCodePage": 949
+    },
+    {
+      "name": "OriginalTexture1",
+      "offset": 288,
+      "width": 40,
+      "type": "FixedString",
+      "isEditable": true,
+      "encodingCodePage": 949
+    },
+    {
+      "name": "OriginalTexture2",
+      "offset": 328,
+      "width": 40,
+      "type": "FixedString",
+      "isEditable": true,
+      "encodingCodePage": 949
+    },
+    {
+      "name": "OriginalTexture3",
+      "offset": 368,
+      "width": 40,
+      "type": "FixedString",
+      "isEditable": true,
+      "encodingCodePage": 949
+    },
+    {
+      "name": "Requirement",
+      "offset": 48,
+      "width": 4,
+      "type": "UInt32",
+      "isEditable": true
+    }
+  ],
+  "base": {
+    "name": "Common",
+    "region": "PSP"
+  }
+}

@@ -1,0 +1,142 @@
+{
+  "scope": "Out-of-line Fr-class definitions in fr*.cpp; header inline methods excluded",
+  "reference_commit": "81a6969942fe007bcaccbb33b53b3081e9cee67f",
+  "files": [
+    {
+      "file": "frarea.cpp",
+      "sha256": "b94c2f06aa63d2db01dc5ac094a5b0181422a7cc4911466f18de23b124f483d3",
+      "out_of_line_methods": 19
+    },
+    {
+      "file": "frbutton.cpp",
+      "sha256": "724979d121d604925d82ddf2494b26e32c66979c0dbff09be2e6bc78781361c2",
+      "out_of_line_methods": 17
+    },
+    {
+      "file": "frcmdtarget.cpp",
+      "sha256": "4f682c5ba564d9f11fcf928f53b61fc6d384d13ca697a9fd6b72912e4d52f677",
+      "out_of_line_methods": 5
+    },
+    {
+      "file": "frcombobox.cpp",
+      "sha256": "e7458ba19fa8bc3fa039ebd566cfd593f4fef4b5ffc6a9cccdc75312f7a88066",
+      "out_of_line_methods": 30
+    },
+    {
+      "file": "frcontextmenuctrl.cpp",
+      "sha256": "5c22849b3c4752087b074590fbc3679a170a987d2e287e30304cbcbdc9db3782",
+      "out_of_line_methods": 19
+    },
+    {
+      "file": "frcursor.cpp",
+      "sha256": "f5df903f5107c34fb02c0ee80c9a21147c58e7c49c0cfd2552ecba74f3bfe46a",
+      "out_of_line_methods": 7
+    },
+    {
+      "file": "frdesktop.cpp",
+      "sha256": "7a6de273207cf7b5cd9e74fbf814eee80c2bcf258ea92df10a709a4a61fec0f5",
+      "out_of_line_methods": 11
+    },
+    {
+      "file": "fredit.cpp",
+      "sha256": "d93cf90ef080028bbf34c99a7ca356dfc61282cc27dd153326c3b8d820eda285",
+      "out_of_line_methods": 37
+    },
+    {
+      "file": "frelement.cpp",
+      "sha256": "d6c7de6fc8304a61557993fdd67ed91f8542a1625711c5b0c99f11afa4563238",
+      "out_of_line_methods": 22
+    },
+    {
+      "file": "fremoticon.cpp",
+      "sha256": "1bbb940d038ba31072cce5b6c1236d3c4903227a61c18b997e20d57bbb01aeb8",
+      "out_of_line_methods": 16
+    },
+    {
+      "file": "fresh.cpp",
+      "sha256": "498aa3998ba4c069449766184a5fe62561ac45efa770350164442870f824c476",
+      "out_of_line_methods": 14
+    },
+    {
+      "file": "frform.cpp",
+      "sha256": "fda66740a7893d081caef7dfded703466e7cc4b71ebc72b928d5a62aeee7c619",
+      "out_of_line_methods": 34
+    },
+    {
+      "file": "frframe.cpp",
+      "sha256": "2e6f4470cfbafa1baa7350267c848ae6bbdfa6af02389a1db8ed5a792206b7f5",
+      "out_of_line_methods": 9
+    },
+    {
+      "file": "frgaugebar.cpp",
+      "sha256": "196bf60a80d9adeb1ffbbb0444ae1d20dc2613d7984f7e0ae7420b43d6a55a5c",
+      "out_of_line_methods": 33
+    },
+    {
+      "file": "frgraphicinterface.cpp",
+      "sha256": "75d908ac63940472803021e220170923b90a4024de3c403b8faa162fd4fc32ea",
+      "out_of_line_methods": 34
+    },
+    {
+      "file": "frgroupbox.cpp",
+      "sha256": "67f2ab7106049987cdbdc6e15e17225852ecdb7ae19f018d54fe3376f4a258d7",
+      "out_of_line_methods": 4
+    },
+    {
+      "file": "frlistbox.cpp",
+      "sha256": "5191806ecfb4e1e39640a803cba2938b2fdac01ef5d4579ba767453a673783cf",
+      "out_of_line_methods": 45
+    },
+    {
+      "file": "frmacroitem.cpp",
+      "sha256": "d8bf64555c97643e3e3c8bae92ddea3103b8182a272c537b9eff653447e8e723",
+      "out_of_line_methods": 3
+    },
+    {
+      "file": "frscrollbar.cpp",
+      "sha256": "39aae9f48363ff8986ad6810062828d3062fd001bf0ac6e620362110aa459146",
+      "out_of_line_methods": 19
+    },
+    {
+      "file": "frstatic.cpp",
+      "sha256": "32db6130e1c300d6c8f615492b7abab30c65c54ca73f56136b99b90dde26cb1d",
+      "out_of_line_methods": 13
+    },
+    {
+      "file": "frtabbutton.cpp",
+      "sha256": "beb2708d2a4a18d698e0011701cfd7a33bdf65fc94737291c60664e3dd804ce1",
+      "out_of_line_methods": 18
+    },
+    {
+      "file": "frtext.cpp",
+      "sha256": "4899bda4a7811a0988eeecab56c60a6fad1608b25320932c62d5e5b496dc6541",
+      "out_of_line_methods": 18
+    },
+    {
+      "file": "frtextbutton.cpp",
+      "sha256": "2ca5cd0fc634239c7155edd2d4c95353e8ec3ef3fda6cc8dce633ef7d34663c9",
+      "out_of_line_methods": 17
+    },
+    {
+      "file": "frtooltip.cpp",
+      "sha256": "0b8efae6c715d60af4ce3a406e150926df250a395b63569c54b3a96f7bd733da",
+      "out_of_line_methods": 14
+    },
+    {
+      "file": "frviewer.cpp",
+      "sha256": "8994436f0f7a5b0c18be3ec18118f58ea4213078f7ba2275725713ec651ee30b",
+      "out_of_line_methods": 13
+    },
+    {
+      "file": "frwnd.cpp",
+      "sha256": "2682aa2eb9ccad5eab2c39ee5632666276a57a3510079dddb8d4e4db7392123a",
+      "out_of_line_methods": 82
+    },
+    {
+      "file": "frwndmanager.cpp",
+      "sha256": "190fd19b3503ee7e08569272ba4e3696926d724bf0296798d959bd43417c061d",
+      "out_of_line_methods": 45
+    }
+  ],
+  "method_count": 598
+}

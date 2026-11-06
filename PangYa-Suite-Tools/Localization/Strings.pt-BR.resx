@@ -1178,4 +1178,6 @@ Cancelar: Interromper a extração.</value></data>
   <data name="UpdateList_VerificationFailedFormat" xml:space="preserve"><value>A verificação da lista de atualização falhou: {0}</value></data>
   <data name="UpdateList_InvalidVerificationRoot" xml:space="preserve"><value>Carregue uma lista de atualização e selecione uma pasta raiz válida do PangYa antes de verificar.</value></data>
   <data name="UiEditor_StartupWallpaper" xml:space="preserve"><value>Fundo de inicialização</value></data>
+  <data name="IFFManager_RegionPsp" xml:space="preserve"><value>PSP</value></data>
+  <data name="UiEditor_OpenReference" xml:space="preserve"><value>Abrir referência em nova janela</value></data>
 </root>

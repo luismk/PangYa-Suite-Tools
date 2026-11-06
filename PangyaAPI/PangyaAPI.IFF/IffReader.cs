@@ -14,9 +14,10 @@ public sealed class IffReader : IDisposable, IAsyncDisposable
         Span<byte> headerBytes = stackalloc byte[IffHeader.BinarySize];
         stream.Position = 0;
         stream.ReadExactly(headerBytes);
-        IffHeader header = IffHeader.Parse(headerBytes);
+        IffHeader header = PspIffFormat.TryReadHeaderlessTitle(stream, fileName, options.MaximumRecordCount, out IffHeader titleHeader)
+            ? titleHeader : IffHeader.Parse(headerBytes);
         if (header.RecordCount > options.MaximumRecordCount) throw new InvalidDataException("The IFF record count exceeds the configured limit.");
-        long payload = stream.Length - IffHeader.BinarySize;
+        long payload = stream.Length - header.DataOffset;
         int size;
         if (header.RecordCount == 0)
         {
@@ -29,12 +30,14 @@ public sealed class IffReader : IDisposable, IAsyncDisposable
             long computed = payload / header.RecordCount;
             if (computed <= 0 || computed > options.MaximumRecordSize) throw new InvalidDataException("The IFF record size is invalid or exceeds the configured limit.");
             size = checked((int)computed);
+            if (header.IsPsp) PspIffFormat.ValidateRecordSize(fileName, size);
         }
         string? fileNameRegion = IffRegionDetector.FromFileName(fileName) ?? options.FallbackSchemaRegion;
         IffFormatProfile? profile = string.Equals(options.SchemaRegion, IffHeader.Japan983Region,
             StringComparison.OrdinalIgnoreCase)
             ? IffHeader.Japan983Profile
-            : header.ResolveFormatProfile(fileNameRegion);
+            : string.Equals(options.SchemaRegion, IffHeader.PspRegion, StringComparison.OrdinalIgnoreCase)
+                ? IffHeader.PspProfile : header.ResolveFormatProfile(fileNameRegion);
         IReadOnlyList<string> schemaRegions = options.SchemaRegion is { } explicitRegion
             ? IffHeader.GetSchemaRegions(explicitRegion)
             : profile?.SchemaRegions ?? (fileNameRegion is null ? ["Unknown"] : [fileNameRegion]);
@@ -66,7 +69,7 @@ public sealed class IffReader : IDisposable, IAsyncDisposable
     {
         if (_enumerated) throw new InvalidOperationException("IFF records can only be streamed once by a reader.");
         _enumerated = true;
-        _stream.Position = IffHeader.BinarySize;
+        _stream.Position = Info.Header.DataOffset;
         for (int index = 0; index < Info.Header.RecordCount; index++)
         {
             cancellationToken.ThrowIfCancellationRequested();

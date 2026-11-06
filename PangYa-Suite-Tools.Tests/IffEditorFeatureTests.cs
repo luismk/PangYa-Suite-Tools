@@ -52,10 +52,12 @@ public sealed class IffEditorFeatureTests
             Assert.Contains("42", header.Text);
             Assert.Contains("AABBCC", header.Text);
             Assert.Contains("516", header.Text);
-            Assert.Equal(4, regions.Items.Count);
+            Assert.Equal(5, regions.Items.Count);
             regions.SelectedIndex = 2;
             Assert.Equal(IffHeader.Japan983Region, dialog.SelectedRegion);
             regions.SelectedIndex = 3;
+            Assert.Equal(IffHeader.PspRegion, dialog.SelectedRegion);
+            regions.SelectedIndex = 4;
             Assert.Equal("Global", dialog.SelectedRegion);
         });
     }

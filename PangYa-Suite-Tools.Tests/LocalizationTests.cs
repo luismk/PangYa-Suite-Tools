@@ -20,6 +20,18 @@ namespace PangYa_Suite_Tools.Tests;
 [Collection("Localization")]
 public sealed class LocalizationTests : IDisposable
 {
+    [Theory]
+    [InlineData("en", "Open reference in new window")]
+    [InlineData("pt-BR", "Abrir referência em nova janela")]
+    [InlineData("sv", "Öppna referens i nytt fönster")]
+    [InlineData("fr", "Ouvrir la référence dans une nouvelle fenêtre")]
+    [InlineData("ja", "参照ファイルを新しいウィンドウで開く")]
+    public void UiEditor_OpenReferenceActionIsLocalized(string culture, string expected)
+    {
+        Assert.Equal(expected, Strings.ResourceManager.GetString("UiEditor_OpenReference",
+            CultureInfo.GetCultureInfo(culture)));
+    }
+
     private readonly string _tempDirectory = Path.Combine(Path.GetTempPath(), "PangYaLocalizationTests", Guid.NewGuid().ToString("N"));
 
     public LocalizationTests()
@@ -102,6 +114,15 @@ public sealed class LocalizationTests : IDisposable
 
                 refresh.Invoke(form, ["JP", null]);
                 Assert.Equal("JP", selectedSchema.GetValue(form));
+                foreach (string culture in new[] { LocalizationManager.English, LocalizationManager.PortugueseBrazil,
+                    LocalizationManager.Swedish, LocalizationManager.Japonese, LocalizationManager.French })
+                {
+                    LocalizationManager.SetCulture(culture);
+                    refresh.Invoke(form, [IffHeader.PspRegion, null]);
+                    Assert.Equal(IffHeader.PspRegion, selectedSchema.GetValue(form));
+                    Assert.Equal("PSP", Strings.IFFManager_RegionPsp);
+                    Assert.Contains(Strings.IFFManager_RegionPsp, selector.Text);
+                }
             }
             catch (Exception ex) { failure = ex; }
         });
@@ -1149,7 +1170,7 @@ public sealed class LocalizationTests : IDisposable
                 Assert.DoesNotContain(PrivateField<StatusStrip>(iff, "statusStrip").Items.Cast<ToolStripItem>(),
                     item => item.Name is "lblStringEncoding" or "cboStringEncoding");
                 var regionSelector = PrivateField<ToolStripDropDownButton>(iff, "_toolbarRegion");
-                Assert.Equal(5, regionSelector.DropDownItems.Count);
+                Assert.Equal(6, regionSelector.DropDownItems.Count);
                 Assert.Contains(Strings.IFFManager_RegionAuto, regionSelector.Text);
                 Assert.Contains(regionSelector.DropDownItems.OfType<ToolStripMenuItem>(),
                     item => item.Text == Strings.IFFManager_RegionGlobal);

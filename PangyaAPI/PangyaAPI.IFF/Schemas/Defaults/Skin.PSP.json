@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 2,
+  "defaultRevision": 1,
+  "fileName": "Skin.iff",
+  "region": "PSP",
+  "minimumRecordSize": 172,
+  "isEditable": true,
+  "defaultStringSize": 40,
+  "keyField": "ItemId",
+  "fields": [],
+  "base": {
+    "name": "Common",
+    "region": "PSP"
+  }
+}

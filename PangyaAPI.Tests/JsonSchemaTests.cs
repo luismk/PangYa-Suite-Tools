@@ -462,7 +462,7 @@ public sealed class JsonSchemaTests : IDisposable
         provider.Save(new IffSchemaDefinition(1, "Data.iff", "TH", 4, true,
             [new("Thailand", 0, 4, IffFieldType.UInt32)]));
 
-        await using var unknownStream = new MemoryStream(IffBytes(revision: 1, magic: 1));
+        await using var unknownStream = new MemoryStream(IffBytes(revision: 1, magic: 42));
         await using IffReader selected = IffReader.Open(unknownStream, "Data.iff",
             new(SchemaProvider: provider, SchemaRegion: "JP"));
         Assert.Equal("JP", selected.Info.Region);

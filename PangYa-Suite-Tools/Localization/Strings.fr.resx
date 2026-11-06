@@ -1137,4 +1137,6 @@ Déclencheur :</value>
   <data name="UpdateList_VerificationFailedFormat" xml:space="preserve"><value>Échec de la vérification de la liste de mise à jour : {0}</value></data>
   <data name="UpdateList_InvalidVerificationRoot" xml:space="preserve"><value>Chargez une liste de mise à jour et sélectionnez un dossier racine PangYa valide avant la vérification.</value></data>
   <data name="UiEditor_StartupWallpaper" xml:space="preserve"><value>Fond de démarrage</value></data>
+  <data name="IFFManager_RegionPsp" xml:space="preserve"><value>PSP</value></data>
+  <data name="UiEditor_OpenReference" xml:space="preserve"><value>Ouvrir la référence dans une nouvelle fenêtre</value></data>
 </root>
