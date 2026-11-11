@@ -63,16 +63,167 @@ compiled spatial and alpha fixtures remain unexecuted.
 
 ## Confirmed work still needed
 
+- The `recycle_about` text-button labels and footer are Korean XML strings.
+  JP983's `K2L_Compatibility` uses parallel NUL-terminated `korea.dat` and
+  `japan.dat` tables. The preview loads that pair for XML captions and frame
+  descriptions. The extracted client data checked here lacks the pair, but
+  its Korean 12-pixel WFT contains ink for all six Hangul characters in
+  `index01`. Compatible Korean WFT glyphs provide a readable fallback in
+  that case. Exact Japanese strings require the client's table pair.
+
+- The bitmap-font preview floors glyph run origins in logical canvas pixels.
+  This follows WFont's forced 0x400 coordinate mode and WOverlay's destination
+  rounding, including centered captions that start on a half pixel.
+  Native GPU sampling at scaled viewport sizes remains unverified.
+
+- Bitmap-font drawing now limits each positive-advance glyph to its retained
+  span, matching Fresh's text-buffer overwrites and final texture width.
+  The fixture covers overhang before a space and at the end of a caption.
+  Negative-advance overlap and GPU texture sampling remain unverified.
+
+- Dropdowns from the document tree now draw in initialization order before
+  runtime topmost registrations, including when their owners become topmost.
+  Dropdowns discovered while expanding resource instances still depend on
+  traversal, and native focus-based topmost resorting remains open.
+
+- Window wheel eligibility now has an independent override. The editor checks
+  it for viewers, edits and combos. Viewers accept wheel input over their full
+  viewport when their scrollbar has a scrollable range, including blank space
+  beyond the image. Viewer ordering uses preview render order. Full Fresh
+  wheel-focus arbitration across all control types remains open.
+
+- Added viewer mouse-event snapshots and a shared cursor-eligibility predicate,
+  replacing duplicate editor parsing. Runtime overrides preserve scrollbar
+  geometry/range: `FrWnd::OnProcess` handles wheel focus before its disabled,
+  view-focus and NOMOUSEEVENT gates, and scrollbar children process independently.
+  Five compiled regression cases cover atoi-style parsing, snapshots and cursor
+  gates; tests remain unrun. Full native command routing and wheel-focus arbitration
+  remain open. Image-gauge below-range pixels were deliberately left unresolved:
+  the GDI path samples a shared texture atlas, so a negative bitmap source offset
+  can sample other atlas contents rather than a known standalone bitmap border.
+
+- Added `PangyaUiImageGaugeState`: width-based initialization, reset-to-zero
+  without resetting destination/range, retained pixel count, and explicit
+  non-animation pixel-counter refresh. `Complete` remains zero because the
+  pinned class initializes but never updates `m_complete`. The renderer exposes
+  borrowed skins with native index-1-mask/other-base selection. Two compiled
+  fixtures cover reset state, counter timing, skin selection and mask drawing;
+  tests remain unrun. Below-range rendering after reset with a positive lower
+  bound still differs because renderer ratios clamp; native raster parity and
+  automatic OnProc counter refresh remain open.
+
+- Extended gauge color now has an explicit `GaugeColorPositions` snapshot.
+  Source ordering in `FrGaugeBarEx::SetPos` calls the base virtual geometry
+  calculation before replacing `m_fPos`; arrow handlers update `m_fPos` first.
+  `PangyaUiGaugeState` preserves that difference and retains the accumulator
+  across range changes. `RecalculateGeometry` performs the non-animation
+  geometry/color refresh without moving toward a destination. Two fixtures
+  compile but remain unrun. Native extrapolated byte-color conversion outside
+  0..100, out-of-range fill geometry after stale-accumulator steps and automatic
+  per-frame refresh remain open; the renderer still clamps those ratios.
+
+- Corrected gauge snapshot cache invalidation with per-state geometry revisions.
+  Repeated snapshots and destination/expansion/step-count setters preserve cached
+  fill geometry; range/position/arrow operations invalidate it as their native
+  bodies call `CalcBarRect`. Reapplying the same position still invalidates;
+  independent state objects cannot accidentally reuse another state's revision.
+  Two compiled regression cases cover ordinary/extended gauges and immutable
+  prior snapshots. Tests remain unrun; native per-frame geometry updates remain open.
+
+- `SetWindowRectangle` now captures gauge track/fill/arrow geometry before
+  movement and resize. Cached movement follows `FrGaugeBar::MoveWindow` and
+  `FrGaugeBarEx::MoveWindow`: reset fill x/y to track plus thickness while
+  retaining fill size. Extended arrow hit testing uses initialized positions.
+  Applying gauge values invalidates fill geometry; extended tracks remain
+  initialized while ordinary tracks recalculate from current window bounds.
+  Two compiled regression cases cover ordinary/extended resize, draw positions,
+  arrow hits and invalidation, but remain unrun. Direct `MoveWindow` without a
+  prior geometry cache, implicit native OnProc recalculation, oversized/signed
+  thickness behavior and pixel parity still need review.
+
+- Added `PangyaUiGaugeState` for range/position/destination/expansion and extended
+  step setters. `GaugePositions` carries fractional values into ordinary,
+  extended and image-gauge rendering. Step operations preserve native floating
+  accumulation from arbitrary starting positions; the separate extended step
+  accumulator is retained across base range changes. Snapshots remove stale
+  step and transition overrides. Invalid zero/reversed ranges are rejected
+  rather than reproducing native division by zero. Fixtures compile but remain
+  unrun. Editor arrows now use retained gauge state and apply range/position/step
+  snapshots to rendering; an STA fixture covers arbitrary-position stepping and
+  reload reset but remains unrun. Movement/resize caching is partially implemented,
+  extended color-position cache and native raster comparisons remain open.
+
+- Follow-up button integration review fixed host capture occurring before the
+  native readiness gate. The callback `ButtonDown` overload now attempts capture
+  after timer reset and only for eligible input; the editor uses this overload.
+  Right-button release no longer clears an active left-button interaction.
+  Capture-order and STA mixed-release regression fixtures were added but not run.
+
+- Added a non-animation `PangyaUiButtonInputState` for push/check/radio controls.
+  Pinned `FrButton::OnSetCursor`, left/right down/up, `SetStatus`, `Enable` and
+  the header's `SetPushDelay` establish press-history transitions, capture order,
+  strict delay gating and right-button behavior. Host commands are returned as
+  dispatch decisions; the host owns real capture and manager-level routing.
+  `ApplyTo` supplies renderer status/timing without discarding image settings or
+  allowing stale press ticks to override elapsed time. Three fixtures compile
+  but remain unrun. The editor now uses this model for image-button left input,
+  capture loss, persistent check/radio rendering and selected cursor decisions.
+  Model state is reset on document load and feeds render snapshots independently
+  of legacy press ticks. A compiled STA rendering/reset fixture remains unrun.
+  Command/sound delivery, right-button editor configuration and full native
+  manager routing remain open. No blink animation was added.
+
+- Added `EnableButton` for the native `FrButton::Enable` transition: both
+  enabling and disabling reset OVER to NORMAL but preserve PRESSED and other
+  initialized state. Runtime enabled flags and disabled-node membership are
+  updated in an independent snapshot. Fixtures cover both transition directions,
+  global versus explicit status and retained push/blink state, but remain unrun.
+  Full button input dispatch, owner commands and native cursor state remain open.
+
+- Corrected editor text-button activation timing: selection now occurs on left
+  release instead of down, with no press capture. Release is gated to the
+  control's rendered client geometry, following uncaptured `FrWnd::Process`
+  dispatch; re-releasing the selected segment preserves state. A compile-only
+  STA fixture covers press/right-release/left-release/outside-release behavior.
+  Native owner commands, sounds and persistent under-cursor iterator behavior
+  remain open; these are not claimed as implemented by the preview handler.
+
+- Audited text-button clipping and `OnMouseMove` against the pinned source.
+  The existing caption clip setter copies/replaces rectangles and disables on
+  null without changing segment geometry. Fixed the final segment's missing
+  separator-width hover region; both drawing and segment hit testing now use
+  it without adding a drawn separator or extending measured drawing bounds.
+  Two regression cases include an early empty-segment terminator. Fixtures
+  remain unrun; full manager-level mouse routing and capture are still open.
+
+- Font-state clipping now models `FrGraphicInterface::SetClippingArea` and
+  `SetClippingArea11` through independent normal/small callback snapshots.
+  Pinned `WOverlay::SetClippingArea(const WRect*)` evidence confirms absolute
+  rectangle assignment and null disable. The adapter intersects the caller's
+  graphics clip before scaling and restores clip/transform after exceptions.
+  Fixtures cover both font paths but remain unrun. Automatic routing of every
+  native caller's mutable font state and raster-level clipping parity remain open.
+
+- The bitmap-font backend now consumes numeric palette escapes for measurement
+  and drawing, with native RGB multiplication and base-color reset. The three
+  native initialized entries are red/green/blue; other entries require explicit
+  configuration (the adapter uses the supplied color until configured rather
+  than native uninitialized memory). Unknown escape introducers are discarded.
+  Fixtures were added but not run. Font-level inline overlays and equivalent
+  processing in the fallback system-font renderer remain open.
+
 - Extended the pinned source audit to `src/engine/wfont.cpp` and
   `include/engine/wfont.h`. WFixedFont indexes glyphs by Shift-JIS code, adds
   native spacing to advances, treats spaces separately, and reports unscaled cell
   height. The preview adapter now follows those rules, and font-state height no
   longer scales. Synthetic WFT glyph/index/advance and transform fixtures compile
   but remain unexecuted. Native coordinate-mode scaling and raster parity remain
-  open. These engine files are outside the Fr-only method inventory.
+  open. Fixed-width advances and NUL termination now follow the backend, including
+  its full-width measured spaces versus narrow drawn spaces. Regression assertions
+  have been added but not executed. These engine files are outside the Fr-only method inventory.
 
-- `PangyaUiFontState` now scales font callbacks, measured widths and reported
-  height together for independent normal/small-font snapshots, with graphics
+- `PangyaUiFontState` now scales font callbacks and measured widths while retaining
+  unscaled height for independent normal/small-font snapshots, with graphics
   transform restoration after exceptions. Its fixture compiles but remains
   unexecuted. The adapter requires a supplied font backend; native font scaling
   rasterization and coordinate-mode behavior remain open. Engine source review

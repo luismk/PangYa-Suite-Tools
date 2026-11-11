@@ -79,6 +79,27 @@ public sealed class PangyaUiScrollState
         Recalculate();
     }
 
+    public bool ApplyWheel(int delta)
+    {
+        if (delta == 0 || RowCapacity == 0 || RowCount <= RowCapacity) return false;
+        int rows = delta / 119;
+        if (delta > 0) ScrollUp(rows);
+        else ScrollDown(-rows);
+        return true;
+    }
+
+    public static float MoveThumb(int pointerY, float travel, int maximum, ref int previousY, ref float offset)
+    {
+        float requested = offset + ((long)pointerY - previousY);
+        offset = Math.Clamp(requested, 0, travel);
+        if (requested >= 0 && requested <= travel) previousY = pointerY;
+        int wholeTravel = (int)travel;
+        return wholeTravel == 0 ? 0 : offset * maximum / wholeTravel;
+    }
+
+    internal static PangyaUiScrollState RestoreRows(int capacity, int count, float row, bool followBottom) =>
+        new(capacity) { ItemCount = count, TopRow = row, FollowBottom = followBottom };
+
     public void DragToRow(float row)
     {
         if (!float.IsFinite(row)) throw new ArgumentOutOfRangeException(nameof(row));
@@ -115,12 +136,14 @@ public sealed class PangyaUiScrollState
         ArgumentNullException.ThrowIfNull(node);
         options ??= new();
         var rows = options.EditTopRows?.ToDictionary(pair => pair.Key, pair => pair.Value) ?? [];
+        var fractional = options.EditScrollRows?.ToDictionary(pair => pair.Key, pair => pair.Value) ?? [];
         var follow = options.EditFollowBottom?.ToDictionary(pair => pair.Key, pair => pair.Value) ?? [];
         var guides = options.ScrollbarGuides?.ToDictionary(pair => pair.Key, pair => pair.Value) ?? [];
         rows[node] = RoundedTopRow;
+        fractional[node] = TopRow;
         follow[node] = FollowBottom;
         guides[node] = ShowGuide;
-        return options with { EditTopRows = rows, EditFollowBottom = follow, ScrollbarGuides = guides };
+        return options with { EditTopRows = rows, EditScrollRows = fractional, EditFollowBottom = follow, ScrollbarGuides = guides };
     }
 
     public PangyaUiRenderOptions ApplyToList(PangyaUiNode node, PangyaUiListPreview preview,
@@ -133,7 +156,7 @@ public sealed class PangyaUiScrollState
         var guides = options.ScrollbarGuides?.ToDictionary(pair => pair.Key, pair => pair.Value) ?? [];
         lists[node] = preview with { ItemCount = ItemCount, TopRow = RoundedTopRow,
             ColumnCapacity = Math.Max(1, ColumnCapacity), ScrollbarAtLeft = AtLeft,
-            TopItem = null, FollowBottom = false };
+            TopItem = null, FollowBottom = false, ScrollThumbRow = TopRow };
         guides[node] = ShowGuide;
         return options with { Lists = lists, ScrollbarGuides = guides };
     }

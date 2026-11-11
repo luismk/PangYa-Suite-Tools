@@ -17,6 +17,832 @@ namespace PangYa_Suite_Tools.Tests;
 public sealed class ShopTests : IDisposable
 {
     [Fact]
+    public void UiLanguageTable_TranslatesXmlTextButtonBeforeMeasuringAndDrawing()
+    {
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+        string korean = Path.Combine(_directory, "korea.dat");
+        string japanese = Path.Combine(_directory, "japan.dat");
+        File.WriteAllBytes(korean, Encoding.GetEncoding(949).GetBytes("마법상자소개\0마법상자소개\0"));
+        File.WriteAllBytes(japanese, Encoding.GetEncoding(932).GetBytes("マジックボックス\0別の訳\0"));
+        PangyaUiLanguageTable table = PangyaUiLanguageTable.Load(korean, japanese);
+        Assert.Equal("マジックボックス", table.Translate("마법상자소개"));
+        Assert.Equal("그대로", table.Translate("그대로"));
+        string path = Path.Combine(_directory, "language-table.xml");
+        File.WriteAllText(path, """
+            <resource><element type="FORM" name="form" size="100 40">
+              <item type="TEXTBUTTON" name="index" caption="마법상자소개" rect="0 0 90 20">
+                <param name="center" var="false"/>
+              </item>
+            </element></resource>
+            """);
+        PangyaUiDocument document = PangyaUiDocument.Load(path);
+        PangyaUiNode form = Assert.Single(document.Nodes, node => node.IsForm);
+        using var images = new PangyaFileImageProvider(_directory);
+        var renderer = new PangyaUiRenderer(images);
+        var drawn = new List<string>();
+        using var bitmap = new Bitmap(100, 40);
+        using Graphics graphics = Graphics.FromImage(bitmap);
+        renderer.Render(graphics, document, form, new PangyaUiRenderOptions
+        {
+            LanguageTable = table,
+            MeasureCaptionText = value => value.Length * 6,
+            DrawCaptionText = (_, value, _, _) => drawn.Add(value)
+        });
+        Assert.NotEmpty(drawn);
+        Assert.All(drawn, value => Assert.Equal("マジックボックス", value));
+        File.WriteAllBytes(japanese, [0]);
+        Assert.Throws<InvalidDataException>(() => PangyaUiLanguageTable.Load(korean, japanese));
+    }
+
+    [Fact]
+    public void UiEditWheel_UsesFractionalScrollStateAndMarginAdjustedCapacity()
+    {
+        string path = Path.Combine(_directory, "edit-wheel.xml");
+        File.WriteAllText(path, """
+            <resource><element type="FORM" name="form" size="80 60">
+              <item type="EDIT" name="edit" rect="0 0 60 40">
+                <param name="lineheight" var="16"/><param name="topmargin" var="9"/>
+              </item>
+            </element></resource>
+            """);
+        PangyaUiNode edit = Assert.Single(PangyaUiDocument.Load(path).Nodes, node => node.Name == "edit");
+        var scroll = new PangyaUiScrollState(1);
+        for (int index = 0; index < 4; index++) scroll.AddItem();
+        scroll.DragToRow(1.5f);
+        PangyaUiRenderOptions initial = scroll.ApplyToEdit(edit);
+        Assert.Equal(2, initial.EditTopRows![edit]);
+        Assert.Equal(1.5f, initial.EditScrollRows![edit]);
+        Assert.True(PangyaUiRenderer.TryScrollEditWheel(edit, 4, -119, initial, out var next));
+        Assert.Equal(2f, next.EditScrollRows![edit]);
+        Assert.True(PangyaUiRenderer.TryScrollEditWheel(edit, 4, -119, next, out var bottom));
+        Assert.Equal(3, bottom.EditTopRows![edit]);
+        Assert.True(bottom.EditFollowBottom![edit]);
+        var disabled = PangyaUiRenderer.SetWindowWheelEvent(edit, false, bottom);
+        Assert.False(PangyaUiRenderer.TryScrollEditWheel(edit, 4, 119, disabled, out var unchanged));
+        Assert.Same(disabled, unchanged);
+
+        using var images = new PangyaFileImageProvider(_directory);
+        var renderer = new PangyaUiRenderer(images);
+        var loaded = bottom with
+        {
+            EditLines = new Dictionary<PangyaUiNode, IReadOnlyList<string>>
+            {
+                [edit] = ["One", "Two", "Three", "Four"]
+            }
+        };
+        var resized = renderer.SetWindowRectangle(edit, new Rectangle(0, 0, 60, 57), loaded);
+        Assert.Equal(1, PangyaUiRenderer.GetEditMaximumTopRow(edit, 4, resized));
+        Assert.Equal(3, resized.EditTopRows![edit]);
+        Assert.True(resized.EditFollowBottom![edit]);
+        Assert.True(PangyaUiRenderer.TryScrollEditWheel(edit, 4, 119, resized, out var up));
+        Assert.Equal(2, up.EditTopRows![edit]);
+        Assert.False(up.EditFollowBottom![edit]);
+    }
+
+    [Fact]
+    public void UiListScrollbar_FractionalThumbUsesRoundedRowForItems()
+    {
+        for (int fragment = 1; fragment <= 3; fragment++)
+            SaveSolidImage(Path.Combine(_directory, $"scroll_n_{fragment}.png"), Color.Blue, 3, 3);
+        string path = Path.Combine(_directory, "list-fractional-thumb.xml");
+        File.WriteAllText(path, """
+            <resource><element type="FORM" name="form" size="60 60">
+              <item type="LISTBOX" name="list" rect="0 0 40 40">
+                <param name="itemsize" var="20 20"/>
+              </item>
+            </element></resource>
+            """);
+        PangyaUiDocument document = PangyaUiDocument.Load(path);
+        PangyaUiNode form = Assert.Single(document.Nodes, node => node.IsForm);
+        PangyaUiNode list = Assert.Single(document.Nodes, node => node.Name == "list");
+        var scroll = new PangyaUiScrollState(2);
+        for (int index = 0; index < 6; index++) scroll.AddItem();
+        scroll.DragToRow(0.5f);
+        var drawn = new List<int>();
+        PangyaUiRenderOptions options = scroll.ApplyToList(list, new(6, 0, (_, index, _) => drawn.Add(index)));
+        using var images = new PangyaFileImageProvider(_directory);
+        var renderer = new PangyaUiRenderer(images);
+        using var bitmap = new Bitmap(60, 60);
+        using Graphics graphics = Graphics.FromImage(bitmap);
+        renderer.Render(graphics, document, form, options);
+        Assert.Equal(new[] { 1, 2 }, drawn);
+        Assert.Equal(1, renderer.HitTestListItem(list, new Point(5, 5), options));
+        Assert.Equal(Color.Blue.ToArgb(), bitmap.GetPixel(41, 4).ToArgb());
+        Assert.NotEqual(Color.Blue.ToArgb(), bitmap.GetPixel(41, 2).ToArgb());
+
+        scroll.DragToRow(3.5f);
+        var beforeResize = scroll.ApplyToList(list, options.Lists![list], options);
+        var resized = renderer.SetWindowRectangle(list, new Rectangle(0, 0, 40, 80), beforeResize);
+        Assert.Equal(3.5f, beforeResize.Lists![list].ScrollThumbRow);
+        Assert.Equal(3f, resized.Lists![list].ScrollThumbRow);
+        Assert.Equal(3, renderer.HitTestListItem(list, new Point(5, 5), resized));
+        drawn.Clear();
+        renderer.Render(graphics, document, form, resized);
+        Assert.Equal(new[] { 3, 4, 5 }, drawn);
+    }
+
+    [Fact]
+    public void UiViewer_WheelUsesViewportAndIndependentWheelFlag()
+    {
+        SaveSolidImage(Path.Combine(_directory, "wheel-narrow.png"), Color.Red, 10, 100);
+        for (int fragment = 1; fragment <= 3; fragment++)
+        {
+            SaveSolidImage(Path.Combine(_directory, $"scroll_n_{fragment}.png"), Color.Blue, 3, 3);
+            SaveSolidImage(Path.Combine(_directory, $"scroll_o_{fragment}.png"), Color.Lime, 3, 3);
+        }
+        string path = Path.Combine(_directory, "viewer-wheel.xml");
+        File.WriteAllText(path, """
+            <resource><element type="FORM" name="form" size="100 60">
+              <item type="VIEWER" name="viewer" rect="0 0 80 40">
+                <param name="image" var="wheel-narrow.png"/><param name="use_wheel" var="true"/>
+                <param name="mouse_event" var="0"/>
+              </item>
+              <item type="EDIT" name="edit" rect="30 0 60 20">
+                <param name="lineheight" var="10"/>
+              </item>
+              <item type="FORM" name="foreground" rect="65 0 80 20">
+                <item type="EDIT" name="foregroundEdit" rect="0 0 15 20">
+                  <param name="lineheight" var="10"/>
+                </item>
+              </item>
+            </element></resource>
+            """);
+        PangyaUiDocument document = PangyaUiDocument.Load(path);
+        PangyaUiNode viewer = Assert.Single(document.Nodes, node => node.Name == "viewer");
+        PangyaUiNode form = Assert.Single(document.Nodes, node => node.IsForm);
+        using var assets = new PangyaFileImageProvider(_directory);
+        var renderer = new PangyaUiRenderer(assets);
+        var pointer = new Point(40, 10);
+        var enabled = new PangyaUiRenderOptions();
+        var disabled = PangyaUiRenderer.SetWindowWheelEvent(viewer, false, enabled);
+        Assert.False(PangyaUiRenderer.ViewerAcceptsMouse(viewer, enabled));
+        Assert.Same(viewer, renderer.HitTestViewerWheel(document, form, pointer, enabled));
+        PangyaUiNode edit = Assert.Single(document.Nodes, node => node.Name == "edit");
+        var overlapping = enabled with
+        {
+            EditLines = new Dictionary<PangyaUiNode, IReadOnlyList<string>> { [edit] = ["A", "B", "C"] }
+        };
+        Assert.Same(edit, renderer.HitTestWheelTarget(document, form, pointer, overlapping));
+        Assert.Same(edit, renderer.HitTestWheelTarget(document, form, pointer, overlapping with { SelectedNode = viewer }));
+        Assert.Same(viewer, renderer.HitTestWheelTarget(document, form, pointer,
+            PangyaUiRenderer.SetWindowWheelEvent(edit, false, overlapping)));
+        PangyaUiNode foreground = Assert.Single(document.Nodes, node => node.Name == "foreground");
+        var covered = new Point(70, 10);
+        Assert.Null(renderer.HitTestWheelTarget(document, form, covered, overlapping));
+        Assert.Same(viewer, renderer.HitTestWheelTarget(document, form, covered,
+            PangyaUiRenderer.SetWindowVisible(foreground, false, overlapping)));
+        PangyaUiNode foregroundEdit = Assert.Single(document.Nodes, node => node.Name == "foregroundEdit");
+        var childTopmost = PangyaUiRenderer.SetWindowTopmost(foregroundEdit, true, overlapping with
+        {
+            EditLines = new Dictionary<PangyaUiNode, IReadOnlyList<string>>
+            {
+                [edit] = ["A", "B", "C"], [foregroundEdit] = ["A", "B", "C"]
+            }
+        });
+        Assert.Same(foregroundEdit, renderer.HitTestWheelTarget(document, form, covered, childTopmost));
+        var parentTopmost = PangyaUiRenderer.SetWindowTopmost(foreground, true, childTopmost);
+        Assert.Null(renderer.HitTestWheelTarget(document, form, covered, parentTopmost));
+        using var bitmap = new Bitmap(100, 60);
+        using Graphics graphics = Graphics.FromImage(bitmap);
+        renderer.Render(graphics, document, form, enabled with { WheelFocusedViewer = viewer });
+        Assert.Equal(Color.Lime.ToArgb(), bitmap.GetPixel(81, 1).ToArgb());
+        renderer.Render(graphics, document, form, disabled with { WheelFocusedViewer = viewer });
+        Assert.Equal(Color.Blue.ToArgb(), bitmap.GetPixel(81, 1).ToArgb());
+        RectangleF thumb = renderer.GetViewerScrollThumbGeometry(viewer, enabled);
+        Assert.Equal(19.6f, thumb.Height, 3);
+        RectangleF bottomThumb = renderer.GetViewerScrollThumbGeometry(viewer,
+            enabled with { DraggedViewerThumb = (viewer, 100) });
+        Assert.Equal(20.4f, bottomThumb.Y, 3);
+        Assert.Equal(40f, bottomThumb.Bottom, 3);
+        Assert.Null(renderer.HitTestViewerWheel(document, form, pointer, disabled));
+        Assert.Same(viewer, renderer.HitTestViewerWheel(document, form, pointer, enabled));
+        var dragged = enabled with
+        {
+            ViewerTopRows = new Dictionary<PangyaUiNode, int> { [viewer] = 2 },
+            ViewerScrollRows = new Dictionary<PangyaUiNode, float> { [viewer] = 1.5f }
+        };
+        Assert.True(renderer.TryScrollViewerWheel(viewer, -119, dragged, out var scrolled));
+        Assert.Equal(2, scrolled.ViewerTopRows![viewer]);
+        Assert.Equal(2f, scrolled.ViewerScrollRows![viewer]);
+        Assert.True(renderer.TryScrollViewerWheel(viewer, -119, scrolled, out var bottom));
+        Assert.True(bottom.ViewerFollowBottom![viewer]);
+        Assert.True(renderer.TryScrollViewerWheel(viewer, 1, bottom, out var released));
+        Assert.Equal(3, released.ViewerTopRows![viewer]);
+        Assert.False(released.ViewerFollowBottom![viewer]);
+        Assert.False(renderer.TryScrollViewerWheel(viewer, -119, disabled, out var unchanged));
+        Assert.Same(disabled, unchanged);
+    }
+
+    [Theory]
+    [InlineData(null, true)]
+    [InlineData("0", false)]
+    [InlineData(" -00012suffix", true)]
+    [InlineData("000text9", false)]
+    [InlineData("false", false)]
+    public void UiViewer_MouseEventOverridesPreserveScrollbarAndPriorSnapshots(string? setting, bool expected)
+    {
+        SaveSolidImage(Path.Combine(_directory, "mouse-viewer.png"), Color.Red, 20, 100);
+        string path = Path.Combine(_directory, "viewer-mouse-event.xml");
+        string parameter = setting is null ? "" : $"<param name='mouse_event' var='{setting}'/>";
+        File.WriteAllText(path, $"""
+            <resource><element type="FORM" name="form" size="50 50">
+              <item type="VIEWER" name="viewer" rect="0 0 20 40">
+                <param name="image" var="mouse-viewer.png"/><param name="use_wheel" var="true"/>
+                {parameter}
+              </item>
+            </element></resource>
+            """);
+        PangyaUiDocument document = PangyaUiDocument.Load(path);
+        PangyaUiNode viewer = Assert.Single(document.Nodes, node => node.Name == "viewer");
+        Assert.Equal(expected, PangyaUiRenderer.ViewerAcceptsMouse(viewer));
+        PangyaUiRenderOptions enabled = PangyaUiRenderer.SetViewerMouseEvent(viewer, true);
+        PangyaUiRenderOptions disabled = PangyaUiRenderer.SetViewerMouseEvent(viewer, false, enabled);
+        Assert.True(PangyaUiRenderer.ViewerAcceptsMouse(viewer, enabled));
+        Assert.False(PangyaUiRenderer.ViewerAcceptsMouse(viewer, disabled));
+        Assert.True(enabled.ViewerMouseEvents![viewer]);
+        Assert.False(PangyaUiRenderer.ViewerAcceptsMouse(viewer, enabled with { IsViewFocused = false }));
+        Assert.False(PangyaUiRenderer.ViewerAcceptsMouse(viewer, enabled with
+        {
+            DisabledNodes = new HashSet<PangyaUiNode> { viewer }
+        }));
+        using var assets = new PangyaFileImageProvider(_directory);
+        var renderer = new PangyaUiRenderer(assets);
+        Assert.Equal(3, renderer.GetViewerMaximumTopRow(viewer, options: disabled));
+        Assert.Equal(renderer.GetViewerScrollThumb(viewer, enabled), renderer.GetViewerScrollThumb(viewer, disabled));
+        Assert.Equal(renderer.GetRenderedBounds(viewer, enabled), renderer.GetRenderedBounds(viewer, disabled));
+    }
+
+    [Fact]
+    public void UiImageGaugeState_ResetPreservesDestinationAndCounterRefreshDoesNotAnimate()
+    {
+        var state = new PangyaUiImageGaugeState(30, 30);
+        Assert.Equal(30, state.Gauge.Upper);
+        state.Gauge.SetPosition(11);
+        state.Gauge.SetDestination(25);
+        Assert.Equal(0, state.PixelCount);
+        state.RefreshPixelCount();
+        Assert.Equal(11, state.PixelCount);
+        Assert.Equal(11, state.Gauge.Position);
+        Assert.Equal(0, state.Complete);
+        state.ResetGauge();
+        Assert.Equal(0, state.Gauge.Position);
+        Assert.Equal(25, state.Gauge.Destination);
+        Assert.Equal(0, state.PixelCount);
+        state.RefreshPixelCount();
+        Assert.Equal(0, state.PixelCount);
+        Assert.Equal(25, state.Gauge.Destination);
+        state.Gauge.SetRange(10, 20);
+        state.ResetGauge(); // Native reset writes zero even outside the configured range.
+        Assert.Equal(0, state.Gauge.Position);
+        Assert.Equal(20, state.Gauge.Destination);
+        state.RefreshPixelCount();
+        Assert.Equal(-30, state.PixelCount);
+    }
+
+    [Fact]
+    public void UiImageGaugeState_ResetRestoresFullMaskWithoutChangingPriorSnapshot()
+    {
+        SaveSolidImage(Path.Combine(_directory, "reset-gauge-base.png"), Color.Red, 20, 6);
+        SaveSolidImage(Path.Combine(_directory, "reset-gauge-mask.png"), Color.Blue, 20, 6);
+        string path = Path.Combine(_directory, "reset-image-gauge.xml");
+        File.WriteAllText(path, """
+            <resource><element type="FORM" name="form" size="40 20">
+              <item type="GAUGEBARIMAGE" name="gauge" pos="5 4">
+                <param name="normal" var="reset-gauge-base.png"/><param name="mask" var="reset-gauge-mask.png"/>
+              </item>
+            </element></resource>
+            """);
+        PangyaUiDocument document = PangyaUiDocument.Load(path);
+        PangyaUiNode node = Assert.Single(document.Nodes, node => node.Name == "gauge");
+        var state = new PangyaUiImageGaugeState(20, 20);
+        state.Gauge.SetPosition(10);
+        state.Gauge.SetDestination(18);
+        PangyaUiRenderOptions before = state.ApplyTo(node);
+        state.ResetGauge();
+        PangyaUiRenderOptions after = state.ApplyTo(node, before);
+        Assert.Equal(10, before.GaugePositions![node]);
+        Assert.Equal(0, after.GaugePositions![node]);
+        Assert.Equal(18, state.Gauge.Destination);
+        using var assets = new PangyaFileImageProvider(_directory);
+        var renderer = new PangyaUiRenderer(assets);
+        Assert.Same(renderer.GetImageGaugeSkin(node, 0), renderer.GetImageGaugeSkin(node, -1));
+        Assert.Same(renderer.GetImageGaugeSkin(node, 0), renderer.GetImageGaugeSkin(node, 2));
+        Assert.NotSame(renderer.GetImageGaugeSkin(node, 0), renderer.GetImageGaugeSkin(node, 1));
+        using var bitmap = new Bitmap(40, 20);
+        using Graphics graphics = Graphics.FromImage(bitmap);
+        PangyaUiNode form = document.Nodes.First(node => node.IsForm);
+        renderer.Render(graphics, document, form, before);
+        Assert.Equal(Color.Red.ToArgb(), bitmap.GetPixel(7, 6).ToArgb());
+        renderer.Render(graphics, document, form, after);
+        Assert.Equal(Color.Blue.ToArgb(), bitmap.GetPixel(7, 6).ToArgb());
+    }
+
+    [Fact]
+    public void UiGaugeState_ExtendedColorRetainsNativeSetterOrderWithoutAnimating()
+    {
+        var state = new PangyaUiGaugeState();
+        state.SetPosition(80);
+        Assert.Equal(80, state.Position);
+        Assert.Equal(0, state.ColorPosition);
+        state.RecalculateGeometry();
+        Assert.Equal(80, state.Position);
+        Assert.Equal(80, state.ColorPosition);
+        state.SetDestination(90);
+        Assert.Equal(80, state.ColorPosition);
+        state.SetRange(0, 20);
+        Assert.Equal(20, state.Position);
+        Assert.Equal(80, state.ColorPosition);
+        state.SetSteps(2);
+        state.StepLeft();
+        // Base SetRange clamps m_pos but does not replace the extended m_fPos.
+        Assert.Equal(70, state.Position);
+        Assert.Equal(70, state.ColorPosition);
+        state.SetPosition(10);
+        Assert.Equal(70, state.ColorPosition);
+        state.RecalculateGeometry();
+        Assert.Equal(10, state.ColorPosition);
+        Assert.Equal(10, state.Destination);
+    }
+
+    [Fact]
+    public void UiRenderer_ExtendedGaugeColorRefreshChangesGradientWithoutMovingFill()
+    {
+        string path = Path.Combine(_directory, "gauge-color-cache.xml");
+        File.WriteAllText(path, """
+            <resource><element type="FORM" name="form" size="110 30">
+              <item type="GAUGEBAREX" name="gauge" rect="0 0 100 20">
+                <param name="color" var="ffff0000"/><param name="color2" var="ff0000ff"/>
+                <param name="bgcolor" var="ff000000"/>
+              </item>
+            </element></resource>
+            """);
+        PangyaUiDocument document = PangyaUiDocument.Load(path);
+        PangyaUiNode node = Assert.Single(document.Nodes, node => node.Name == "gauge");
+        var state = new PangyaUiGaugeState();
+        state.SetPosition(80);
+        PangyaUiRenderOptions initial = state.ApplyTo(node);
+        state.RecalculateGeometry();
+        PangyaUiRenderOptions refreshed = state.ApplyTo(node, initial);
+        Assert.Equal(0, initial.GaugeColorPositions![node]);
+        Assert.Equal(80, refreshed.GaugeColorPositions![node]);
+        using var assets = new PangyaFileImageProvider(_directory);
+        var renderer = new PangyaUiRenderer(assets);
+        using var bitmap = new Bitmap(110, 30);
+        using Graphics graphics = Graphics.FromImage(bitmap);
+        PangyaUiNode form = document.Nodes.First(node => node.IsForm);
+        renderer.Render(graphics, document, form, initial);
+        Color before = bitmap.GetPixel(70, 8);
+        Color background = bitmap.GetPixel(90, 8);
+        renderer.Render(graphics, document, form, refreshed);
+        Color after = bitmap.GetPixel(70, 8);
+        Assert.True(after.B > before.B);
+        Assert.True(after.R < before.R);
+        Assert.Equal(background.ToArgb(), bitmap.GetPixel(90, 8).ToArgb());
+    }
+
+    [Theory]
+    [InlineData("GAUGEBAR")]
+    [InlineData("GAUGEBAREX")]
+    public void UiGaugeState_OnlyGeometrySettersInvalidateResizedSnapshot(string type)
+    {
+        string path = Path.Combine(_directory, "gauge-geometry-revisions.xml");
+        File.WriteAllText(path, $"<resource><element type='{type}' name='gauge' rect='0 0 100 20'/></resource>");
+        PangyaUiNode node = Assert.Single(PangyaUiDocument.Load(path).Nodes);
+        var state = new PangyaUiGaugeState();
+        state.SetPosition(50);
+        using var assets = new PangyaFileImageProvider(_directory);
+        var renderer = new PangyaUiRenderer(assets);
+        PangyaUiRenderOptions initialized = state.ApplyTo(node);
+        PangyaUiRenderOptions resized = renderer.SetWindowRectangle(node, new Rectangle(10, 5, 200, 40), initialized);
+        RectangleF cached = resized.GaugeBars![node];
+        state.SetDestination(90);
+        state.SetExpansion(5);
+        state.SetSteps(3);
+        PangyaUiRenderOptions unchanged = state.ApplyTo(node, resized);
+        Assert.Equal(cached, unchanged.GaugeBars![node]);
+        Assert.Equal(resized.GaugeTracks![node], unchanged.GaugeTracks![node]);
+        Assert.Equal(cached, state.ApplyTo(node, unchanged).GaugeBars![node]);
+        // Even setting the same position invokes native CalcBarRect.
+        state.SetPosition(50);
+        PangyaUiRenderOptions recalculated = state.ApplyTo(node, unchanged);
+        Assert.False(recalculated.GaugeBars!.ContainsKey(node));
+        Assert.Equal(type == "GAUGEBAREX", recalculated.GaugeTracks!.ContainsKey(node));
+        Assert.Equal(cached, unchanged.GaugeBars![node]);
+        // Independent state objects must not share revision identities.
+        var replacement = new PangyaUiGaugeState();
+        Assert.False(replacement.ApplyTo(node, resized).GaugeBars!.ContainsKey(node));
+    }
+
+    [Theory]
+    [InlineData("GAUGEBAR", 2, 100)]
+    [InlineData("GAUGEBAREX", 3, 88)]
+    public void UiRenderer_GaugeResizeRetainsFillAndInitializedArrowGeometry(string type, int border, int trackWidth)
+    {
+        SaveSolidImage(Path.Combine(_directory, "cached-arrow.png"), Color.White, 4, 4);
+        string path = Path.Combine(_directory, "cached-gauge-geometry.xml");
+        File.WriteAllText(path, $"""
+            <resource><element type="FORM" name="form" size="300 100">
+              <item type="{type}" name="gauge" rect="10 5 110 25">
+                <param name="color" var="ff00ff00"/><param name="color2" var="ff00ff00"/>
+                <param name="bgcolor" var="ff000000"/>
+                <param name="left" var="true"/><param name="right" var="true"/>
+                <param name="normal" var="cached-arrow.png"/><param name="rnormal" var="cached-arrow.png"/>
+              </item>
+            </element></resource>
+            """);
+        PangyaUiDocument document = PangyaUiDocument.Load(path);
+        PangyaUiNode gauge = Assert.Single(document.Nodes, node => node.Name == "gauge");
+        var original = new PangyaUiRenderOptions
+        {
+            GaugeRanges = new Dictionary<PangyaUiNode, PangyaUiGaugeRange> { [gauge] = new(0, 100, 20) },
+            GaugeValues = new Dictionary<PangyaUiNode, int> { [gauge] = 60 }
+        };
+        using var assets = new PangyaFileImageProvider(_directory);
+        var renderer = new PangyaUiRenderer(assets);
+        var resized = renderer.SetWindowRectangle(gauge, new Rectangle(40, 20, 200, 40), original);
+        Rectangle track = resized.GaugeTracks![gauge];
+        RectangleF bar = resized.GaugeBars![gauge];
+        Assert.Equal(trackWidth, track.Width);
+        Assert.Equal(track.X + border, bar.X);
+        Assert.Equal(border, bar.Y);
+        Assert.InRange(bar.Width, (trackWidth - 2 * border) * 0.4f - 0.001f,
+            (trackWidth - 2 * border) * 0.4f + 0.001f);
+        Assert.Null(original.GaugeTracks);
+        if (type == "GAUGEBAREX")
+        {
+            Assert.Equal(new Rectangle(94, 8, 4, 4), resized.GaugeButtons![(gauge, false)]);
+            Assert.Equal(1, renderer.HitTestExtendedGaugeButton(gauge, new Point(135, 29),
+                new HashSet<string>(), resized));
+            Assert.Equal(0, renderer.HitTestExtendedGaugeButton(gauge, new Point(235, 39),
+                new HashSet<string>(), resized));
+        }
+        using var bitmap = new Bitmap(300, 100);
+        using Graphics graphics = Graphics.FromImage(bitmap);
+        renderer.Render(graphics, document, document.Nodes.First(node => node.IsForm), resized);
+        Assert.Equal(Color.Lime.ToArgb(), bitmap.GetPixel(40 + track.X + border + 2, 20 + border + 2).ToArgb());
+        Assert.Equal(Color.Black.ToArgb(), bitmap.GetPixel(160, 30).ToArgb());
+        var state = new PangyaUiGaugeState();
+        state.SetRange(0, 100, 20);
+        state.SetPosition(60);
+        PangyaUiRenderOptions recalculated = state.ApplyTo(gauge, resized);
+        Assert.False(recalculated.GaugeBars!.ContainsKey(gauge));
+        Assert.Equal(type == "GAUGEBAREX", recalculated.GaugeTracks!.ContainsKey(gauge));
+    }
+
+    [Fact]
+    public void UiCanvas_GaugeArrowsStepFromCurrentFractionalStateAndReloadClearsIt()
+    {
+        SaveSolidImage(Path.Combine(_directory, "gauge-arrow-input.png"), Color.White, 4, 4);
+        string path = Path.Combine(_directory, "canvas-gauge-input.xml");
+        File.WriteAllText(path, """
+            <resource><element type="FORM" name="form" size="100 30">
+              <item type="GAUGEBAREX" name="gauge" rect="0 0 80 16">
+                <param name="left" var="true"/><param name="right" var="true"/>
+                <param name="normal" var="gauge-arrow-input.png"/>
+                <param name="rnormal" var="gauge-arrow-input.png"/>
+                <param name="steps" var="3"/>
+              </item>
+            </element></resource>
+            """);
+        PangyaUiDocument document = PangyaUiDocument.Load(path);
+        PangyaUiNode node = Assert.Single(document.Nodes, node => node.Name == "gauge");
+        using var assets = new PangyaFileImageProvider(_directory);
+        RunSta(() =>
+        {
+            using var canvas = new PangyaUiCanvas(assets);
+            canvas.LoadDocument(document);
+            canvas.SelectedForm = Assert.Single(document.Nodes, node => node.IsForm);
+            const BindingFlags flags = BindingFlags.Instance | BindingFlags.NonPublic;
+            var inputs = Assert.IsType<Dictionary<PangyaUiNode, PangyaUiGaugeState>>(
+                typeof(PangyaUiCanvas).GetField("_gaugeInputs", flags)!.GetValue(canvas));
+            var gauge = new PangyaUiGaugeState();
+            gauge.SetRange(0, 10);
+            gauge.SetPosition(1);
+            gauge.SetSteps(3);
+            inputs[node] = gauge;
+            int padding = PangyaUiCanvas.FormPadding;
+            canvas.CanvasMouseDown(canvas, new MouseEventArgs(MouseButtons.Right, 1, padding + 75, padding + 8, 0));
+            Assert.Equal(1, gauge.Position);
+            canvas.CanvasMouseDown(canvas, new MouseEventArgs(MouseButtons.Left, 1, padding + 75, padding + 8, 0));
+            Assert.Equal(1 + 10f / 3, gauge.Position);
+            var options = Assert.IsType<PangyaUiRenderOptions>(
+                typeof(PangyaUiCanvas).GetMethod("RenderOptions", flags)!.Invoke(canvas, null));
+            Assert.Equal(gauge.Position, options.GaugePositions![node]);
+            Assert.Equal(new PangyaUiGaugeRange(0, 10, 0), options.GaugeRanges![node]);
+            canvas.CanvasMouseDown(canvas, new MouseEventArgs(MouseButtons.Left, 1, padding + 3, padding + 8, 0));
+            Assert.InRange(gauge.Position, 0.99999f, 1.00001f);
+            canvas.LoadDocument(document);
+            Assert.Empty(inputs);
+        });
+    }
+
+    [Fact]
+    public void UiGaugeState_RangeClampsValuesAndStepsRetainFractionalPosition()
+    {
+        var gauge = new PangyaUiGaugeState();
+        gauge.SetRange(-10, 10, 50);
+        Assert.Equal(10, gauge.Origin);
+        gauge.SetPosition(1);
+        gauge.SetDestination(100);
+        Assert.Equal(1, gauge.Position);
+        Assert.Equal(10, gauge.Destination);
+        gauge.SetSteps(3);
+        gauge.StepRight();
+        Assert.Equal(1 + 20f / 3, gauge.Position);
+        Assert.Equal(gauge.Position, gauge.Destination);
+        gauge.StepRight();
+        Assert.Equal(10, gauge.Position);
+        gauge.StepLeft();
+        Assert.Equal(10 - 20f / 3, gauge.Position);
+        gauge.SetSteps(0);
+        Assert.Equal(1, gauge.Steps);
+        gauge.SetPosition(-100);
+        Assert.Equal(-10, gauge.Position);
+        gauge.SetDestination(10);
+        gauge.SetRange(-5, 5, -100);
+        Assert.Equal(-5, gauge.Position);
+        Assert.Equal(5, gauge.Destination);
+        Assert.Equal(-5, gauge.Origin);
+        Assert.Throws<ArgumentOutOfRangeException>(() => gauge.SetRange(5, 5));
+    }
+
+    [Fact]
+    public void UiGaugeState_SnapshotRendersFractionalPositionWithoutStaleStepOverride()
+    {
+        string path = Path.Combine(_directory, "fractional-gauge-state.xml");
+        File.WriteAllText(path, """
+            <resource><element type="FORM" name="form" size="50 20">
+              <item type="GAUGEBAR" name="gauge" rect="0 0 30 10">
+                <param name="color" var="ff00ff00"/><param name="bgcolor" var="ff000000"/>
+                <param name="border_thickness" var="0"/>
+              </item>
+            </element></resource>
+            """);
+        PangyaUiDocument document = PangyaUiDocument.Load(path);
+        PangyaUiNode node = Assert.Single(document.Nodes, node => node.Name == "gauge");
+        var original = new PangyaUiRenderOptions
+        {
+            ExtendedGaugeSteps = new Dictionary<PangyaUiNode, int> { [node] = 0 }
+        };
+        var gauge = new PangyaUiGaugeState();
+        gauge.SetRange(0, 10);
+        gauge.SetPosition(1);
+        gauge.SetSteps(3);
+        gauge.StepRight();
+        PangyaUiRenderOptions snapshot = gauge.ApplyTo(node, original);
+        Assert.Equal(1 + 10f / 3, snapshot.GaugePositions![node]);
+        Assert.False(snapshot.ExtendedGaugeSteps!.ContainsKey(node));
+        Assert.True(original.ExtendedGaugeSteps!.ContainsKey(node));
+        gauge.SetPosition(0);
+        using var assets = new PangyaFileImageProvider(_directory);
+        var renderer = new PangyaUiRenderer(assets);
+        using var bitmap = new Bitmap(50, 20);
+        using Graphics graphics = Graphics.FromImage(bitmap);
+        renderer.Render(graphics, document, document.Nodes.First(node => node.IsForm), snapshot);
+        Assert.Equal(Color.Lime.ToArgb(), bitmap.GetPixel(12, 4).ToArgb());
+        Assert.Equal(Color.Black.ToArgb(), bitmap.GetPixel(15, 4).ToArgb());
+    }
+
+    [Fact]
+    public void UiButtonInput_AttemptsHostCaptureOnlyAfterNativeReadinessAndTimerReset()
+    {
+        var input = new PangyaUiButtonInputState();
+        int attempts = 0;
+        bool Capture()
+        {
+            attempts++;
+            Assert.Equal(0.1, input.SecondsSincePress);
+            return false;
+        }
+        Assert.False(input.ButtonDown(true, Capture, rightButton: true));
+        Assert.Equal(0, attempts);
+        input.Enable(false);
+        Assert.False(input.ButtonDown(true, Capture));
+        Assert.Equal(0, attempts);
+        input.Enable(true);
+        Assert.False(input.ButtonDown(true, Capture));
+        Assert.Equal(1, attempts);
+        Assert.False(input.ButtonDown(true, Capture));
+        Assert.Equal(1, attempts);
+        input.AdvanceTime(2);
+        Assert.True(input.ButtonDown(true, () =>
+        {
+            Assert.Equal(0.1, input.SecondsSincePress);
+            attempts++;
+            return true;
+        }));
+        Assert.Equal(2, attempts);
+        Assert.True(input.Captured);
+    }
+
+    [Fact]
+    public void UiCanvas_RightReleaseDoesNotClearLeftButtonInput()
+    {
+        string path = Path.Combine(_directory, "canvas-unrelated-release.xml");
+        File.WriteAllText(path, "<resource><element type='BUTTON' name='button' pos='0 0'/></resource>");
+        PangyaUiDocument document = PangyaUiDocument.Load(path);
+        PangyaUiNode button = Assert.Single(document.Nodes);
+        using var assets = new PangyaFileImageProvider(_directory);
+        RunSta(() =>
+        {
+            using var canvas = new PangyaUiCanvas(assets);
+            canvas.LoadDocument(document);
+            const BindingFlags fields = BindingFlags.Instance | BindingFlags.NonPublic;
+            var inputs = Assert.IsType<Dictionary<PangyaUiNode, PangyaUiButtonInputState>>(
+                typeof(PangyaUiCanvas).GetField("_buttonInputs", fields)!.GetValue(canvas));
+            var input = new PangyaUiButtonInputState();
+            Assert.True(input.ButtonDown(true));
+            inputs[button] = input;
+            typeof(PangyaUiCanvas).GetField("_pressedButton", fields)!.SetValue(canvas, button);
+            MethodInfo mouseUp = typeof(Control).GetMethod("OnMouseUp", fields)!;
+            mouseUp.Invoke(canvas, [new MouseEventArgs(MouseButtons.Right, 1, 0, 0, 0)]);
+            Assert.True(input.Pressed);
+            Assert.True(input.Captured);
+            Assert.Same(button, typeof(PangyaUiCanvas).GetField("_pressedButton", fields)!.GetValue(canvas));
+            mouseUp.Invoke(canvas, [new MouseEventArgs(MouseButtons.Left, 1, 0, 0, 0)]);
+            Assert.False(input.Pressed);
+            Assert.False(input.Captured);
+            Assert.Null(typeof(PangyaUiCanvas).GetField("_pressedButton", fields)!.GetValue(canvas));
+        });
+    }
+
+    [Fact]
+    public void UiCanvas_ButtonInputModelFeedsRenderingAndResetsOnDocumentLoad()
+    {
+        SaveSolidImage(Path.Combine(_directory, "input-normal.png"), Color.Red, 12, 10);
+        SaveSolidImage(Path.Combine(_directory, "input-selected.png"), Color.Lime, 12, 10);
+        string path = Path.Combine(_directory, "canvas-button-input.xml");
+        File.WriteAllText(path, """
+            <resource><element type="FORM" name="form" size="50 30">
+              <item type="BUTTON" name="button" pos="5 5">
+                <param name="normal" var="input-normal.png"/>
+                <param name="selected" var="input-selected.png"/>
+                <param name="style" var="2"/><param name="pushstyle" var="3"/>
+              </item>
+            </element></resource>
+            """);
+        PangyaUiDocument document = PangyaUiDocument.Load(path);
+        PangyaUiNode button = Assert.Single(document.Nodes, node => node.Name == "button");
+        using var assets = new PangyaFileImageProvider(_directory);
+        RunSta(() =>
+        {
+            using var canvas = new PangyaUiCanvas(assets);
+            canvas.LoadDocument(document);
+            canvas.SelectedForm = Assert.Single(document.Nodes, node => node.IsForm);
+            int x = PangyaUiCanvas.FormPadding + 7;
+            int y = PangyaUiCanvas.FormPadding + 7;
+            canvas.CanvasMouseDown(canvas, new MouseEventArgs(MouseButtons.Left, 1, x, y, 0));
+            var inputs = Assert.IsType<Dictionary<PangyaUiNode, PangyaUiButtonInputState>>(
+                typeof(PangyaUiCanvas).GetField("_buttonInputs", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(canvas));
+            PangyaUiButtonInputState input = inputs[button];
+            Assert.Equal(3, input.PushStyle);
+            // Seed a selected radio state independently of whether the test host
+            // grants native capture to an unshown control.
+            input.SetStatus(PangyaUiButtonState.Selected);
+            canvas.CanvasMouseMove(canvas, new MouseEventArgs(MouseButtons.None, 0, 0, 0, 0));
+            Assert.Equal(PangyaUiButtonState.Selected, input.Status);
+            using var rendered = new Bitmap(canvas.Width, canvas.Height);
+            canvas.DrawToBitmap(rendered, canvas.ClientRectangle);
+            Assert.Equal(Color.Lime.ToArgb(), rendered.GetPixel(x, y).ToArgb());
+            canvas.LoadDocument(document);
+            Assert.Empty(inputs);
+        });
+    }
+
+    [Fact]
+    public void UiButtonInput_CheckAndRadioRetainNativePressHistory()
+    {
+        var check = new PangyaUiButtonInputState { PushStyle = 2 };
+        Assert.Equal(PangyaUiButtonCursor.RollOver, check.SetCursor(true));
+        Assert.True(check.ButtonDown(true));
+        Assert.Equal(PangyaUiButtonCursor.Select, check.SetCursor(true));
+        Assert.True(check.ButtonUp(false)); // Check-button release commands also fire outside.
+        Assert.Null(check.SetCursor(false));
+        Assert.Equal(PangyaUiButtonState.Selected, check.Status);
+        Assert.True(check.ButtonDown(true));
+        Assert.Equal(PangyaUiButtonCursor.RollOver, check.SetCursor(true));
+        Assert.Equal(PangyaUiButtonState.Hover, check.Status);
+        check.ButtonUp(true);
+        check.SetCursor(false);
+        var radio = new PangyaUiButtonInputState { PushStyle = 3 };
+        Assert.True(radio.ButtonDown(true));
+        radio.SetCursor(true);
+        Assert.True(radio.ButtonUp(false));
+        radio.SetCursor(false);
+        Assert.Equal(PangyaUiButtonState.Selected, radio.Status);
+        Assert.False(radio.ButtonDown(true));
+        Assert.True(radio.Captured); // Capture occurs before the already-selected guard.
+        Assert.False(radio.Pressed);
+        Assert.False(radio.ButtonUp(true));
+        Assert.False(radio.Captured);
+        radio.SetStatus(PangyaUiButtonState.Normal);
+        Assert.True(radio.ButtonDown(true));
+    }
+
+    [Fact]
+    public void UiButtonInput_PushDelayCaptureAndRightButtonFollowNativeOrder()
+    {
+        var button = new PangyaUiButtonInputState();
+        Assert.False(button.ButtonDown(true, rightButton: true));
+        Assert.Equal(1.3, button.SecondsSincePress);
+        Assert.False(button.ButtonDown(true, captureGranted: false));
+        Assert.Equal(0.1, button.SecondsSincePress);
+        Assert.False(button.Captured);
+        Assert.False(button.ButtonDown(true));
+        button.AdvanceTime(2);
+        button.UseRightButton = true;
+        Assert.Equal(PangyaUiButtonCursor.Info, button.SetCursor(true));
+        Assert.True(button.ButtonDown(true, rightButton: true));
+        Assert.Equal(PangyaUiButtonCursor.Info, button.SetCursor(true));
+        Assert.False(button.ButtonUp(false, rightButton: true));
+        Assert.False(button.Captured);
+        button.SetPushDelay(4);
+        Assert.True(button.ButtonDown(true));
+        button.SetCursor(false);
+        Assert.Equal(PangyaUiButtonState.Normal, button.Status);
+        button.SetCursor(true);
+        Assert.Equal(PangyaUiButtonState.Selected, button.Status);
+        Assert.True(button.ButtonUp(true));
+        button.SetCursor(true);
+        button.Enable(false);
+        Assert.Equal(PangyaUiButtonState.Normal, button.Status);
+        Assert.False(button.ButtonDown(true));
+    }
+
+    [Fact]
+    public void UiButtonInput_RenderSnapshotPreservesImagesAndReplacesStalePressTicks()
+    {
+        string path = Path.Combine(_directory, "button-input-snapshot.xml");
+        File.WriteAllText(path, "<resource><element type='BUTTON' name='button'/></resource>");
+        PangyaUiNode node = Assert.Single(PangyaUiDocument.Load(path).Nodes);
+        var original = new PangyaUiRenderOptions
+        {
+            ButtonPressTicks = new Dictionary<PangyaUiNode, long> { [node] = 123 },
+            ImageButtonStates = new Dictionary<PangyaUiNode, PangyaUiImageButtonState>
+            {
+                [node] = new() { Style = 2, Images = new Dictionary<string, string> { ["normal"] = "normal.png" } }
+            }
+        };
+        var button = new PangyaUiButtonInputState { PushStyle = 3 };
+        button.SetStatus(PangyaUiButtonState.Selected);
+        PangyaUiRenderOptions snapshot = button.ApplyTo(node, original);
+        button.Enable(false);
+        button.SetStatus(PangyaUiButtonState.Normal);
+        Assert.True(snapshot.ImageButtonStates![node].Enabled);
+        Assert.Equal(PangyaUiButtonState.Selected, snapshot.ImageButtonStates[node].Status);
+        Assert.Equal(2, snapshot.ImageButtonStates[node].Style);
+        Assert.Equal("normal.png", snapshot.ImageButtonStates[node].Images!["normal"]);
+        Assert.False(snapshot.ButtonPressTicks!.ContainsKey(node));
+        Assert.Equal(123, original.ButtonPressTicks![node]);
+        Assert.Contains(node, button.ApplyTo(node, snapshot).DisabledNodes!);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void UiRenderer_EnableButtonResetsHoverAndPreservesPressedState(bool enabled)
+    {
+        string path = Path.Combine(_directory, "button-enable-state.xml");
+        File.WriteAllText(path, """
+            <resource><element type="FORM" name="form" size="40 30">
+              <item type="BUTTON" name="button" pos="0 0"/>
+              <item type="BUTTON" name="other" pos="10 0"/>
+            </element></resource>
+            """);
+        PangyaUiDocument document = PangyaUiDocument.Load(path);
+        PangyaUiNode button = Assert.Single(document.Nodes, node => node.Name == "button");
+        PangyaUiNode other = Assert.Single(document.Nodes, node => node.Name == "other");
+        var initial = new PangyaUiRenderOptions
+        {
+            ButtonState = PangyaUiButtonState.Hover,
+            DisabledNodes = new HashSet<PangyaUiNode> { button, other },
+            ImageButtonStates = new Dictionary<PangyaUiNode, PangyaUiImageButtonState>
+            {
+                [button] = new(SecondsSincePress: 0.5) { PushDelay = 2, Blink = true }
+            }
+        };
+        PangyaUiRenderOptions updated = PangyaUiRenderer.EnableButton(button, enabled, initial);
+        Assert.Equal(enabled, updated.ImageButtonStates![button].Enabled);
+        Assert.Equal(PangyaUiButtonState.Normal, updated.ImageButtonStates[button].Status);
+        Assert.Equal(!enabled, updated.DisabledNodes!.Contains(button));
+        Assert.Contains(other, updated.DisabledNodes);
+        Assert.Null(initial.ImageButtonStates![button].Status);
+        Assert.Contains(button, initial.DisabledNodes!);
+        Assert.Equal(0.5, updated.ImageButtonStates[button].SecondsSincePress);
+        Assert.Equal(2, updated.ImageButtonStates[button].PushDelay);
+        Assert.True(updated.ImageButtonStates[button].Blink);
+        var pressed = initial with
+        {
+            ImageButtonStates = new Dictionary<PangyaUiNode, PangyaUiImageButtonState>
+            {
+                [button] = new() { Status = PangyaUiButtonState.Selected }
+            }
+        };
+        Assert.Equal(PangyaUiButtonState.Selected,
+            PangyaUiRenderer.EnableButton(button, enabled, pressed).ImageButtonStates![button].Status);
+    }
+
+    [Fact]
     public void UiBitmapFont_UsesShiftJisGlyphIndicesAndNativeAdvances()
     {
         string path = Path.Combine(_directory, "shift-jis-preview.wft");
@@ -32,6 +858,7 @@ public sealed class ShopTests : IDisposable
                 writer.Write(firstRow); writer.Write(new byte[3]); writer.Write(width);
             }
             Glyph('A', 0x80, 2);
+            Glyph('X', 0x90, 2); // Ink at x=3 lies beyond the proportional advance.
             Glyph(0x82a0, 0x40, 3); // Shift-JIS for Japanese a.
             Glyph(0x3042, 0x20, 1); // A deliberately different glyph at the Unicode index.
             Glyph(0xb1, 0x80, 1);   // Half-width katakana a.
@@ -39,18 +866,88 @@ public sealed class ShopTests : IDisposable
         }
         using var source = PangyaAPI.WFT.WftFontReader.Open(path);
         var font = new PangyaPreviewBitmapFont(source, CancellationToken.None);
+        string koreanPath = Path.Combine(_directory, "korean-fallback.wft");
+        File.Copy(path, koreanPath);
+        using (var stream = File.OpenWrite(koreanPath))
+        using (var writer = new BinaryWriter(stream))
+        {
+            stream.Position = 16L + (0xc7d1 - 0x20) * 6L; // CP949 for 한.
+            writer.Write((byte)0x60); writer.Write(new byte[3]); writer.Write((ushort)3);
+        }
+        using var korean = PangyaAPI.WFT.WftFontReader.Open(koreanPath);
+        var mixedFont = new PangyaPreviewBitmapFont(source, CancellationToken.None, korean);
+        Assert.Equal(3, mixedFont.Measure("한"));
+        string smallPath = Path.Combine(_directory, "small-preview.wft");
+        using (var stream = File.Create(smallPath))
+        using (var writer = new BinaryWriter(stream))
+        {
+            writer.Write(0x544E4657u);
+            writer.Write(3u); writer.Write(0u); writer.Write(0u);
+            stream.SetLength(16L + PangyaAPI.WFT.WftFont.LegacyGlyphCount * 5L);
+        }
+        using var small = PangyaAPI.WFT.WftFontReader.Open(smallPath);
+        var smallMixedFont = new PangyaPreviewBitmapFont(small, CancellationToken.None, korean);
+        Assert.Equal(2, smallMixedFont.Measure("한"));
         Assert.Equal(11, font.Measure("Aあｱ 😀"));
         using var bitmap = new Bitmap(20, 8);
         using Graphics graphics = Graphics.FromImage(bitmap);
         using var brush = new SolidBrush(Color.Lime);
+        mixedFont.Draw(graphics, "한", brush, PointF.Empty);
+        Assert.Equal(0, bitmap.GetPixel(0, 0).A);
+        Assert.Equal(Color.Lime.ToArgb(), bitmap.GetPixel(1, 0).ToArgb());
+        graphics.Clear(Color.Transparent);
+        smallMixedFont.Draw(graphics, "한", brush, PointF.Empty);
+        Assert.Equal(Color.Lime.ToArgb(), bitmap.GetPixel(1, 0).ToArgb());
+        Assert.Equal(0, bitmap.GetPixel(2, 0).A);
+        graphics.Clear(Color.Transparent);
         font.Draw(graphics, "Aあｱ 😀", brush, PointF.Empty);
         foreach (int x in new[] { 0, 4, 6, 9 })
             Assert.Equal(Color.Lime.ToArgb(), bitmap.GetPixel(x, 0).ToArgb());
         Assert.Equal(0, bitmap.GetPixel(5, 0).A);
+        graphics.Clear(Color.Transparent);
+        font.Draw(graphics, "X A", brush, PointF.Empty);
+        Assert.Equal(Color.Lime.ToArgb(), bitmap.GetPixel(0, 0).ToArgb());
+        Assert.Equal(0, bitmap.GetPixel(3, 0).A);
+        Assert.Equal(Color.Lime.ToArgb(), bitmap.GetPixel(4, 0).ToArgb());
+        graphics.Clear(Color.Transparent);
+        font.Draw(graphics, "X", brush, PointF.Empty);
+        Assert.Equal(0, bitmap.GetPixel(3, 0).A);
+        graphics.Clear(Color.Transparent);
+        font.Draw(graphics, "A", brush, new PointF(2.75f, 1.75f));
+        Assert.Equal(Color.Lime.ToArgb(), bitmap.GetPixel(2, 1).ToArgb());
+        Assert.Equal(0, bitmap.GetPixel(3, 2).A);
+        graphics.Clear(Color.Transparent);
+        font.Draw(graphics, "あ", brush, new PointF(-0.25f, 0.75f));
+        Assert.Equal(Color.Lime.ToArgb(), bitmap.GetPixel(0, 0).ToArgb());
+        Assert.Equal(0, bitmap.GetPixel(1, 0).A);
         Assert.Equal(1, font.SetSpace(3));
         Assert.Equal(19, font.Measure("Aあｱ 😀"));
         Assert.Equal(3, font.SetSpace(1));
         Assert.Equal(11, font.Measure("Aあｱ 😀"));
+        Assert.Equal(3, font.Measure("A\0あ"));
+        font.SetFixedWidth(true);
+        Assert.Equal(20, font.Measure("Aあｱ 😀"));
+        Assert.Equal(4, font.Measure("A\0あ"));
+        graphics.Clear(Color.Transparent);
+        font.Draw(graphics, "A あ\0A", brush, PointF.Empty);
+        Assert.Equal(Color.Lime.ToArgb(), bitmap.GetPixel(0, 0).ToArgb());
+        Assert.Equal(Color.Lime.ToArgb(), bitmap.GetPixel(6, 0).ToArgb());
+        Assert.Equal(0, bitmap.GetPixel(9, 0).A);
+        font.SetFixedWidth(false);
+        Assert.Equal(11, font.Measure("Aあｱ 😀"));
+        Assert.Equal(12, font.Measure(@"\1A\2A\3A\0A"));
+        Assert.Equal(3, font.Measure(@"\A")); // Unknown introducers are discarded.
+        graphics.Clear(Color.Transparent);
+        using var white = new SolidBrush(Color.White);
+        font.Draw(graphics, @"\1A\2A\3A\0A", white, PointF.Empty);
+        Assert.Equal(Color.FromArgb(254, 0, 0).ToArgb(), bitmap.GetPixel(0, 0).ToArgb());
+        Assert.Equal(Color.FromArgb(0, 254, 0).ToArgb(), bitmap.GetPixel(3, 0).ToArgb());
+        Assert.Equal(Color.FromArgb(0, 0, 254).ToArgb(), bitmap.GetPixel(6, 0).ToArgb());
+        Assert.Equal(Color.White.ToArgb(), bitmap.GetPixel(9, 0).ToArgb());
+        font.SetColorSet(1, Color.Cyan);
+        graphics.Clear(Color.Transparent);
+        font.Draw(graphics, @"\1A", white, PointF.Empty);
+        Assert.Equal(Color.FromArgb(0, 254, 254).ToArgb(), bitmap.GetPixel(0, 0).ToArgb());
     }
 
     [Fact]
@@ -85,6 +982,46 @@ public sealed class ShopTests : IDisposable
         using (var transform = graphics.Transform) Assert.True(transform.IsIdentity);
         Assert.Throws<ArgumentOutOfRangeException>(() => font.SetScale(float.NaN));
         Assert.Throws<ArgumentOutOfRangeException>(() => font.SetScale(0));
+    }
+
+    [Theory]
+    [InlineData(false, 1f)]
+    [InlineData(true, 2f)]
+    public void UiFontState_ClippingSnapshotsStayAbsoluteAndRestoreCallerState(bool smallFont, float scale)
+    {
+        bool fail = false;
+        var font = new PangyaUiFontState(10, text => text.Length * 6,
+            (graphics, _, brush, _) =>
+            {
+                graphics.FillRectangle(brush, 0, 0, 30, 30);
+                if (fail) throw new InvalidOperationException("Draw failed");
+            });
+        font.SetScale(scale);
+        font.SetClippingArea(new Rectangle(5, 6, 4, 3));
+        PangyaUiRenderOptions clipped = font.ApplyTo(smallFont: smallFont);
+        font.SetClippingArea(null);
+        PangyaUiRenderOptions unclipped = font.ApplyTo(smallFont: smallFont);
+        using var bitmap = new Bitmap(40, 40);
+        using Graphics graphics = Graphics.FromImage(bitmap);
+        graphics.SetClip(new Rectangle(6, 0, 20, 30));
+        using var brush = new SolidBrush(Color.Lime);
+        var drawClipped = smallFont ? clipped.DrawTooltipText! : clipped.DrawCaptionText!;
+        var drawUnclipped = smallFont ? unclipped.DrawTooltipText! : unclipped.DrawCaptionText!;
+        drawClipped(graphics, "A", brush, PointF.Empty);
+        Assert.Equal(Color.Lime.ToArgb(), bitmap.GetPixel(6, 6).ToArgb());
+        Assert.Equal(0, bitmap.GetPixel(5, 6).A);
+        Assert.Equal(0, bitmap.GetPixel(9, 6).A);
+        Assert.Equal(0, bitmap.GetPixel(6, 9).A);
+        Assert.Equal(new RectangleF(6, 0, 20, 30), graphics.ClipBounds);
+        using (var transform = graphics.Transform) Assert.True(transform.IsIdentity);
+        Assert.Equal(12 * scale, clipped.MeasureCaptionText?.Invoke("AA") ?? clipped.MeasureTooltipText!("AA"));
+        fail = true;
+        Assert.Throws<InvalidOperationException>(() => drawClipped(graphics, "A", brush, PointF.Empty));
+        Assert.Equal(new RectangleF(6, 0, 20, 30), graphics.ClipBounds);
+        using (var transform = graphics.Transform) Assert.True(transform.IsIdentity);
+        fail = false;
+        drawUnclipped(graphics, "A", brush, PointF.Empty);
+        Assert.Equal(Color.Lime.ToArgb(), bitmap.GetPixel(9, 6).ToArgb());
     }
 
     [Theory]
@@ -1446,6 +2383,84 @@ public sealed class ShopTests : IDisposable
         Assert.Same(empty, PangyaUiRenderer.SelectTextButton(button, 0, options: empty));
     }
 
+    [Theory]
+    [InlineData("One|Two")]
+    [InlineData("One|Two||Ignored")]
+    public void UiRenderer_TextButtonFinalSegmentRetainsNativeTrailingHoverRegion(string caption)
+    {
+        string path = Path.Combine(_directory, "text-button-final-hover.xml");
+        File.WriteAllText(path, $"""
+            <resource><element type="FORM" name="form" size="100 40">
+              <item type="TEXTBUTTON" name="button" caption="{caption}" rect="10 5 90 15">
+                <param name="center" var="false"/><param name="style" var="0"/>
+                <param name="sel_style" var="0"/><param name="color" var="ffffffff"/>
+                <param name="select_color" var="ffff0000"/>
+              </item>
+            </element></resource>
+            """);
+        PangyaUiDocument document = PangyaUiDocument.Load(path);
+        PangyaUiNode form = Assert.Single(document.Nodes, node => node.IsForm);
+        PangyaUiNode button = Assert.Single(document.Nodes, node => node.Name == "button");
+        using var images = new PangyaFileImageProvider(_directory);
+        var renderer = new PangyaUiRenderer(images);
+        var draws = new List<(string Text, Color Color)>();
+        var options = new PangyaUiRenderOptions
+        {
+            MeasureCaptionText = text => text.Length * 4,
+            DrawCaptionText = (_, text, brush, _) => draws.Add((text, ((SolidBrush)brush).Color)),
+            HoveredNode = button, Pointer = new Point(40, 8)
+        };
+        // One occupies [10,22), separator [22,26), Two [26,38).
+        Assert.Equal(1, renderer.HitTestTextButtonSegment(button, new Point(40, 8), options));
+        Assert.Equal("Two", renderer.GetTextButtonTextUnderCursor(button, new Point(40, 8), options));
+        Assert.Equal(-1, renderer.HitTestTextButtonSegment(button, new Point(42, 8), options));
+        Assert.Equal(-1, renderer.HitTestTextButtonSegment(button, new Point(40, 15), options));
+        using var bitmap = new Bitmap(100, 40);
+        using Graphics graphics = Graphics.FromImage(bitmap);
+        renderer.Render(graphics, document, form, options);
+        Assert.Contains(draws, draw => draw.Text == "Two" && draw.Color.ToArgb() == Color.Red.ToArgb());
+        Assert.DoesNotContain(draws, draw => draw.Text == "Ignored");
+        Assert.Single(draws, draw => draw.Text == "|");
+        Assert.Equal(38, renderer.GetRenderedBounds(button, options).Right);
+    }
+
+    [Fact]
+    public void UiCanvas_TextButtonSelectionOccursOnLeftReleaseInsideControl()
+    {
+        string path = Path.Combine(_directory, "text-button-release.xml");
+        File.WriteAllText(path, """
+            <resource><element type="FORM" name="form" size="100 40">
+              <item type="TEXTBUTTON" name="button" caption="One|Two" rect="10 5 90 20">
+                <param name="center" var="false"/>
+              </item>
+            </element></resource>
+            """);
+        PangyaUiDocument document = PangyaUiDocument.Load(path);
+        PangyaUiNode button = Assert.Single(document.Nodes, node => node.Name == "button");
+        using var assets = new PangyaFileImageProvider(_directory);
+        RunSta(() =>
+        {
+            using var canvas = new PangyaUiCanvas(assets);
+            canvas.LoadDocument(document);
+            canvas.SelectedForm = Assert.Single(document.Nodes, node => node.IsForm);
+            var states = Assert.IsType<Dictionary<PangyaUiNode, PangyaUiMenuState>>(
+                typeof(PangyaUiCanvas).GetField("_menuStates", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(canvas));
+            int x = PangyaUiCanvas.FormPadding + 11;
+            int y = PangyaUiCanvas.FormPadding + 8;
+            canvas.CanvasMouseDown(canvas, new MouseEventArgs(MouseButtons.Left, 1, x, y, 0));
+            Assert.False(states.ContainsKey(button));
+            canvas.CanvasTextButtonMouseUp(canvas, new MouseEventArgs(MouseButtons.Right, 1, x, y, 0));
+            Assert.False(states.ContainsKey(button));
+            canvas.CanvasTextButtonMouseUp(canvas, new MouseEventArgs(MouseButtons.Left, 1, x, y, 0));
+            Assert.Equal(0, states[button].SelectedRow);
+            PangyaUiMenuState selected = states[button];
+            canvas.CanvasTextButtonMouseUp(canvas, new MouseEventArgs(MouseButtons.Left, 1, x, y, 0));
+            Assert.Same(selected, states[button]);
+            canvas.CanvasTextButtonMouseUp(canvas, new MouseEventArgs(MouseButtons.Left, 1, 0, 0, 0));
+            Assert.Same(selected, states[button]);
+        });
+    }
+
     [Fact]
     public void UiRenderer_CaptionClipCanBeReplacedAndClearedWithoutMutatingPriorState()
     {
@@ -1703,6 +2718,19 @@ public sealed class ShopTests : IDisposable
         scroll.DragToRow(100);
         Assert.Equal(5f, scroll.TopRow);
         Assert.True(scroll.FollowBottom);
+    }
+
+    [Fact]
+    public void UiScrollState_ThumbDragUsesWholeTravelForRowsAndRetainsPointerAtLimits()
+    {
+        int previous = 10;
+        float offset = 0;
+        Assert.Equal(1.5f, PangyaUiScrollState.MoveThumb(20, 20.4f, 3, ref previous, ref offset));
+        Assert.Equal(20, previous);
+        Assert.Equal(3.06f, PangyaUiScrollState.MoveThumb(50, 20.4f, 3, ref previous, ref offset), 3);
+        Assert.Equal(20, previous);
+        Assert.Equal(1.56f, PangyaUiScrollState.MoveThumb(10, 20.4f, 3, ref previous, ref offset), 3);
+        Assert.Equal(10, previous);
     }
 
     [Fact]
@@ -2434,6 +3462,17 @@ public sealed class ShopTests : IDisposable
         renderer.Render(graphics, document, form, options);
         Assert.Equal(Color.Blue.ToArgb(), bitmap.GetPixel(5, 5).ToArgb());
         Assert.Same(second, renderer.HitTest(document, form, new Point(5, 5), options));
+
+        var focused = PangyaUiRenderer.SetWindowTopFocus(first, options);
+        Assert.True(PangyaUiRenderer.IsWindowTopFocused(first, focused));
+        Assert.False(PangyaUiRenderer.IsWindowTopFocused(first, options));
+        Assert.Equal(new[] { second, first }, focused.TopmostOrder);
+        renderer.Render(graphics, document, form, focused);
+        Assert.Equal(Color.Red.ToArgb(), bitmap.GetPixel(5, 5).ToArgb());
+        Assert.Same(first, renderer.HitTest(document, form, new Point(5, 5), focused));
+        var reset = PangyaUiRenderer.ResetWindowTopFocus(focused);
+        Assert.False(PangyaUiRenderer.IsWindowTopFocused(first, reset));
+        Assert.Equal(new[] { second, first }, reset.TopmostOrder);
     }
 
     [Fact]
@@ -2844,6 +3883,25 @@ public sealed class ShopTests : IDisposable
         using Graphics graphics = Graphics.FromImage(bitmap);
         renderer.Render(graphics, document, form, options);
         Assert.Equal(Enumerable.Range(0, expected), drawn);
+
+        SaveSolidImage(Path.Combine(_directory, "scroll_n_1.png"), Color.White, 8, 4);
+        using var resizeImages = new PangyaFileImageProvider(_directory);
+        var resizeRenderer = new PangyaUiRenderer(resizeImages);
+        var visible = options with
+        {
+            Lists = new Dictionary<PangyaUiNode, PangyaUiListPreview>
+            {
+                [list] = options.Lists![list] with { ShowScrollbar = true }
+            }
+        };
+        var resized = resizeRenderer.ResizeListItems(list, new Size(20, 20), visible);
+        Assert.Equal(4, resized.Lists![list].ColumnCapacity);
+        Assert.Equal(columns, visible.Lists![list].ColumnCapacity);
+        drawn.Clear();
+        resizeRenderer.Render(graphics, document, form, resized);
+        Assert.Equal(Enumerable.Range(0, 4), drawn);
+        Assert.Equal(3, resizeRenderer.HitTestListItem(list, new Point(65, 5), resized));
+        Assert.Equal(-1, resizeRenderer.HitTestListItem(list, new Point(85, 5), resized));
     }
 
     [Fact]
@@ -3951,6 +5009,7 @@ public sealed class ShopTests : IDisposable
     [Fact]
     public void UiRenderer_ComboMarginsContributeToScrollCapacity()
     {
+        SaveSolidImage(Path.Combine(_directory, "dropdown-cover.png"), Color.Blue, 40, 48);
         string path = Path.Combine(_directory, "combo-margin.xml");
         File.WriteAllText(path, """
             <resource><element type="FORM" name="form" size="80 100">
@@ -3958,6 +5017,12 @@ public sealed class ShopTests : IDisposable
                 <param name="maxlistnum" var="2"/>
                 <param name="topmargin" var="8"/>
                 <param name="lineheight" var="16"/>
+                <param name="bgcolor" var="ffff0000"/>
+              </item>
+              <item type="FORM" name="cover" rect="5 27 45 75">
+                <item type="AREA" name="coverImage" pos="0 0">
+                  <param name="bgimg" var="dropdown-cover.png"/>
+                </item>
               </item>
             </element></resource>
             """);
@@ -3977,6 +5042,23 @@ public sealed class ShopTests : IDisposable
         Assert.Equal(new Rectangle(5, 27, 40, 48), renderer.GetComboDropdownBounds(node, options));
         Assert.Equal(1, PangyaUiRenderer.GetComboMaximumTopRow(node, combo));
         Assert.Equal(2, renderer.HitTestComboRow(node, new Point(10, 60), options));
+        PangyaUiNode form = Assert.Single(document.Nodes, candidate => candidate.Name == "form");
+        PangyaUiNode cover = Assert.Single(document.Nodes, candidate => candidate.Name == "cover");
+        var pointer = new Point(40, 70);
+        Assert.Same(node, renderer.HitTestWheelTarget(document, form, pointer, options));
+        var topmostCover = PangyaUiRenderer.SetWindowTopmost(cover, true, options);
+        Assert.Null(renderer.HitTestWheelTarget(document, form, pointer, topmostCover));
+        using var bitmap = new Bitmap(80, 100);
+        using Graphics graphics = Graphics.FromImage(bitmap);
+        renderer.Render(graphics, document, form, options);
+        Assert.Equal(Color.Red.ToArgb(), bitmap.GetPixel(pointer.X, pointer.Y).ToArgb());
+        renderer.Render(graphics, document, form, topmostCover);
+        Assert.Equal(Color.Blue.ToArgb(), bitmap.GetPixel(pointer.X, pointer.Y).ToArgb());
+        var topmostOwner = PangyaUiRenderer.SetWindowTopmost(node, true, options);
+        var laterCover = PangyaUiRenderer.SetWindowTopmost(cover, true, topmostOwner);
+        renderer.Render(graphics, document, form, laterCover);
+        Assert.Equal(Color.Blue.ToArgb(), bitmap.GetPixel(pointer.X, pointer.Y).ToArgb());
+        Assert.Null(renderer.HitTestWheelTarget(document, form, pointer, laterCover));
         options = options with
         {
             Combos = new Dictionary<PangyaUiNode, PangyaUiComboPreview> { [node] = combo with { TopRow = 99 } }
