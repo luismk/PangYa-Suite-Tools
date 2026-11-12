@@ -24,16 +24,16 @@ frbutton.cpp,50,FrButton,Init,"void FrButton::Init(FrGuiItem& item, FrWndManager
 frbutton.cpp,103,FrButton,InitExtern,"void FrButton::InitExtern(const Bitmap* pBmpNormal, const Bitmap* pBmpOver, const Bitmap* pBmpSelected, eButStyle style, eButPushStyle pushStyle)",unreviewed,,,
 frbutton.cpp,117,FrButton,SetButtonImg,"void FrButton::SetButtonImg(const char* name, eButMode mode)",unreviewed,,,
 frbutton.cpp,136,FrButton,SetButtonBelowImg,"void FrButton::SetButtonBelowImg(const char* name, eButMode mode)",unreviewed,,,
-frbutton.cpp,154,FrButton,Enable,void FrButton::Enable(bool enable),unreviewed,,,
-frbutton.cpp,162,FrButton,OnSetCursor,"void FrButton::OnSetCursor(bool bInClient, const WPoint& mousePos)",unreviewed,,,
-frbutton.cpp,237,FrButton,OnLButtonDown,bool FrButton::OnLButtonDown(const WPoint& mousePos),unreviewed,,,
-frbutton.cpp,266,FrButton,OnLButtonUp,bool FrButton::OnLButtonUp(const WPoint& mousePos),unreviewed,,,
-frbutton.cpp,278,FrButton,OnRButtonDown,bool FrButton::OnRButtonDown(const WPoint& mousePos),unreviewed,,,
-frbutton.cpp,310,FrButton,OnRButtonUp,bool FrButton::OnRButtonUp(const WPoint& mousePos),unreviewed,,,
+frbutton.cpp,154,FrButton,Enable,void FrButton::Enable(bool enable),partial,PangyaAPI/PangyaAPI.UI/PangyaUiRenderer.cs:EnableButton,Source comparison; compiled state-transition fixture unrun,Updates enabled flags and resets Hover on both enable directions while retaining Pressed; full input routing remains open
+frbutton.cpp,162,FrButton,OnSetCursor,"void FrButton::OnSetCursor(bool bInClient, const WPoint& mousePos)",partial,PangyaAPI/PangyaAPI.UI/PangyaUiButtonInputState.cs:SetCursor,Source comparison; compiled press-history and STA rendering fixtures unrun,Editor uses check/radio/default transitions and selected cursor; right-input configuration and full manager routing remain open
+frbutton.cpp,237,FrButton,OnLButtonDown,bool FrButton::OnLButtonDown(const WPoint& mousePos),partial,PangyaAPI/PangyaAPI.UI/PangyaUiButtonInputState.cs:ButtonDown,Source comparison; compiled capture/delay fixture unrun,Models timing reset before capture and radio history; host owns capture and commands
+frbutton.cpp,266,FrButton,OnLButtonUp,bool FrButton::OnLButtonUp(const WPoint& mousePos),partial,PangyaAPI/PangyaAPI.UI/PangyaUiButtonInputState.cs:ButtonUp,Source comparison; compiled release fixtures unrun,Models outside-release rules and clears press/capture; host owns capture and commands
+frbutton.cpp,278,FrButton,OnRButtonDown,bool FrButton::OnRButtonDown(const WPoint& mousePos),partial,PangyaAPI/PangyaAPI.UI/PangyaUiButtonInputState.cs:ButtonDown,Source comparison; compiled right-button fixture unrun,Right-button gate shares native down transition; host owns routing and commands
+frbutton.cpp,310,FrButton,OnRButtonUp,bool FrButton::OnRButtonUp(const WPoint& mousePos),partial,PangyaAPI/PangyaAPI.UI/PangyaUiButtonInputState.cs:ButtonUp,Source comparison; compiled right-button fixture unrun,Right-button gate shares native release transition; host owns routing and commands
 frbutton.cpp,325,FrButton,OnDraw,void FrButton::OnDraw(),unreviewed,,,
 frbutton.cpp,400,FrButton,OnProc,void FrButton::OnProc(const float deltaTime),unreviewed,,,
 frbutton.cpp,419,FrButton,PreCreateWindow,"void FrButton::PreCreateWindow(FrWndManager* pManager, unsigned long dwStyle, const WRect& rect, FrWnd* pParentWnd)",unreviewed,,,
-frbutton.cpp,455,FrButton,SetStatus,void FrButton::SetStatus(eButMode status),unreviewed,,,
+frbutton.cpp,455,FrButton,SetStatus,void FrButton::SetStatus(eButMode status),partial,PangyaAPI/PangyaAPI.UI/PangyaUiButtonInputState.cs:SetStatus,Source comparison; compiled radio fixture unrun,Updates radio previous-pressed latch and renderer snapshot; BLINK status enum remains unrepresented
 frbutton.cpp,463,FrButton,EnableBlink,void FrButton::EnableBlink(bool enable),unreviewed,,,
 frcmdtarget.cpp,4,FrCmdTarget,GetMessageMap,const sFRESH_MSGMAP* FrCmdTarget::GetMessageMap(),unreviewed,,,
 frcmdtarget.cpp,42,FrCmdTarget,FrCmdTarget,FrCmdTarget::FrCmdTarget(),unreviewed,,,
@@ -130,7 +130,7 @@ fredit.cpp,467,FrEdit,RemoveColornLastSpace,"void FrEdit::RemoveColornLastSpace(
 fredit.cpp,489,FrEdit,MakePassword,"void FrEdit::MakePassword(const char* text, std::string& out)",unreviewed,,,
 fredit.cpp,500,FrEdit,OnDraw,void FrEdit::OnDraw(),unreviewed,,,
 fredit.cpp,769,FrEdit,OnProc,void FrEdit::OnProc(float deltaTime),unreviewed,,,
-fredit.cpp,784,FrEdit,OnResize,void FrEdit::OnResize(),unreviewed,,,
+fredit.cpp,784,FrEdit,OnResize,void FrEdit::OnResize(),partial,PangyaAPI/PangyaAPI.UI/PangyaUiRenderer.cs:SetWindowRectangle+GetEditRowCapacity,Source comparison and edit resize fixture,Explicit window resize recalculates scrollbar capacity and retains row and follow mode; runtime comparison remains open
 fredit.cpp,792,FrEdit,OnMouseMove,void FrEdit::OnMouseMove(const WPoint& point),unreviewed,,,
 fredit.cpp,796,FrEdit,OnLButtonDown,bool FrEdit::OnLButtonDown(const WPoint& point),unreviewed,,,
 fredit.cpp,804,FrEdit,OnLButtonUp,bool FrEdit::OnLButtonUp(const WPoint& point),unreviewed,,,
@@ -242,33 +242,33 @@ frframe.cpp,287,FrFrame,OnProc,void FrFrame::OnProc(const float deltaTime),unrev
 frgaugebar.cpp,24,FrGaugeBar,FrGaugeBar,FrGaugeBar::FrGaugeBar(),unreviewed,,,
 frgaugebar.cpp,42,FrGaugeBar,~FrGaugeBar,FrGaugeBar::~FrGaugeBar(),unreviewed,,,
 frgaugebar.cpp,46,FrGaugeBar,Init,"void FrGaugeBar::Init(FrGuiItem& item, FrWndManager* manager, FrWnd* parent)",unreviewed,,,
-frgaugebar.cpp,70,FrGaugeBar,SetRange,"void FrGaugeBar::SetRange(int lower, int upper, int origin)",unreviewed,,,
-frgaugebar.cpp,91,FrGaugeBar,SetPos,void FrGaugeBar::SetPos(int pos),unreviewed,,,
-frgaugebar.cpp,103,FrGaugeBar,SetExpand,void FrGaugeBar::SetExpand(int expand),unreviewed,,,
-frgaugebar.cpp,108,FrGaugeBar,SetDestPos,"void FrGaugeBar::SetDestPos(int pos, bool achilles)",unreviewed,,,
-frgaugebar.cpp,119,FrGaugeBar,MoveWindow,void FrGaugeBar::MoveWindow(const WPoint& point),unreviewed,,,
+frgaugebar.cpp,70,FrGaugeBar,SetRange,"void FrGaugeBar::SetRange(int lower, int upper, int origin)",partial,PangyaAPI/PangyaAPI.UI/PangyaUiGaugeState.cs:SetRange,Source comparison; compiled range fixture unrun,Clamps current and destination and origin; rejects nonpositive span; cached geometry remains open
+frgaugebar.cpp,91,FrGaugeBar,SetPos,void FrGaugeBar::SetPos(int pos),partial,PangyaAPI/PangyaAPI.UI/PangyaUiGaugeState.cs:SetPosition,Source comparison; compiled position fixture unrun,Clamps current and destination together; cached geometry remains open
+frgaugebar.cpp,103,FrGaugeBar,SetExpand,void FrGaugeBar::SetExpand(int expand),partial,PangyaAPI/PangyaAPI.UI/PangyaUiGaugeState.cs:SetExpansion+ApplyTo,Source comparison; compile-only validation,Retains expansion and supplies existing renderer; visual comparison remains open
+frgaugebar.cpp,108,FrGaugeBar,SetDestPos,"void FrGaugeBar::SetDestPos(int pos, bool achilles)",partial,PangyaAPI/PangyaAPI.UI/PangyaUiGaugeState.cs:SetDestination,Source comparison; compiled target fixture unrun,Retains clamped destination without changing current position; animation intentionally excluded
+frgaugebar.cpp,119,FrGaugeBar,MoveWindow,void FrGaugeBar::MoveWindow(const WPoint& point),partial,PangyaAPI/PangyaAPI.UI/PangyaUiRenderer.cs:MoveWindow+CacheGaugeGeometry,Source comparison; compiled resize fixture unrun,Cached fill origin resets to thickness while size persists; uncached direct movement and native OnProc recalc remain open
 frgaugebar.cpp,126,FrGaugeBar,CalcBarRect,void FrGaugeBar::CalcBarRect(const WRect* rectangle),unreviewed,,,
 frgaugebar.cpp,149,FrGaugeBar,OnProc,void FrGaugeBar::OnProc(float elapsed),unreviewed,,,
 frgaugebar.cpp,163,FrGaugeBar,OnDraw,void FrGaugeBar::OnDraw(),unreviewed,,,
 frgaugebar.cpp,214,FrGaugeBarEx,FrGaugeBarEx,FrGaugeBarEx::FrGaugeBarEx(),unreviewed,,,
 frgaugebar.cpp,226,FrGaugeBarEx,~FrGaugeBarEx,FrGaugeBarEx::~FrGaugeBarEx(),unreviewed,,,
 frgaugebar.cpp,230,FrGaugeBarEx,Init,"void FrGaugeBarEx::Init(FrGuiItem& item, FrWndManager* manager, FrWnd* parent)",unreviewed,,,
-frgaugebar.cpp,310,FrGaugeBarEx,SetPos,void FrGaugeBarEx::SetPos(int pos),unreviewed,,,
-frgaugebar.cpp,316,FrGaugeBarEx,SetSteps,void FrGaugeBarEx::SetSteps(int steps),unreviewed,,,
-frgaugebar.cpp,321,FrGaugeBarEx,GetSteps,int FrGaugeBarEx::GetSteps(),unreviewed,,,
+frgaugebar.cpp,310,FrGaugeBarEx,SetPos,void FrGaugeBarEx::SetPos(int pos),partial,PangyaAPI/PangyaAPI.UI/PangyaUiGaugeState.cs:SetPosition,Source comparison; compiled color-order and fractional fixtures unrun,Calculates color from previous accumulator before replacing it; automatic per-frame refresh remains open
+frgaugebar.cpp,316,FrGaugeBarEx,SetSteps,void FrGaugeBarEx::SetSteps(int steps),partial,PangyaAPI/PangyaAPI.UI/PangyaUiGaugeState.cs:SetSteps,Source comparison; compiled step fixture unrun,Clamps minimum to one; editor migration remains open
+frgaugebar.cpp,321,FrGaugeBarEx,GetSteps,int FrGaugeBarEx::GetSteps(),partial,PangyaAPI/PangyaAPI.UI/PangyaUiGaugeState.cs:Steps,Source comparison; compiled step fixture unrun,Exposes retained step count; runtime verification remains open
 frgaugebar.cpp,326,FrGaugeBarEx,OnDraw,void FrGaugeBarEx::OnDraw(),unreviewed,,,
 frgaugebar.cpp,357,FrGaugeBarEx,CalcBarRect,void FrGaugeBarEx::CalcBarRect(const WRect*),unreviewed,,,
-frgaugebar.cpp,370,FrGaugeBarEx,OnLLButtonDown,void FrGaugeBarEx::OnLLButtonDown(),unreviewed,,,
-frgaugebar.cpp,381,FrGaugeBarEx,OnRLButtonDown,void FrGaugeBarEx::OnRLButtonDown(),unreviewed,,,
+frgaugebar.cpp,370,FrGaugeBarEx,OnLLButtonDown,void FrGaugeBarEx::OnLLButtonDown(),partial,PangyaAPI/PangyaAPI.UI/PangyaUiGaugeState.cs:StepLeft,Source comparison; compiled fractional and STA editor fixtures unrun,Editor subtracts float range/steps from retained accumulator and clamps lower; native runtime and cached geometry remain open
+frgaugebar.cpp,381,FrGaugeBarEx,OnRLButtonDown,void FrGaugeBarEx::OnRLButtonDown(),partial,PangyaAPI/PangyaAPI.UI/PangyaUiGaugeState.cs:StepRight,Source comparison; compiled fractional and STA editor fixtures unrun,Editor adds float range/steps to retained accumulator and clamps upper; native runtime and cached geometry remain open
 frgaugebar.cpp,392,FrGaugeBarEx,Enable,void FrGaugeBarEx::Enable(bool enabled),unreviewed,,,
-frgaugebar.cpp,408,FrGaugeBarEx,MoveWindow,void FrGaugeBarEx::MoveWindow(const WPoint& point),unreviewed,,,
+frgaugebar.cpp,408,FrGaugeBarEx,MoveWindow,void FrGaugeBarEx::MoveWindow(const WPoint& point),partial,PangyaAPI/PangyaAPI.UI/PangyaUiRenderer.cs:MoveWindow+CacheGaugeGeometry,Source comparison; compiled resize and arrow-hit fixture unrun,Cached track offset and initialized arrow positions persist; uncached direct movement remains open
 frgaugebar.cpp,433,FrGaugeBarImage,FrGaugeBarImage,FrGaugeBarImage::FrGaugeBarImage(),unreviewed,,,
 frgaugebar.cpp,444,FrGaugeBarImage,~FrGaugeBarImage,FrGaugeBarImage::~FrGaugeBarImage(),unreviewed,,,
 frgaugebar.cpp,448,FrGaugeBarImage,Init,"void FrGaugeBarImage::Init(FrGuiItem& item, FrWndManager* manager, FrWnd* parent)",unreviewed,,,
-frgaugebar.cpp,475,FrGaugeBarImage,GetGaugeSkin,const Bitmap* FrGaugeBarImage::GetGaugeSkin(int skin),unreviewed,,,
-frgaugebar.cpp,483,FrGaugeBarImage,ResetGauge,void FrGaugeBarImage::ResetGauge(),unreviewed,,,
-frgaugebar.cpp,492,FrGaugeBarImage,GetPixelPerHeight,int FrGaugeBarImage::GetPixelPerHeight(),unreviewed,,,
-frgaugebar.cpp,497,FrGaugeBarImage,GetComplete,float FrGaugeBarImage::GetComplete(),unreviewed,,,
+frgaugebar.cpp,475,FrGaugeBarImage,GetGaugeSkin,const Bitmap* FrGaugeBarImage::GetGaugeSkin(int skin),partial,PangyaAPI/PangyaAPI.UI/PangyaUiRenderer.cs:GetImageGaugeSkin,Source comparison; compiled borrowed-skin fixture unrun,Index 1 selects mask and other indices select base; native runtime comparison remains open
+frgaugebar.cpp,483,FrGaugeBarImage,ResetGauge,void FrGaugeBarImage::ResetGauge(),partial,PangyaAPI/PangyaAPI.UI/PangyaUiImageGaugeState.cs:ResetGauge,Source comparison; compiled reset/mask fixtures unrun,Resets position and pixel count while retaining destination/range; below-range raster behavior remains open
+frgaugebar.cpp,492,FrGaugeBarImage,GetPixelPerHeight,int FrGaugeBarImage::GetPixelPerHeight(),partial,PangyaAPI/PangyaAPI.UI/PangyaUiImageGaugeState.cs:PixelCount+RefreshPixelCount,Source comparison; compiled counter fixture unrun,Exposes cached counter with explicit non-animation refresh; automatic OnProc refresh remains open
+frgaugebar.cpp,497,FrGaugeBarImage,GetComplete,float FrGaugeBarImage::GetComplete(),partial,PangyaAPI/PangyaAPI.UI/PangyaUiImageGaugeState.cs:Complete,Source comparison; compiled state fixture unrun,Pinned class initializes to zero and never updates it; native runtime comparison remains open
 frgaugebar.cpp,503,FrGaugeBarImage,OnDraw,void FrGaugeBarImage::OnDraw(),unreviewed,,,
 frgaugebar.cpp,526,FrGaugeBarImage,OnProc,void FrGaugeBarImage::OnProc(float elapsed),unreviewed,,,
 frgaugebar.cpp,543,FrGaugeBarImage,MoveWindow,void FrGaugeBarImage::MoveWindow(const WPoint& point),unreviewed,,,
@@ -295,15 +295,15 @@ frgraphicinterface.cpp,472,FrGraphicInterface,GetFontHeight,int FrGraphicInterfa
 frgraphicinterface.cpp,477,FrGraphicInterface,GetFontHeight11,int FrGraphicInterface::GetFontHeight11(void),unreviewed,,,
 frgraphicinterface.cpp,482,FrGraphicInterface,SetTextColor,"void FrGraphicInterface::SetTextColor(unsigned long color, unsigned long outline)",unreviewed,,,
 frgraphicinterface.cpp,489,FrGraphicInterface,SetTextStyle,void FrGraphicInterface::SetTextStyle(unsigned long style),unreviewed,,,
-frgraphicinterface.cpp,494,FrGraphicInterface,SetSpace,int FrGraphicInterface::SetSpace(int space),unreviewed,,,
-frgraphicinterface.cpp,501,FrGraphicInterface,SetSpace11,int FrGraphicInterface::SetSpace11(int space),unreviewed,,,
-frgraphicinterface.cpp,508,FrGraphicInterface,SetClippingArea,void FrGraphicInterface::SetClippingArea(WRect* pRect),unreviewed,,,
-frgraphicinterface.cpp,513,FrGraphicInterface,SetClippingArea11,void FrGraphicInterface::SetClippingArea11(WRect* pRect),unreviewed,,,
+frgraphicinterface.cpp,494,FrGraphicInterface,SetSpace,int FrGraphicInterface::SetSpace(int space),partial,PangYa-Suite-Tools/Shop/PangyaPreviewBitmapFont.cs:SetSpace,Source comparison; compiled WFT advance fixture,Returns previous spacing and updates proportional advances; independent runtime font routing remains open
+frgraphicinterface.cpp,501,FrGraphicInterface,SetSpace11,int FrGraphicInterface::SetSpace11(int space),partial,PangYa-Suite-Tools/Shop/PangyaPreviewBitmapFont.cs:SetSpace,Source comparison; compiled WFT advance fixture,Per-font spacing state available; independent runtime small-font routing remains open
+frgraphicinterface.cpp,508,FrGraphicInterface,SetClippingArea,void FrGraphicInterface::SetClippingArea(WRect* pRect),partial,PangyaAPI/PangyaAPI.UI/PangyaUiFontState.cs:SetClippingArea+ApplyTo,Source comparison with inherited WOverlay setter; compile-only fixture,Absolute font clip snapshots and null disable; automatic native caller routing and raster parity remain open
+frgraphicinterface.cpp,513,FrGraphicInterface,SetClippingArea11,void FrGraphicInterface::SetClippingArea11(WRect* pRect),partial,PangyaAPI/PangyaAPI.UI/PangyaUiFontState.cs:SetClippingArea+ApplyTo,Source comparison with inherited WOverlay setter; compile-only fixture,Independent small-font clip snapshots and null disable; automatic native caller routing and raster parity remain open
 frgraphicinterface.cpp,518,FrGraphicInterface,SetAlpha,void FrGraphicInterface::SetAlpha(float alpha),unreviewed,,,
 frgraphicinterface.cpp,523,FrGraphicInterface,GetAlpha,float FrGraphicInterface::GetAlpha(void),unreviewed,,,
 frgraphicinterface.cpp,528,FrGraphicInterface,Reset,void FrGraphicInterface::Reset(void),unreviewed,,,
-frgraphicinterface.cpp,535,FrGraphicInterface,SetScale,void FrGraphicInterface::SetScale(float scale),partial,PangyaAPI/PangyaAPI.UI/PangyaUiFontState.cs:SetScale+ApplyTo,Source comparison; compiled metrics and transform fixture,Callback adapter scales measured width and drawing; native fractional-height rounding and font backend remain open
-frgraphicinterface.cpp,540,FrGraphicInterface,SetScale11,void FrGraphicInterface::SetScale11(float scale),partial,PangyaAPI/PangyaAPI.UI/PangyaUiFontState.cs:ApplyTo,Source comparison; compiled small-font snapshot fixture,Small-font callback scaling is independent; native fractional-height rounding and font backend remain open
+frgraphicinterface.cpp,535,FrGraphicInterface,SetScale,void FrGraphicInterface::SetScale(float scale),partial,PangyaAPI/PangyaAPI.UI/PangyaUiFontState.cs:SetScale+ApplyTo,Source comparison; compiled metrics and transform fixture,Scales measured width and drawing while retaining unscaled native height; coordinate-mode and raster parity remain open
+frgraphicinterface.cpp,540,FrGraphicInterface,SetScale11,void FrGraphicInterface::SetScale11(float scale),partial,PangyaAPI/PangyaAPI.UI/PangyaUiFontState.cs:ApplyTo,Source comparison; compiled small-font snapshot fixture,Independent small-font scaling retains unscaled native height; coordinate-mode and raster parity remain open
 frgraphicinterface.cpp,545,FrGraphicInterface,RefreshTexCache,void FrGraphicInterface::RefreshTexCache(const Bitmap& bitmap),unreviewed,,,
 frgraphicinterface.cpp,551,FrGraphicInterface,InvalidateCache,void FrGraphicInterface::InvalidateCache(const Bitmap& bitmap),unreviewed,,,
 frgroupbox.cpp,18,FrGroupBox,FrGroupBox,FrGroupBox::FrGroupBox(),unreviewed,,,
@@ -316,7 +316,7 @@ frlistbox.cpp,21,FrListItem,~FrListItem,inline FrListItem::~FrListItem(),unrevie
 frlistbox.cpp,61,FrListBox,FrListBox,FrListBox::FrListBox(),unreviewed,,,
 frlistbox.cpp,75,FrListBox,~FrListBox,FrListBox::~FrListBox(),unreviewed,,,
 frlistbox.cpp,81,FrListBox,Init,"void FrListBox::Init(FrGuiItem& item, FrWndManager* pManager, FrWnd* pParent)",unreviewed,,,
-frlistbox.cpp,124,FrListBox,Resize,"void FrListBox::Resize(int w, int h)",unreviewed,,,
+frlistbox.cpp,124,FrListBox,Resize,"void FrListBox::Resize(int w, int h)",partial,PangyaAPI/PangyaAPI.UI/PangyaUiRenderer.cs:ResizeListItems,Source comparison and list geometry fixture,Explicit item resize computes columns from available width and drawing shares columns with hit testing
 frlistbox.cpp,139,FrListBox,RecalcColCapacity,void FrListBox::RecalcColCapacity(bool b),unreviewed,,,
 frlistbox.cpp,152,FrListBox,GetBitmap,const Bitmap* FrListBox::GetBitmap(const char* name),unreviewed,,,
 frlistbox.cpp,158,FrListBox,SelectItem,"void FrListBox::SelectItem(FrListItem* item, bool b)",unreviewed,,,
@@ -334,14 +334,14 @@ frlistbox.cpp,347,FrListBox,DelItem,void FrListBox::DelItem(void* data),unreview
 frlistbox.cpp,358,FrListBox,DelItem,"void FrListBox::DelItem(void* data, int size)",unreviewed,,,
 frlistbox.cpp,374,FrListBox,ClearItem,void FrListBox::ClearItem(),unreviewed,,,
 frlistbox.cpp,388,FrListBox,SortItem,"void FrListBox::SortItem(bool (*compare)(const void*, const void*))",unreviewed,,,
-frlistbox.cpp,397,FrListBox,RecalcTopBottom,void FrListBox::RecalcTopBottom(),unreviewed,,,
+frlistbox.cpp,397,FrListBox,RecalcTopBottom,void FrListBox::RecalcTopBottom(),partial,PangyaAPI/PangyaAPI.UI/PangyaUiRenderer.cs:GetListTopRow+DrawList,Source comparison and list rendering fixture,Item drawing and hit tests share rounded first row while scrollbar retains fractional state
 frlistbox.cpp,420,FrListBox,EnableScrollBar,void FrListBox::EnableScrollBar(bool enable),unreviewed,,,
 frlistbox.cpp,430,FrListBox,SetCursorToFirstItem,void FrListBox::SetCursorToFirstItem(),unreviewed,,,
 frlistbox.cpp,441,FrListBox,SetCursorToLastItem,void FrListBox::SetCursorToLastItem(),unreviewed,,,
 frlistbox.cpp,452,FrListBox,OnDraw,void FrListBox::OnDraw(),unreviewed,,,
 frlistbox.cpp,474,FrListBox,OnProc,void FrListBox::OnProc(float deltaTime),unreviewed,,,
 frlistbox.cpp,483,FrListBox,SetClientRect,void FrListBox::SetClientRect(const WRect& rect),unreviewed,,,
-frlistbox.cpp,489,FrListBox,OnResize,void FrListBox::OnResize(),unreviewed,,,
+frlistbox.cpp,489,FrListBox,OnResize,void FrListBox::OnResize(),partial,PangyaAPI/PangyaAPI.UI/PangyaUiRenderer.cs:ResizeListScroll,Source comparison and list resize fixture,Retains scrollbar row and applies resize rounding; preview recomputes visible items immediately
 frlistbox.cpp,499,FrListBox,GetCurrentItemSize,int FrListBox::GetCurrentItemSize(bool b),unreviewed,,,
 frlistbox.cpp,507,FrListBox,OnMouseMove,void FrListBox::OnMouseMove(const WPoint& point),unreviewed,,,
 frlistbox.cpp,529,FrListBox,AddNoRButtonRect,"void FrListBox::AddNoRButtonRect(const WRect& rect, int idx)",unreviewed,,,
@@ -371,12 +371,12 @@ frscrollbar.cpp,126,FrScrollBar,ScrollToBottom,void FrScrollBar::ScrollToBottom(
 frscrollbar.cpp,134,FrScrollBar,ScrollUp,void FrScrollBar::ScrollUp(int delta),unreviewed,,,
 frscrollbar.cpp,148,FrScrollBar,ScrollDown,void FrScrollBar::ScrollDown(int delta),unreviewed,,,
 frscrollbar.cpp,164,FrScrollBar,SetBarHnY,void FrScrollBar::SetBarHnY(),unreviewed,,,
-frscrollbar.cpp,186,FrScrollBar,OnDraw,void FrScrollBar::OnDraw(),unreviewed,,,
+frscrollbar.cpp,186,FrScrollBar,OnDraw,void FrScrollBar::OnDraw(),partial,PangyaAPI/PangyaAPI.UI/PangyaUiRenderer.cs:DrawScrollBar+DrawViewer,Source comparison and viewer skin fixture,Viewer highlight follows wheel target; other scrollbar hosts and native wheel arbitration remain open
 frscrollbar.cpp,244,FrScrollBar,OnResize,void FrScrollBar::OnResize(),unreviewed,,,
-frscrollbar.cpp,249,FrScrollBar,OnMouseMove,void FrScrollBar::OnMouseMove(const WPoint& mousePos),unreviewed,,,
+frscrollbar.cpp,249,FrScrollBar,OnMouseMove,void FrScrollBar::OnMouseMove(const WPoint& mousePos),partial,PangyaAPI/PangyaAPI.UI/PangyaUiScrollState.cs:MoveThumb,Source comparison and fractional geometry fixture,Viewer and combo retain fractional thumb offset and pointer history; native runtime comparison remains open
 frscrollbar.cpp,279,FrScrollBar,OnLButtonDown,bool FrScrollBar::OnLButtonDown(const WPoint& mousePos),unreviewed,,,
 frscrollbar.cpp,302,FrScrollBar,OnLButtonUp,bool FrScrollBar::OnLButtonUp(const WPoint& mousePos),unreviewed,,,
-frscrollbar.cpp,315,FrScrollBar,OnWheel,void FrScrollBar::OnWheel(FrInputState& istate),unreviewed,,,
+frscrollbar.cpp,315,FrScrollBar,OnWheel,void FrScrollBar::OnWheel(FrInputState& istate),partial,PangyaAPI/PangyaAPI.UI/PangyaUiScrollState.cs:ApplyWheel,Source comparison and viewer regression fixture,Uses signed 119-unit steps and preserves follow-bottom rules; full manager arbitration remains open
 frstatic.cpp,26,FrStatic,FrStatic,FrStatic::FrStatic(),unreviewed,,,
 frstatic.cpp,38,FrStatic,~FrStatic,FrStatic::~FrStatic(),unreviewed,,,
 frstatic.cpp,48,FrStatic,SetCaption,void FrStatic::SetCaption(const char* caption),unreviewed,,,
@@ -431,18 +431,18 @@ frtextbutton.cpp,64,FrTextButton,~FrTextButton,FrTextButton::~FrTextButton(),unr
 frtextbutton.cpp,68,FrTextButton,Init,"void FrTextButton::Init(FrGuiItem& item, FrWndManager* manager, FrWnd* parent)",unreviewed,,,
 frtextbutton.cpp,92,FrTextButton,SetCaption,void FrTextButton::SetCaption(const char* caption),unreviewed,,,
 frtextbutton.cpp,127,FrTextButton,GetCaption,const char* FrTextButton::GetCaption(),unreviewed,,,
-frtextbutton.cpp,132,FrTextButton,SetClippingArea,void FrTextButton::SetClippingArea(WRect* rectangle),unreviewed,,,
+frtextbutton.cpp,132,FrTextButton,SetClippingArea,void FrTextButton::SetClippingArea(WRect* rectangle),partial,PangyaAPI/PangyaAPI.UI/PangyaUiRenderer.cs:SetCaptionClippingArea,Source comparison; existing snapshot fixture unrun,Absolute clip replacement and null disable preserve geometry; raster validation remains open
 frtextbutton.cpp,155,FrTextButton,GetUnderCursor,const char* FrTextButton::GetUnderCursor(),unreviewed,,,
 frtextbutton.cpp,162,FrTextButton,GetSelected,const char* FrTextButton::GetSelected(),unreviewed,,,
 frtextbutton.cpp,169,FrTextButton,Select,void FrTextButton::Select(int index),unreviewed,,,
 frtextbutton.cpp,183,FrTextButton,Unselect,void FrTextButton::Unselect(int index),unreviewed,,,
 frtextbutton.cpp,197,FrTextButton,Select,void FrTextButton::Select(TBUTTON_LIST::iterator item),unreviewed,,,
 frtextbutton.cpp,206,FrTextButton,Unselect,void FrTextButton::Unselect(TBUTTON_LIST::iterator item),unreviewed,,,
-frtextbutton.cpp,214,FrTextButton,OnDraw,void FrTextButton::OnDraw(),unreviewed,,,
+frtextbutton.cpp,214,FrTextButton,OnDraw,void FrTextButton::OnDraw(),partial,PangyaAPI/PangyaAPI.UI/PangyaUiRenderer.cs:DrawTextButton,Source comparison; compile-only trailing-hover fixture,Final hover region matches OnMouseMove without trailing separator drawing; runtime state routing remains open
 frtextbutton.cpp,259,FrTextButton,OnProc,void FrTextButton::OnProc(float elapsed),unreviewed,,,
-frtextbutton.cpp,274,FrTextButton,OnMouseMove,void FrTextButton::OnMouseMove(const WPoint& point),unreviewed,,,
+frtextbutton.cpp,274,FrTextButton,OnMouseMove,void FrTextButton::OnMouseMove(const WPoint& point),partial,PangyaAPI/PangyaAPI.UI/PangyaUiRenderer.cs:HitTestTextButtonSegment+DrawTextButton,Source comparison; compile-only trailing-hover fixture,Every segment includes separator-width hover region including final segment; persistent under-cursor state and manager routing remain open
 frtextbutton.cpp,293,FrTextButton,OnSetCursor,"void FrTextButton::OnSetCursor(bool inside, const WPoint& point)",unreviewed,,,
-frtextbutton.cpp,307,FrTextButton,OnLButtonUp,bool FrTextButton::OnLButtonUp(const WPoint& point),unreviewed,,,
+frtextbutton.cpp,307,FrTextButton,OnLButtonUp,bool FrTextButton::OnLButtonUp(const WPoint& point),partial,PangYa-Suite-Tools/Shop/FrmPangyaUiEditor.cs:CanvasTextButtonMouseUp,Source comparison; compiled STA release fixture unrun,Selects on left release inside control and preserves current selection; owner commands and sounds and persistent hover iterator remain open
 frtooltip.cpp,37,FrToolTip,FrToolTip,FrToolTip::FrToolTip(FrWndManager* pWndMgr),unreviewed,,,
 frtooltip.cpp,43,FrToolTip,~FrToolTip,FrToolTip::~FrToolTip(),unreviewed,,,
 frtooltip.cpp,47,FrToolTip,Move,void FrToolTip::Move(const WPoint& pos),unreviewed,,,
@@ -463,8 +463,8 @@ frviewer.cpp,42,FrViewer,Init,"void FrViewer::Init(FrGuiItem& item, FrWndManager
 frviewer.cpp,75,FrViewer,Open,bool FrViewer::Open(const char* fileName),unreviewed,,,
 frviewer.cpp,101,FrViewer,OnDraw,void FrViewer::OnDraw(),unreviewed,,,
 frviewer.cpp,118,FrViewer,OnResize,void FrViewer::OnResize(),unreviewed,,,
-frviewer.cpp,130,FrViewer,SetMouseEvent,void FrViewer::SetMouseEvent(bool active),unreviewed,,,
-frviewer.cpp,139,FrViewer,OnSetCursor,"void FrViewer::OnSetCursor(bool bInClient, const WPoint& mousePos)",unreviewed,,,
+frviewer.cpp,130,FrViewer,SetMouseEvent,void FrViewer::SetMouseEvent(bool active),partial,PangyaAPI/PangyaAPI.UI/PangyaUiRenderer.cs:SetViewerMouseEvent+ViewerAcceptsMouse,Source comparison; compiled mouse-event fixtures unrun,Independent runtime mouse eligibility preserves scrollbar range; full native event routing remains open
+frviewer.cpp,139,FrViewer,OnSetCursor,"void FrViewer::OnSetCursor(bool bInClient, const WPoint& mousePos)",partial,PangYa-Suite-Tools/Shop/FrmPangyaUiEditor.cs:ViewerAcceptsMouse+CanvasMouseMove,Source comparison; compiled eligibility fixtures unrun,Editor hand cursor uses shared visibility/enablement/view-focus/mouse predicate; native cursor-resource comparison remains open
 frviewer.cpp,152,FrViewer,OnLButtonDown,bool FrViewer::OnLButtonDown(const WPoint& mousePos),unreviewed,,,
 frviewer.cpp,158,FrViewer,OnLButtonUp,bool FrViewer::OnLButtonUp(const WPoint& mousePos),unreviewed,,,
 frviewer.cpp,164,FrViewer,OnRButtonDown,bool FrViewer::OnRButtonDown(const WPoint& mousePos),unreviewed,,,
@@ -528,12 +528,12 @@ frwnd.cpp,716,FrWnd,OnProcess,"void FrWnd::OnProcess(const float deltaTime, FrIn
 frwnd.cpp,907,FrWnd,SetVisible,void FrWnd::SetVisible(bool visible),unreviewed,,,
 frwnd.cpp,914,FrWnd,SetTopmost,void FrWnd::SetTopmost(bool topmost),unreviewed,,,
 frwnd.cpp,932,FrWnd,EnableHover,"void FrWnd::EnableHover(bool enable, float time)",unreviewed,,,
-frwnd.cpp,939,FrWnd,SetWheelEvent,void FrWnd::SetWheelEvent(bool enable),unreviewed,,,
+frwnd.cpp,939,FrWnd,SetWheelEvent,void FrWnd::SetWheelEvent(bool enable),partial,PangyaAPI/PangyaAPI.UI/PangyaUiRenderer.cs:SetWindowWheelEvent+HitTestViewerWheel,Source comparison and viewport regression fixture,Independent wheel eligibility reaches editor viewers and edits and combos; native manager arbitration remains open
 frwnd.cpp,946,FrWnd,SetViewFocus,void FrWnd::SetViewFocus(bool takeFromOthers),partial,PangyaAPI/PangyaAPI.UI/PangyaUiRenderer.cs:SetWindowViewFocus,Source comparison; compiled transition fixture,Containing form selection and modal guard modeled; runtime focus routing remains open
 frwnd.cpp,967,FrWnd,ResetViewFocus,void FrWnd::ResetViewFocus(FrWnd* pWndStop),partial,PangyaAPI/PangyaAPI.UI/PangyaUiRenderer.cs:ResetWindowViewFocus,Source comparison; compiled transition fixture,Subtree focus reset and stop subtree modeled; capture release is not modeled
 frwnd.cpp,981,FrWnd,FindViewFocused,FrWnd* FrWnd::FindViewFocused(bool enabled_visible),unreviewed,,,
 frwnd.cpp,1001,FrWnd,IsViewFocused,bool FrWnd::IsViewFocused(),unreviewed,,,
-frwnd.cpp,1016,FrWnd,IsTopFocus,bool FrWnd::IsTopFocus(),unreviewed,,,
+frwnd.cpp,1016,FrWnd,IsTopFocus,bool FrWnd::IsTopFocus(),partial,PangyaAPI/PangyaAPI.UI/PangyaUiRenderer.cs:IsWindowTopFocused,Source comparison and topmost regression fixture,Focus requires explicit topmost registration
 frwnd.cpp,1023,FrWnd,SetKeyFocus,bool FrWnd::SetKeyFocus(bool resetPrevImeData),unreviewed,,,
 frwnd.cpp,1028,FrWnd,ResetKeyFocus,bool FrWnd::ResetKeyFocus(),unreviewed,,,
 frwnd.cpp,1033,FrWnd,MoveWindow,void FrWnd::MoveWindow(const WPoint& pos),unreviewed,,,
@@ -551,7 +551,7 @@ frwnd.cpp,1118,FrWnd,AddChild,void FrWnd::AddChild(FrWnd* pChild),unreviewed,,,
 frwnd.cpp,1123,FrWnd,SetElementFadeOut,void FrWnd::SetElementFadeOut(bool bOut),unreviewed,,,
 frwnd.cpp,1141,FrWnd,SetFadeout,void FrWnd::SetFadeout(bool bOut),unreviewed,,,
 frwnd.cpp,1159,FrWnd,SetAlpha2ToChild,void FrWnd::SetAlpha2ToChild(float a),unreviewed,,,
-frwnd.cpp,1168,FrWnd,FindNextTopFocus,void FrWnd::FindNextTopFocus(bool bForce),unreviewed,,,
+frwnd.cpp,1168,FrWnd,FindNextTopFocus,void FrWnd::FindNextTopFocus(bool bForce),partial,PangyaAPI/PangyaAPI.UI/PangyaUiRenderer.cs:SetWindowTopFocus,Source comparison and topmost regression fixture,Applies caption and secondary alpha and preview sort; native processing cadence remains open
 frwndmanager.cpp,47,FrWndManager,FrWndManager,FrWndManager::FrWndManager(FrElementDoc* pDoc),unreviewed,,,
 frwndmanager.cpp,66,FrWndManager,~FrWndManager,FrWndManager::~FrWndManager(),unreviewed,,,
 frwndmanager.cpp,96,FrWndManager,CreateToolTip,void FrWndManager::CreateToolTip(),unreviewed,,,
@@ -584,7 +584,7 @@ frwndmanager.cpp,785,FrWndManager,SetKeyFocus,"bool FrWndManager::SetKeyFocus(Fr
 frwndmanager.cpp,821,FrWndManager,CanGetKeyFocus,bool FrWndManager::CanGetKeyFocus(FrWnd* pWnd),unreviewed,,,
 frwndmanager.cpp,831,FrWndManager,ResetKeyFocus,bool FrWndManager::ResetKeyFocus(FrWnd* pWnd),unreviewed,,,
 frwndmanager.cpp,851,FrWndManager,MoveKeyFocusToNext,bool FrWndManager::MoveKeyFocusToNext(bool resetPrevImeData),unreviewed,,,
-frwndmanager.cpp,897,FrWndManager,SetWheelFocus,void FrWndManager::SetWheelFocus(FrScrollBar* pScrBar),unreviewed,,,
+frwndmanager.cpp,897,FrWndManager,SetWheelFocus,void FrWndManager::SetWheelFocus(FrScrollBar* pScrBar),partial,PangyaAPI/PangyaAPI.UI/PangyaUiRenderer.cs:HitTestWheelTarget,Source comparison and overlap fixture,Editor input and highlighting share reverse topmost and child traversal; desktop scrollbar and dropdown registration interleaving remain open
 frwndmanager.cpp,902,FrWndManager,MoveCursor,"void FrWndManager::MoveCursor(FrWnd* pParent, const char* name)",unreviewed,,,
 frwndmanager.cpp,913,FrWndManager,SetCapture,bool FrWndManager::SetCapture(FrWnd* pWnd),unreviewed,,,
 frwndmanager.cpp,924,FrWndManager,ReleaseCapture,bool FrWndManager::ReleaseCapture(FrWnd* pWnd),unreviewed,,,

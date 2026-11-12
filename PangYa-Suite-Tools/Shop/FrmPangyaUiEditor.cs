@@ -108,12 +108,57 @@ internal sealed class FrmPangyaUiEditor : Form
         try
         {
             using var font = PangyaAPI.WFT.WftFontReader.Open(path);
-            return font.CellSize == height ? new PangyaPreviewBitmapFont(font, cancellationToken) : null;
+            if (font.CellSize != height) return null;
+            using var korean = ReadKoreanPreviewFont(Path.GetDirectoryName(path)!, height);
+            return new PangyaPreviewBitmapFont(font, cancellationToken, korean);
         }
         catch (Exception error) when (error is IOException or InvalidDataException or UnauthorizedAccessException)
         {
             return null;
         }
+    }
+
+    private static PangyaAPI.WFT.WftFont? ReadKoreanPreviewFont(string directory, int height)
+    {
+        // Some Japanese archives store the original Korean filename as bytes
+        // interpreted by the extractor in the Japanese code page.
+        byte[] name = [0xb5, 0xb8, 0xbf, 0xf2, 0xc3, 0xbc];
+        foreach (int codePage in new[] { 949, 932 })
+        {
+            string stem = System.Text.CodePagesEncodingProvider.Instance.GetEncoding(codePage)!.GetString(name);
+            string path = Path.Combine(directory, $"fnt_{stem}_{height}.wft");
+            try
+            {
+                var font = PangyaAPI.WFT.WftFontReader.Open(path);
+                // The extracted JP archive labels the small Korean font 11
+                // even though its WFNT header declares a 12-pixel cell.
+                if (font.CellSize == height || height == 11 && font.CellSize == 12) return font;
+                font.Dispose();
+            }
+            catch (Exception error) when (error is IOException or InvalidDataException or UnauthorizedAccessException)
+            {
+                // The Japanese font is still usable without this optional fallback.
+            }
+        }
+        return null;
+    }
+
+    private static PangyaUiLanguageTable? ReadPreviewLanguageTable(string root)
+    {
+        string? parent = Path.GetFileName(Path.TrimEndingDirectorySeparator(root)).Equals("data", StringComparison.OrdinalIgnoreCase)
+            ? Directory.GetParent(root)?.FullName : null;
+        foreach (string directory in new[] { root, Path.Combine(root, "data"), parent ?? root }.Distinct(StringComparer.OrdinalIgnoreCase))
+        {
+            string korean = Path.Combine(directory, "korea.dat");
+            string japanese = Path.Combine(directory, "japan.dat");
+            if (!File.Exists(korean) || !File.Exists(japanese)) continue;
+            try { return PangyaUiLanguageTable.Load(korean, japanese); }
+            catch (Exception error) when (error is IOException or InvalidDataException or UnauthorizedAccessException)
+            {
+                // Keep looking for a complete pair.
+            }
+        }
+        return null;
     }
 
     public static async Task<FrmPangyaUiEditor> CreateAsync(string dataRoot,
@@ -123,7 +168,7 @@ internal sealed class FrmPangyaUiEditor : Form
         string fullRoot = Path.GetFullPath(dataRoot);
         (IReadOnlyList<string> files, PangyaFileImageProvider assets,
             PangyaUiResourceCatalog catalog, PangyaPreviewBitmapFont? tooltipFont, PangyaPreviewBitmapFont? captionFont,
-            string entryPath) =
+            PangyaUiLanguageTable? languageTable, string entryPath) =
             await Task.Run(() =>
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -137,11 +182,13 @@ internal sealed class FrmPangyaUiEditor : Form
             PangyaUiResourceCatalog catalog = PangyaUiResourceCatalog.LoadEntry(entry, discovered, fullRoot);
             return (discovered, resolver, catalog,
                 ReadPreviewFont(fullRoot, "ms_ui_gothic_11_jp.wft", 11, cancellationToken),
-                ReadPreviewFont(fullRoot, "fnt_japan_12.wft", 12, cancellationToken), Path.GetFullPath(entry));
+                ReadPreviewFont(fullRoot, "fnt_japan_12.wft", 12, cancellationToken),
+                ReadPreviewLanguageTable(fullRoot), Path.GetFullPath(entry));
         }, cancellationToken);
         var editor = new FrmPangyaUiEditor(fullRoot, files, assets, catalog);
         editor._resourceEntryPath = entryPath;
         editor._canvas.TooltipFont = tooltipFont;
+        editor._canvas.LanguageTable = languageTable;
         editor._canvas.CaptionFont = captionFont;
         editor._canvas.StartupWallpaper = startupWallpaper;
         editor._wallpaperButton.Checked = !string.IsNullOrEmpty(startupWallpaper);
@@ -713,7 +760,15 @@ internal sealed class PangyaUiCanvas : Control
     }
     private readonly Dictionary<PangyaUiNode, int> _viewerTopRows = [];
     private readonly Dictionary<PangyaUiNode, float> _viewerScrollRows = [];
-    private readonly Dictionary<PangyaUiNode, int> _extendedGaugeSteps = [];
+    private readonly Dictionary<PangyaUiNode, bool> _viewerFollowBottom = [];
+    private readonly Dictionary<PangyaUiNode, PangyaUiGaugeState> _gaugeInputs = [];
+    private readonly Dictionary<PangyaUiNode, bool> _wheelEvents = [];
+
+    internal void SetWindowWheelEvent(PangyaUiNode node, bool enabled)
+    {
+        _wheelEvents[node] = enabled;
+        Invalidate();
+    }
     private readonly Dictionary<PangyaUiNode, PangyaUiComboPreview> _combos = [];
     private readonly Dictionary<(PangyaUiNode Node, Point Origin), int> _selectedTabs = [];
     private readonly HashSet<PangyaUiNode> _makeRoomMatchForms = [];
@@ -721,6 +776,7 @@ internal sealed class PangyaUiCanvas : Control
     private readonly List<(PangyaUiNode Node, int Index, Rectangle Bounds, Point Origin)> _renderedTabs = [];
     private readonly Dictionary<PangyaUiNode, IReadOnlyList<string>> _editLines = [];
     private readonly Dictionary<PangyaUiNode, int> _editTopRows = [];
+    private readonly Dictionary<PangyaUiNode, bool> _editFollowBottom = [];
     private readonly System.Windows.Forms.Timer _editCaretTimer = new() { Interval = 50 };
     private PangyaUiNode? _focusedEdit;
     private long _editCaretStart;
@@ -736,9 +792,11 @@ internal sealed class PangyaUiCanvas : Control
         else if (ReferenceEquals(_openCombo, node)) _openCombo = null;
         Invalidate();
     }
-    private (PangyaUiNode Node, int OriginY, int Travel, int GrabOffset)? _comboThumbDrag;
+    private (PangyaUiNode Node, float Travel, int PreviousY, float Offset, Point TrackPoint)? _comboThumbDrag;
     private PangyaUiNode? _draggedViewer;
-    private int _viewerThumbGrabOffset;
+    private Point? _wheelPointer;
+    private int _viewerDragPreviousY;
+    private float _viewerThumbOffset;
     private readonly Dictionary<PangyaUiNode, PangyaUiMenuState> _menuStates = [];
     private readonly System.Windows.Forms.Timer _menuPulseTimer = new() { Interval = 33 };
     private readonly System.Windows.Forms.Timer _layoutAnimationTimer = new() { Interval = 33 };
@@ -752,6 +810,8 @@ internal sealed class PangyaUiCanvas : Control
     private readonly System.Windows.Forms.Timer _frameBlinkTimer = new() { Interval = 800 };
     private readonly Dictionary<PangyaUiNode, TimeSpan> _frameBlinkElapsed = [];
     private readonly Dictionary<PangyaUiNode, long> _buttonPressTicks = [];
+    private readonly Dictionary<PangyaUiNode, PangyaUiButtonInputState> _buttonInputs = [];
+    private long _buttonInputTick = Environment.TickCount64;
     private PangyaUiNode? _pressedButton;
     private bool _pressedButtonInside;
     private readonly HashSet<PangyaUiNode> _latchedButtons = [];
@@ -810,6 +870,11 @@ internal sealed class PangyaUiCanvas : Control
         };
         MouseLeave += (_, _) => UpdateCaptionHover(null);
         MouseLeave += (_, _) => UpdateCursorPreview(null);
+        MouseLeave += (_, _) => UpdateWheelPointer(null);
+        MouseLeave += (_, _) =>
+        {
+            foreach (PangyaUiButtonInputState input in _buttonInputs.Values) input.SetCursor(false);
+        };
         _cursorTimer.Tick += (_, _) =>
         {
             if (_cursorPreview is not null)
@@ -854,6 +919,7 @@ internal sealed class PangyaUiCanvas : Control
         Disposed += (_, _) => _layoutAnimationTimer.Dispose();
         MouseUp += (_, e) =>
         {
+            if (e.Button != MouseButtons.Left) return;
             if (e.Button == MouseButtons.Left && _pressedTab is { } tab &&
                 tab.Bounds.Contains(LogicalPoint(e.Location)) && _renderedTabs.Contains(tab))
             {
@@ -875,6 +941,13 @@ internal sealed class PangyaUiCanvas : Control
                 Invalidate();
             }
             _pressedTab = null;
+            if (e.Button == MouseButtons.Left && _pressedButton is PangyaUiNode inputButton &&
+                _buttonInputs.TryGetValue(inputButton, out PangyaUiButtonInputState? input))
+            {
+                bool inside = GetRenderedBounds(inputButton).Contains(LogicalPoint(e.Location));
+                input.ButtonUp(inside);
+                input.SetCursor(inside);
+            }
             if (e.Button == MouseButtons.Left && _pressedButton is PangyaUiNode pressed &&
                 _combos.TryGetValue(pressed, out PangyaUiComboPreview? combo) &&
                 _renderer.HitTestComboUnfold(pressed, LogicalPoint(e.Location), _enabledSymbols, RenderOptions()))
@@ -886,12 +959,18 @@ internal sealed class PangyaUiCanvas : Control
             Capture = false;
         };
         MouseUp += (_, e) => RefreshCursorPreview(e.Location);
+        MouseUp += CanvasTextButtonMouseUp;
         MouseCaptureChanged += (_, _) =>
         {
             if (Capture) return;
             if (_comboThumbDrag is { } drag && _combos.TryGetValue(drag.Node, out PangyaUiComboPreview? combo) &&
                 combo.ScrollThumbRow is float row)
-                SetComboPreview(drag.Node, combo with { TopRow = (int)MathF.Ceiling(row - 0.5f), ScrollThumbRow = null });
+                SetComboPreview(drag.Node, combo with
+                {
+                    TopRow = Math.Clamp((int)MathF.Ceiling(row - 0.5f), 0,
+                        PangyaUiRenderer.GetComboMaximumTopRow(drag.Node, combo)),
+                    ScrollThumbRow = null, ScrollThumbOffset = null
+                });
             _comboThumbDrag = null;
             _pressedTab = null;
             ClearPressedButton();
@@ -909,20 +988,11 @@ internal sealed class PangyaUiCanvas : Control
         }
         _viewerTopRows.Remove(node);
         _viewerScrollRows.Remove(node);
+        _viewerFollowBottom.Remove(node);
     }
 
-    private static bool ViewerAcceptsMouse(PangyaUiNode node)
-    {
-        if (!node.Parameters.TryGetValue("mouse_event", out string? setting)) return true;
-        ReadOnlySpan<char> value = setting.AsSpan().TrimStart();
-        if (!value.IsEmpty && value[0] is ('+' or '-')) value = value[1..];
-        foreach (char digit in value)
-        {
-            if (!char.IsAsciiDigit(digit)) break;
-            if (digit != '0') return true;
-        }
-        return false;
-    }
+    private bool ViewerAcceptsMouse(PangyaUiNode node) =>
+        PangyaUiRenderer.ViewerAcceptsMouse(node, RenderOptions());
 
     private void EndViewerDrag()
     {
@@ -1044,7 +1114,10 @@ internal sealed class PangyaUiCanvas : Control
         _document = document;
         _viewerTopRows.Clear();
         _viewerScrollRows.Clear();
-        _extendedGaugeSteps.Clear();
+        _viewerFollowBottom.Clear();
+        _gaugeInputs.Clear();
+        _wheelEvents.Clear();
+        _wheelPointer = null;
         _combos.Clear();
         _renderedTabs.Clear();
         _hoveredTab = null;
@@ -1053,6 +1126,7 @@ internal sealed class PangyaUiCanvas : Control
         _pressedTab = null;
         _editLines.Clear();
         _editTopRows.Clear();
+        _editFollowBottom.Clear();
         FocusEdit(null);
         _openCombo = null;
         _draggedViewer = null;
@@ -1064,6 +1138,8 @@ internal sealed class PangyaUiCanvas : Control
         _frameBlinkTimer.Stop();
         _frameBlinkElapsed.Clear();
         _buttonPressTicks.Clear();
+        _buttonInputs.Clear();
+        _buttonInputTick = Environment.TickCount64;
         _latchedButtons.Clear();
         ClearPressedButton();
         _captionOffsets.Clear();
@@ -1109,8 +1185,12 @@ internal sealed class PangyaUiCanvas : Control
         e.Graphics.Transform = transform;
         e.Graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
         _renderedTabs.Clear();
-        _renderer.Render(e.Graphics, _document, SelectedForm, RenderOptions() with
+        PangyaUiRenderOptions options = RenderOptions();
+        PangyaUiNode? wheelFocusedNode = _wheelPointer is Point pointer
+            ? _renderer.HitTestWheelTarget(_document, SelectedForm, pointer, options) : null;
+        _renderer.Render(e.Graphics, _document, SelectedForm, options with
         {
+            WheelFocusedNode = wheelFocusedNode,
             CursorPreview = _cursorPreview,
             HoveredTab = _hoveredTab is { } hover ? (hover.Node, hover.Index, hover.Bounds) : null,
             OnTabInstanceRendered = (node, index, bounds, origin) => _renderedTabs.Add((node, index, bounds, origin))
@@ -1123,6 +1203,9 @@ internal sealed class PangyaUiCanvas : Control
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
     internal PangyaPreviewBitmapFont? CaptionFont { get; set; }
 
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    internal PangyaUiLanguageTable? LanguageTable { get; set; }
+
     private int FreshCursorIndex
     {
         get
@@ -1130,6 +1213,8 @@ internal sealed class PangyaUiCanvas : Control
             if (Cursor == Cursors.IBeam) return 12;
             if (Cursor != Cursors.Hand) return 0;
             PangyaUiNode? button = _hoveredTextControl;
+            if (button is not null && _buttonInputs.TryGetValue(button, out PangyaUiButtonInputState? input))
+                return input.Status == PangyaUiButtonState.Selected ? 2 : 1;
             bool selected = button is not null && (_latchedButtons.Contains(button) ||
                 (_pressedButtonInside && ReferenceEquals(_pressedButton, button)));
             return selected ? 2 : 1;
@@ -1299,57 +1384,69 @@ internal sealed class PangyaUiCanvas : Control
         return base.ProcessCmdKey(ref msg, keyData);
     }
 
+    private void UpdateWheelPointer(Point? pointer)
+    {
+        if (_wheelPointer == pointer) return;
+        _wheelPointer = pointer;
+        Invalidate();
+    }
+
     protected override void OnMouseWheel(MouseEventArgs e)
     {
-        if (e.Delta != 0 && _openCombo is PangyaUiNode open &&
-            _combos.TryGetValue(open, out PangyaUiComboPreview? combo))
+        Point pointer = LogicalPoint(e.Location);
+        UpdateWheelPointer(pointer);
+        PangyaUiRenderOptions options = RenderOptions();
+        PangyaUiNode? target = _document is not null && e.Delta != 0
+            ? _renderer.HitTestWheelTarget(_document, SelectedForm, pointer, options) : null;
+        if (target is PangyaUiNode open && _combos.TryGetValue(open, out PangyaUiComboPreview? combo))
         {
-            Point pointer = LogicalPoint(e.Location);
-            if (_renderer.GetComboDropdownBounds(open, RenderOptions()).Contains(pointer))
+            if (combo.IsOpen)
             {
                 int steps = e.Delta / 119;
                 int maximum = PangyaUiRenderer.GetComboMaximumTopRow(open, combo);
-                int next = (int)Math.Clamp((long)Math.Clamp(combo.TopRow, 0, maximum) -
+                int current = combo.ScrollThumbRow is float row ? (int)MathF.Ceiling(row - 0.5f) : combo.TopRow;
+                int next = (int)Math.Clamp((long)Math.Clamp(current, 0, maximum) -
                     steps, 0, maximum);
-                SetComboPreview(open, combo with { TopRow = next });
+                SetComboPreview(open, combo with { TopRow = next, ScrollThumbRow = null, ScrollThumbOffset = null });
+                if (_comboThumbDrag is { } drag && ReferenceEquals(drag.Node, open) &&
+                    _renderer.TryGetComboScrollbarGeometry(open, drag.TrackPoint, RenderOptions(), out _,
+                        out RectangleF thumb, out Rectangle track))
+                {
+                    drag.Offset = thumb.Y - track.Y;
+                    drag.Travel = track.Height - thumb.Height;
+                    _comboThumbDrag = drag;
+                }
                 int hovered = _renderer.HitTestComboRow(open, pointer, RenderOptions());
                 SetComboPreview(open, _combos[open] with { HoveredIndex = hovered });
                 if (e is HandledMouseEventArgs handled) handled.Handled = true;
                 return;
             }
         }
-        if (_document is not null && e.Delta != 0)
+        if (target is PangyaUiNode viewer)
         {
-            PangyaUiNode? viewer = _renderer.HitTest(_document, SelectedForm,
-                LogicalPoint(e.Location), RenderOptions());
-            if (viewer is not null && _editLines.TryGetValue(viewer, out IReadOnlyList<string>? lines))
+            if (_editLines.TryGetValue(viewer, out IReadOnlyList<string>? lines) &&
+                PangyaUiRenderer.TryScrollEditWheel(viewer, lines.Count, e.Delta, options, out var editScrolled))
             {
-                int maxEditRow = PangyaUiRenderer.GetEditMaximumTopRow(viewer, lines.Count, RenderOptions());
-                if (maxEditRow > 0)
-                {
-                    int initial = GetEditCarets()?.GetValueOrDefault(viewer) is { } caret
-                        ? Math.Max(0, caret.Line - (lines.Count - maxEditRow) + 1) : maxEditRow;
-                    int current = _editTopRows.GetValueOrDefault(viewer, initial);
-                    int steps = e.Delta / 119;
-                    _editTopRows[viewer] = (int)Math.Clamp((long)Math.Clamp(current, 0, maxEditRow) - steps, 0, maxEditRow);
-                    if (e is HandledMouseEventArgs handledEdit) handledEdit.Handled = true;
-                    Invalidate();
-                    return;
-                }
+                _editTopRows[viewer] = editScrolled.EditTopRows![viewer];
+                _editFollowBottom[viewer] = editScrolled.EditFollowBottom![viewer];
+                if (e is HandledMouseEventArgs handledEdit) handledEdit.Handled = true;
+                Invalidate();
+                return;
             }
-            if (viewer is not null)
+            if (_renderer.TryScrollViewerWheel(viewer, e.Delta, options, out var scrolled))
             {
-                int maximum = _renderer.GetViewerMaximumTopRow(viewer, _enabledSymbols, RenderOptions());
-                if (maximum > 0)
+                _viewerScrollRows.Remove(viewer);
+                _viewerTopRows[viewer] = scrolled.ViewerTopRows![viewer];
+                _viewerFollowBottom[viewer] = scrolled.ViewerFollowBottom![viewer];
+                if (ReferenceEquals(viewer, _draggedViewer))
                 {
-                    int row = _viewerTopRows.GetValueOrDefault(viewer);
-                    int steps = e.Delta / 119;
-                    _viewerScrollRows.Remove(viewer);
-                    _viewerTopRows[viewer] = (int)Math.Clamp((long)Math.Clamp(row, 0, maximum) - steps, 0, maximum);
-                    if (e is HandledMouseEventArgs handled) handled.Handled = true;
-                    Invalidate();
-                    return;
+                    RectangleF thumb = _renderer.GetViewerScrollThumbGeometry(viewer,
+                        scrolled with { DraggedViewerThumb = null });
+                    _viewerThumbOffset = thumb.Y - _renderer.GetViewerViewport(viewer, options).Y;
                 }
+                if (e is HandledMouseEventArgs handled) handled.Handled = true;
+                Invalidate();
+                return;
             }
         }
         base.OnMouseWheel(e);
@@ -1360,16 +1457,18 @@ internal sealed class PangyaUiCanvas : Control
 
     internal void CanvasMouseDown(object? sender, MouseEventArgs e)
     {
+        UpdateWheelPointer(LogicalPoint(e.Location));
         if (_document is null || e.Button != MouseButtons.Left) return;
         Point logical = LogicalPoint(e.Location);
         if (_openCombo is PangyaUiNode open && _combos.TryGetValue(open, out PangyaUiComboPreview? combo))
         {
-            if (_renderer.TryGetComboScrollbarPage(open, logical, RenderOptions(), out int rowDelta,
-                    out Rectangle thumb, out Rectangle track))
+            if (_renderer.TryGetComboScrollbarGeometry(open, logical, RenderOptions(), out int rowDelta,
+                    out RectangleF thumb, out Rectangle track))
             {
                 if (logical.Y >= thumb.Top && logical.Y <= thumb.Bottom && track.Height > thumb.Height)
                 {
-                    _comboThumbDrag = (open, track.Y, track.Height - thumb.Height, logical.Y - thumb.Y);
+                    _comboThumbDrag = (open, track.Height - thumb.Height, logical.Y, thumb.Y - track.Y,
+                        new Point(track.Right - 1, track.Top));
                     Capture = true;
                 }
                 int maximum = PangyaUiRenderer.GetComboMaximumTopRow(open, combo);
@@ -1398,10 +1497,10 @@ internal sealed class PangyaUiCanvas : Control
             {
                 if (!viewer.IsRenderVisible)
                     continue;
-                Rectangle thumb = _renderer.GetViewerScrollThumb(viewer, RenderOptions());
+                RectangleF thumb = _renderer.GetViewerScrollThumbGeometry(viewer, RenderOptions());
                 if (thumb.IsEmpty) continue;
                 Rectangle viewport = _renderer.GetViewerViewport(viewer, RenderOptions());
-                var track = new Rectangle(thumb.X - 3, viewport.Y, thumb.Width, viewport.Height);
+                var track = new RectangleF(thumb.X - 3, viewport.Y, thumb.Width, viewport.Height);
                 if (!track.Contains(logical)) continue;
                 if (logical.Y < thumb.Top || logical.Y > thumb.Bottom)
                 {
@@ -1411,11 +1510,13 @@ internal sealed class PangyaUiCanvas : Control
                     int topRow = _viewerTopRows.GetValueOrDefault(viewer);
                     _viewerScrollRows.Remove(viewer);
                     _viewerTopRows[viewer] = Math.Clamp(topRow + (logical.Y < thumb.Y ? -step : step), 0, maximum);
+                    _viewerFollowBottom[viewer] = logical.Y >= thumb.Y && _viewerTopRows[viewer] == maximum;
                     Invalidate();
                     return;
                 }
                 _draggedViewer = viewer;
-                _viewerThumbGrabOffset = logical.Y - thumb.Y;
+                _viewerDragPreviousY = logical.Y;
+                _viewerThumbOffset = thumb.Y - viewport.Y;
                 Capture = true;
                 Invalidate();
                 return;
@@ -1454,45 +1555,56 @@ internal sealed class PangyaUiCanvas : Control
             return;
         }
         PangyaUiRenderOptions buttonOptions = RenderOptions();
-        int pushStyle = PangyaUiRenderer.GetButtonPushStyle(hit, buttonOptions);
-        bool imageButtonPress = e.Button == MouseButtons.Left && PangyaUiRenderer.HasButtonSkin(hit, buttonOptions);
-        if (imageButtonPress && !_buttonPressTicks.ContainsKey(hit))
+        if (e.Button == MouseButtons.Left && hit.Type.Equals("BUTTON", StringComparison.OrdinalIgnoreCase) &&
+            PangyaUiRenderer.HasButtonSkin(hit, buttonOptions))
         {
-            if (pushStyle == 2)
+            if (!_buttonInputs.TryGetValue(hit, out PangyaUiButtonInputState? input))
             {
-                if (!_latchedButtons.Add(hit)) _latchedButtons.Remove(hit);
+                input = new() { PushStyle = PangyaUiRenderer.GetButtonPushStyle(hit, buttonOptions) };
+                input.SetPushDelay(PangyaUiRenderer.GetButtonPushDelay(hit, buttonOptions));
+                _buttonInputs[hit] = input;
             }
-            else if (pushStyle == 3)
-                _latchedButtons.Add(hit);
-            else
+            input.SetCursor(true);
+            // Native readiness and timing changes precede the capture request.
+            input.ButtonDown(true, () =>
+            {
+                Capture = true;
+                return Capture;
+            });
+            input.SetCursor(true);
+            if (input.Captured)
             {
                 _pressedButton = hit;
                 _pressedButtonInside = true;
-                Capture = true;
+            }
+            else Capture = false;
+            if (input.PushStyle == 1 && input.SecondsSincePress <= input.PushDelay &&
+                !_buttonPressTicks.ContainsKey(hit))
+            {
+                _buttonPressTicks[hit] = Environment.TickCount64 - 100;
+                _buttonTimer.Start();
             }
             Invalidate();
+            return;
         }
         int gaugeDirection = _renderer.HitTestExtendedGaugeButton(hit, logical, _enabledSymbols, RenderOptions());
         if (gaugeDirection != 0)
         {
-            int steps = PangyaUiRenderer.GetExtendedGaugeStepCount(hit, RenderOptions());
-            _extendedGaugeSteps[hit] = (int)Math.Clamp(
-                (long)_extendedGaugeSteps.GetValueOrDefault(hit) + gaugeDirection, 0, steps);
+            if (!_gaugeInputs.TryGetValue(hit, out PangyaUiGaugeState? gauge))
+            {
+                gauge = new();
+                gauge.SetSteps(PangyaUiRenderer.GetExtendedGaugeStepCount(hit, RenderOptions()));
+                _gaugeInputs[hit] = gauge;
+            }
+            if (gaugeDirection < 0) gauge.StepLeft(); else gauge.StepRight();
             Invalidate();
             return;
         }
-        if (imageButtonPress && pushStyle == 1 && PangyaUiRenderer.GetButtonPushDelay(hit, RenderOptions()) > 0.1 &&
-            !_buttonPressTicks.ContainsKey(hit))
-        {
-            // Fresh seeds the elapsed counter at 0.1 seconds on push-button down.
-            _buttonPressTicks[hit] = Environment.TickCount64 - 100;
-            _buttonTimer.Start();
-            Invalidate();
-        }
+        // FrTextButton selects on release and does not capture on press.
+        if (hit.Type.Equals("TEXTBUTTON", StringComparison.OrdinalIgnoreCase)) return;
         int row = hit.Type.ToUpperInvariant() switch
         {
             "CONTEXTMENU" => _renderer.HitTestMenuRow(hit, logical, RenderOptions()),
-            "TEXTBUTTON" => _renderer.HitTestTextButtonSegment(hit, logical, RenderOptions()),
             _ => -1
         };
         if (row >= 0)
@@ -1516,6 +1628,24 @@ internal sealed class PangyaUiCanvas : Control
         }
     }
 
+    internal void CanvasTextButtonMouseUp(object? sender, MouseEventArgs e)
+    {
+        if (e.Button != MouseButtons.Left || _document is null) return;
+        Point logical = LogicalPoint(e.Location);
+        PangyaUiRenderOptions options = RenderOptions();
+        PangyaUiNode? hit = _renderer.HitTest(_document, _selectedForm, logical, options);
+        if (hit is null || !hit.Type.Equals("TEXTBUTTON", StringComparison.OrdinalIgnoreCase)) return;
+        // FrWnd::Process gates uncaptured events to the window's client rect.
+        if (!_renderer.GetRenderedBounds(hit, options).Contains(logical)) return;
+        int row = _renderer.HitTestTextButtonSegment(hit, logical, options);
+        if (row < 0) return;
+        PangyaUiMenuState state = _menuStates.GetValueOrDefault(hit) ?? new();
+        if (state.SelectedRow == row) return;
+        _menuStates[hit] = state with { SelectedRow = row, SelectionAlpha = GetMenuPulseAlpha() };
+        if (!_menuPulseTimer.Enabled) _menuPulseTimer.Start();
+        Invalidate();
+    }
+
     private bool CanStartDrag(PangyaUiNode node, Point logicalPoint)
     {
         if (node.Type.Equals("MACROITEM", StringComparison.OrdinalIgnoreCase))
@@ -1536,14 +1666,18 @@ internal sealed class PangyaUiCanvas : Control
     internal void CanvasMouseMove(object? sender, MouseEventArgs e)
     {
         Point logical = LogicalPoint(e.Location);
+        UpdateWheelPointer(logical);
         if (_comboThumbDrag is { } drag && Capture && e.Button == MouseButtons.Left &&
             _combos.TryGetValue(drag.Node, out PangyaUiComboPreview? draggingCombo) && draggingCombo.IsOpen)
         {
             int maximum = PangyaUiRenderer.GetComboMaximumTopRow(drag.Node, draggingCombo);
-            long distance = Math.Clamp((long)logical.Y - drag.GrabOffset - drag.OriginY, 0, drag.Travel);
-            float row = distance * (float)maximum / drag.Travel;
-            int topRow = (int)(row + 0.5f);
-            SetComboPreview(drag.Node, draggingCombo with { TopRow = topRow, HoveredIndex = -1, ScrollThumbRow = row });
+            float row = PangyaUiScrollState.MoveThumb(logical.Y, drag.Travel, maximum, ref drag.PreviousY, ref drag.Offset);
+            _comboThumbDrag = drag;
+            int topRow = Math.Min((int)(row + 0.5f), maximum);
+            SetComboPreview(drag.Node, draggingCombo with
+            {
+                TopRow = topRow, HoveredIndex = -1, ScrollThumbRow = row, ScrollThumbOffset = drag.Offset
+            });
             RefreshCursorPreview(e.Location);
             return;
         }
@@ -1566,6 +1700,7 @@ internal sealed class PangyaUiCanvas : Control
             bool inside = _combos.ContainsKey(pressed)
                 ? _renderer.HitTestComboUnfold(pressed, logical, _enabledSymbols, RenderOptions())
                 : GetRenderedBounds(pressed).Contains(logical);
+            if (_buttonInputs.TryGetValue(pressed, out PangyaUiButtonInputState? input)) input.SetCursor(inside);
             if (_pressedButtonInside != inside)
             {
                 _pressedButtonInside = inside;
@@ -1574,17 +1709,20 @@ internal sealed class PangyaUiCanvas : Control
         }
         if (_draggedViewer is PangyaUiNode viewer && Capture && e.Button == MouseButtons.Left)
         {
-            Rectangle thumb = _renderer.GetViewerScrollThumb(viewer, RenderOptions());
-            Rectangle viewport = _renderer.GetViewerViewport(viewer, RenderOptions());
-            int travel = viewport.Height - thumb.Height;
-            int maximum = _renderer.GetViewerMaximumTopRow(viewer, _enabledSymbols, RenderOptions());
+            PangyaUiRenderOptions options = RenderOptions();
+            RectangleF thumb = _renderer.GetViewerScrollThumbGeometry(viewer, options);
+            Rectangle viewport = _renderer.GetViewerViewport(viewer, options);
+            float travel = viewport.Height - thumb.Height;
+            int maximum = _renderer.GetViewerMaximumTopRow(viewer, _enabledSymbols, options);
             if (!thumb.IsEmpty && travel > 0 && maximum > 0)
             {
-                long distance = Math.Clamp((long)logical.Y - _viewerThumbGrabOffset - viewport.Y, 0, travel);
-                float row = distance * (float)maximum / travel;
+                float row = PangyaUiScrollState.MoveThumb(logical.Y, travel, maximum,
+                    ref _viewerDragPreviousY, ref _viewerThumbOffset);
                 _viewerScrollRows[viewer] = row;
-                int wholeRow = (int)row;
-                _viewerTopRows[viewer] = row - wholeRow > 0.5f ? wholeRow + 1 : wholeRow;
+                _viewerFollowBottom[viewer] = row >= maximum;
+                float boundedRow = Math.Min(row, maximum);
+                int wholeRow = (int)boundedRow;
+                _viewerTopRows[viewer] = boundedRow - wholeRow > 0.5f ? wholeRow + 1 : wholeRow;
                 Invalidate();
             }
             RefreshCursorPreview(e.Location);
@@ -1594,6 +1732,8 @@ internal sealed class PangyaUiCanvas : Control
         {
             PangyaUiNode? hit = _document is null ? null :
                 _renderer.HitTest(_document, SelectedForm, logical, RenderOptions());
+            foreach (var pair in _buttonInputs)
+                pair.Value.SetCursor(ReferenceEquals(pair.Key, hit));
             UpdateCaptionHover(hit is not null && PangyaUiRenderer.IsScrollingCaption(hit, RenderOptions()) ? hit : null);
             var hoveredTab = hit is null ? null : HitRenderedTab(hit, logical);
             if (_hoveredTab != hoveredTab)
@@ -1768,6 +1908,11 @@ internal sealed class PangyaUiCanvas : Control
     private void ClearPressedButton()
     {
         if (_pressedButton is null) return;
+        if (_buttonInputs.TryGetValue(_pressedButton, out PangyaUiButtonInputState? input) && input.Captured)
+        {
+            input.ButtonUp(false);
+            input.SetCursor(false);
+        }
         _pressedButton = null;
         _pressedButtonInside = false;
         Invalidate();
@@ -1833,18 +1978,43 @@ internal sealed class PangyaUiCanvas : Control
         index >= text.Length ? text.Length :
             index + (index + 1 < text.Length && char.IsSurrogatePair(text[index], text[index + 1]) ? 2 : 1);
 
-    private PangyaUiRenderOptions RenderOptions() => new(
+    private IReadOnlyDictionary<PangyaUiNode, PangyaUiImageButtonState> GetButtonInputSnapshots()
+    {
+        long now = Environment.TickCount64;
+        double elapsed = Math.Max(0, now - _buttonInputTick) / 1000.0;
+        _buttonInputTick = now;
+        var snapshots = new Dictionary<PangyaUiNode, PangyaUiImageButtonState>();
+        foreach (var pair in _buttonInputs)
+        {
+            PangyaUiButtonInputState input = pair.Value;
+            input.AdvanceTime(elapsed);
+            snapshots[pair.Key] = new(input.Enabled, input.SecondsSincePress)
+            {
+                Status = input.Status, PushStyle = input.PushStyle, PushDelay = input.PushDelay
+            };
+        }
+        return snapshots;
+    }
+
+    private PangyaUiRenderOptions RenderOptions()
+    {
+        var options = new PangyaUiRenderOptions(
         ButtonState, _enabledSymbols, ShowDebugBounds, SelectedNode, 1f / Zoom)
         {
             ViewerTopRows = _viewerTopRows, ViewerScrollRows = _viewerScrollRows, StartupWallpaper = StartupWallpaper,
+            ViewerFollowBottom = _viewerFollowBottom,
+            DraggedViewerThumb = _draggedViewer is { } viewer ? (viewer, _viewerThumbOffset) : null,
             StartupWallpaperImage = _startupWallpaperImage,
-            ExtendedGaugeSteps = _extendedGaugeSteps,
+            WheelEvents = _wheelEvents,
             Combos = _combos, SelectedTabInstances = _selectedTabs, MakeRoomMatchForms = _makeRoomMatchForms,
             EditLines = _editLines, EditCarets = GetEditCarets(), EditTopRows = _editTopRows,
+            EditFollowBottom = _editFollowBottom,
             ComboViewportHeight = SelectedForm?.Bounds.Height ?? _document?.CanvasSize.Height ?? 0,
             IsViewFocused = _viewFocused,
             FrameBlinkElapsed = _frameBlinkElapsed,
-            ButtonPressTicks = _buttonPressTicks, CurrentTick = Environment.TickCount64,
+            ButtonPressTicks = _buttonPressTicks.Where(pair => !_buttonInputs.ContainsKey(pair.Key))
+                .ToDictionary(pair => pair.Key, pair => pair.Value), CurrentTick = Environment.TickCount64,
+            ImageButtonStates = GetButtonInputSnapshots(),
             PressedButton = _pressedButtonInside ? _pressedButton : null,
             LatchedButtons = _latchedButtons,
             HoveredNode = _draggedViewer ?? _hoveredTextControl, Pointer = _textControlPointer, MenuStates = _menuStates,
@@ -1854,6 +2024,7 @@ internal sealed class PangyaUiCanvas : Control
             CaptionFontHeight = CaptionFont?.Height,
             MeasureCaptionText = CaptionFont is { } captionFont ? captionFont.Measure : null,
             DrawCaptionText = CaptionFont is { } captionBitmapFont ? captionBitmapFont.Draw : null,
+            LanguageTable = LanguageTable,
             TooltipFontHeight = TooltipFont?.Height,
             MeasureTooltipText = TooltipFont is { } font ? font.Measure : null,
             DrawTooltipText = TooltipFont is { } bitmapFont ? bitmapFont.Draw : null,
@@ -1864,6 +2035,9 @@ internal sealed class PangyaUiCanvas : Control
             LayoutAnimationTime = _layoutAnimationTimer.Enabled
                 ? TimeSpan.FromMilliseconds(Environment.TickCount64 - _layoutAnimationStart) : TimeSpan.Zero
         };
+        foreach (var pair in _gaugeInputs) options = pair.Value.ApplyTo(pair.Key, options);
+        return options;
+    }
 }
 
 internal sealed class PangyaUiNodeEventArgs(PangyaUiNode node) : EventArgs
