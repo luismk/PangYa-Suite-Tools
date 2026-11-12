@@ -6,12 +6,14 @@
     <RootNamespace>PangYa_Suite_Tools</RootNamespace>
     <Nullable>enable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
+    <UseWPF>true</UseWPF>
     <ImplicitUsings>enable</ImplicitUsings>
     <ApplicationIcon>App.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
 
   <ItemGroup>
+    <Using Include="System.IO" />
     <Compile Remove="IFFEditor\**" />
     <EmbeddedResource Remove="IFFEditor\**" />
     <None Remove="IFFEditor\**" />

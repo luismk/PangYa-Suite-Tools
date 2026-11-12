@@ -7,6 +7,39 @@ namespace PangyaAPI.Tests;
 
 public sealed class PakRoundTripTests
 {
+    [Fact]
+    public void ReplaceEntry_PreservesDuplicateNameOrderAndChecksBeforeCommit()
+    {
+        using var temp = new TemporaryDirectory();
+        string archive = temp.Combine("duplicate.pak");
+        string replacement = temp.Combine("edited.txt");
+        var writer = new PakWriter { EntryVersion = PakFileEntryVersion.V3, EntryType = PakFileEntryType.Raw };
+        writer.WriteCandidate([
+            new PakWriter.BuildItem(false, "duplicate.txt", 1, _ => [1]),
+            new PakWriter.BuildItem(false, "duplicate.txt", 1, _ => [2]),
+            new PakWriter.BuildItem(false, "other.txt", 1, _ => [3], OriginalName: " other.txt "u8.ToArray())
+        ], archive);
+        File.WriteAllBytes(replacement, [4, 5]);
+        using var reader = new PakReader(archive);
+        reader.Parse(PakKeys.JP);
+        var options = new PakRebuildOptions(PakFileEntryVersion.V3, PakFileEntryType.Raw, 5, PakKeys.JP, writer.Author);
+        byte[] original = File.ReadAllBytes(archive);
+
+        Assert.Throws<InvalidOperationException>(() => PakManager.ReplaceEntry(reader, 1, replacement, options,
+            validateDestination: () => throw new InvalidOperationException()));
+        Assert.Equal(original, File.ReadAllBytes(archive));
+        Assert.Equal(new byte[] { 2 }, reader.ExtractEntryToBytes(reader.Entries[1]));
+
+        PakManager.ReplaceEntry(reader, 1, replacement, options);
+        using var updated = new PakReader(archive);
+        updated.Parse(PakKeys.JP);
+        Assert.Equal(new[] { "duplicate.txt", "duplicate.txt", "other.txt" }, updated.Entries.Select(entry => entry.Name));
+        Assert.Equal(new byte[] { 1 }, updated.ExtractEntryToBytes(updated.Entries[0]));
+        Assert.Equal(new byte[] { 4, 5 }, updated.ExtractEntryToBytes(updated.Entries[1]));
+        Assert.Equal(new byte[] { 3 }, updated.ExtractEntryToBytes(updated.Entries[2]));
+        Assert.Equal(" other.txt "u8.ToArray(), updated.Entries[2].NameRaw);
+    }
+
     public static TheoryData<PakFileEntryVersion, PakFileEntryType> Formats => new()
     {
         { PakFileEntryVersion.Raw, PakFileEntryType.Raw },

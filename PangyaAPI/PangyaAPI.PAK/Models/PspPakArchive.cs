@@ -111,7 +111,12 @@ public static class PspPakArchive
     /// <summary>Replaces existing payloads by zero-based index position, preserving both PSP indexes.</summary>
     public static void ReplaceEntries(string memberPath, IReadOnlyDictionary<int, string> replacements,
         Action<int, int>? onProgress = null, bool saveBackup = false,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default) =>
+        ReplaceEntries(memberPath, replacements, onProgress, saveBackup, cancellationToken, null);
+
+    internal static void ReplaceEntries(string memberPath, IReadOnlyDictionary<int, string> replacements,
+        Action<int, int>? onProgress, bool saveBackup, CancellationToken cancellationToken,
+        Action? validateDestination)
     {
         ArgumentNullException.ThrowIfNull(replacements);
         if (!IsMemberPath(memberPath))
@@ -124,6 +129,7 @@ public static class PspPakArchive
         WriteGate.Wait(cancellationToken);
         try
         {
+            validateDestination?.Invoke();
             using (var data = File.OpenRead(dataPath))
             {
                 var entries = ReadIndex(fullPath, data.Length, PakFileNameEncoding.CreateDefault());
@@ -155,6 +161,7 @@ public static class PspPakArchive
             }
 
             cancellationToken.ThrowIfCancellationRequested();
+            validateDestination?.Invoke();
             File.Replace(candidate, dataPath, saveBackup ? dataPath + ".bak" : null, ignoreMetadataErrors: true);
         }
         finally

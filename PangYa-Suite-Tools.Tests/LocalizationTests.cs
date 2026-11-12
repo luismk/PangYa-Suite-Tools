@@ -20,6 +20,323 @@ namespace PangYa_Suite_Tools.Tests;
 [Collection("Localization")]
 public sealed class LocalizationTests : IDisposable
 {
+    [Fact]
+    public void PakWavePreviewOpensPlayerAndCleansUpAudioFile()
+    {
+        string source = Directory.CreateDirectory(Path.Combine(_tempDirectory, "wave-preview")).FullName;
+        string archive = Path.Combine(_tempDirectory, "audio.pak");
+        string wave = Path.Combine(source, "Sound.WAV");
+        using (var writer = new BinaryWriter(File.Create(wave)))
+        {
+            writer.Write("RIFF"u8);
+            writer.Write(36 + 8000);
+            writer.Write("WAVEfmt "u8);
+            writer.Write(16);
+            writer.Write((short)1);
+            writer.Write((short)1);
+            writer.Write(8000);
+            writer.Write(8000);
+            writer.Write((short)1);
+            writer.Write((short)8);
+            writer.Write("data"u8);
+            writer.Write(8000);
+            writer.Write(Enumerable.Repeat((byte)128, 8000).ToArray());
+        }
+        new PakWriter().CreateFromDirectoryContents(source, archive);
+
+        RunSta(() =>
+        {
+            using var manager = new FrmPakMaker();
+            manager.Show();
+            typeof(FrmPakMaker).GetMethod("LoadPak", BindingFlags.Instance | BindingFlags.NonPublic)!
+                .Invoke(manager, [archive, null]);
+            PrivateField<ListView>(manager, "lstEntries").Items[0].Selected = true;
+            string? playerPath = null;
+            string[] labels = [];
+            byte[]? extracted = null;
+            using var timer = new System.Windows.Forms.Timer { Interval = 25 };
+            timer.Tick += (_, _) =>
+            {
+                if (Application.OpenForms.OfType<PakWavePlayerWindow>().FirstOrDefault() is not { } player)
+                    return;
+                timer.Stop();
+                playerPath = PrivateField<string>(player, "_path");
+                labels = ["_play", "_pause", "_stop"];
+                labels = labels.Select(field => PrivateField<Button>(player, field).Text).ToArray();
+                extracted = File.ReadAllBytes(playerPath);
+                player.Close();
+            };
+            timer.Start();
+            var preview = (Task)typeof(FrmPakMaker).GetMethod("PreviewSelectedFileAsync",
+                BindingFlags.Instance | BindingFlags.NonPublic)!.Invoke(manager, null)!;
+            while (!preview.IsCompleted)
+            {
+                Application.DoEvents();
+                Thread.Sleep(1);
+            }
+            preview.GetAwaiter().GetResult();
+
+            Assert.Equal(new[] { Strings.PakFile_AudioPlay, Strings.PakFile_AudioPause, Strings.PakFile_AudioStop }, labels);
+            Assert.Equal(File.ReadAllBytes(wave), extracted);
+            Assert.NotNull(playerPath);
+            Assert.False(Directory.Exists(Path.GetDirectoryName(playerPath)));
+        });
+    }
+
+    [Theory]
+    [InlineData(DialogResult.Yes)]
+    [InlineData(DialogResult.OK)]
+    [InlineData(DialogResult.Cancel)]
+    public void PakStopEditingOffersUpdateForPendingChanges(DialogResult choice)
+    {
+        string source = Directory.CreateDirectory(Path.Combine(_tempDirectory, "stop-edit-source")).FullName;
+        string archive = Path.Combine(_tempDirectory, "stop-edit.pak");
+        File.WriteAllText(Path.Combine(source, "note.txt"), "Original");
+        new PakWriter().CreateFromDirectoryContents(source, archive);
+        string workingDirectory = Directory.CreateDirectory(Path.Combine(_tempDirectory, "stop-edit-work")).FullName;
+        string workingCopy = Path.Combine(workingDirectory, "stop-edit-note.txt");
+        File.WriteAllText(workingCopy, "Original");
+
+        RunSta(() =>
+        {
+            using var manager = new FrmPakMaker();
+            manager.Show();
+            var load = typeof(FrmPakMaker).GetMethod("LoadPak", BindingFlags.Instance | BindingFlags.NonPublic)!;
+            load.Invoke(manager, [archive, null]);
+            var reader = PrivateField<PakReader>(manager, "_currentReader");
+            byte[] hash = System.Security.Cryptography.SHA256.HashData(File.ReadAllBytes(workingCopy));
+            var session = new PakFileEditSession(reader, 0, workingCopy, PakFileEditSession.CaptureArchive(reader), hash);
+            var sessionField = typeof(FrmPakMaker).GetField("_fileEdit", BindingFlags.Instance | BindingFlags.NonPublic)!;
+            sessionField.SetValue(manager, session);
+            File.WriteAllText(workingCopy, "Edited");
+
+            bool offeredUpdate = false;
+            bool allButtonsHaveIcons = false;
+            using var timer = new System.Windows.Forms.Timer { Interval = 25 };
+            timer.Tick += (_, _) =>
+            {
+                if (Application.OpenForms.Cast<Form>().FirstOrDefault(form => form.Text == Strings.PakFile_StopEdit) is not { } dialog)
+                    return;
+                timer.Stop();
+                var layout = dialog.Controls.OfType<FlowLayoutPanel>().FirstOrDefault();
+                var buttons = layout?.Controls.OfType<FlowLayoutPanel>().FirstOrDefault();
+                offeredUpdate = buttons?.Controls.OfType<Button>().Any(button =>
+                    button.DialogResult == DialogResult.Yes && button.Text == Strings.PakFile_UpdateTitle) == true;
+                allButtonsHaveIcons = buttons?.Controls.OfType<Button>().All(button => button.Image != null) == true;
+                dialog.DialogResult = choice;
+            };
+            timer.Start();
+            var stop = typeof(FrmPakMaker).GetMethod("ConfirmEndFileEditAsync", BindingFlags.Instance | BindingFlags.NonPublic)!;
+            var task = (Task<bool>)stop.Invoke(manager, null)!;
+            while (!task.IsCompleted)
+            {
+                Application.DoEvents();
+                Thread.Sleep(1);
+            }
+
+            Assert.True(offeredUpdate);
+            Assert.True(allButtonsHaveIcons);
+            Assert.Equal(choice != DialogResult.Cancel, task.GetAwaiter().GetResult());
+            Assert.Equal(choice == DialogResult.Cancel, sessionField.GetValue(manager) != null);
+            Assert.Equal(choice != DialogResult.Yes, File.Exists(workingCopy));
+            using var updated = new PakReader(archive);
+            updated.Parse();
+            Assert.Equal(choice == DialogResult.Yes ? "Edited" : "Original",
+                Encoding.UTF8.GetString(updated.ExtractEntryToBytes(updated.Entries[0]) ?? []));
+        });
+    }
+
+    [Fact]
+    public void PakIffEditSavesNamedCopyAndUpdatesArchiveAfterApproval()
+    {
+        string folder = Directory.CreateDirectory(Path.Combine(_tempDirectory, "iff-edit-source")).FullName;
+        string archive = Path.Combine(_tempDirectory, "pangya-data.pak");
+        var original = new byte[8 + 244];
+        original[0] = 1;
+        original[2] = 0xEF;
+        original[3] = 0x76;
+        original[4] = 11;
+        byte[] updated = original.ToArray();
+        updated[^1] = 42;
+        File.WriteAllBytes(Path.Combine(folder, "Item.iff"), original);
+        new PakWriter().CreateFromDirectoryContents(folder, archive);
+
+        RunSta(() =>
+        {
+            using var manager = new FrmPakMaker();
+            manager.Show();
+            var load = typeof(FrmPakMaker).GetMethod("LoadPak", BindingFlags.Instance | BindingFlags.NonPublic)!;
+            load.Invoke(manager, [archive, null]);
+            PrivateField<ListView>(manager, "lstEntries").Items[0].Selected = true;
+
+            using var timer = new System.Windows.Forms.Timer { Interval = 30 };
+            string? workingCopy = null;
+            bool approved = false;
+            bool saveEnabled = false;
+            bool originalAtApproval = false;
+            var deadline = DateTime.UtcNow.AddSeconds(15);
+            timer.Tick += (_, _) =>
+            {
+                var editor = Application.OpenForms.OfType<FrmIFFManager>().FirstOrDefault();
+                if (editor == null)
+                    return;
+                if (DateTime.UtcNow >= deadline)
+                {
+                    editor.Close();
+                    return;
+                }
+                if (workingCopy == null)
+                {
+                    workingCopy = PrivateField<string>(editor, "_pakWorkingPath");
+                    var records = PrivateField<List<IffRecord>>(editor, "_records");
+                    if (records.Count == 1)
+                        records[0] = IffRecord.CreateCopy(0, updated.AsMemory(8), records[0].Schema);
+                    var save = PrivateField<ToolStripButton>(editor, "_toolbarSave");
+                    saveEnabled = save.Enabled;
+                    save.PerformClick();
+                    return;
+                }
+                if (Application.OpenForms.Cast<Form>().FirstOrDefault(window => window.Text == Strings.PakFile_UpdateTitle) is { } prompt)
+                {
+                    originalAtApproval = ReadEntry().AsSpan().SequenceEqual(original);
+                    approved = true;
+                    prompt.DialogResult = DialogResult.Yes;
+                }
+                else if (approved && PrivateField<PakFileEditSession>(manager, "_fileEdit").CanCleanWorkingCopy() &&
+                         ReadEntry().AsSpan().SequenceEqual(updated))
+                {
+                    editor.Close();
+                }
+            };
+            timer.Start();
+            var edit = typeof(FrmPakMaker).GetMethod("EditSelectedFileAsync", BindingFlags.Instance | BindingFlags.NonPublic)!;
+            var task = (Task)edit.Invoke(manager, null)!;
+            while (!task.IsCompleted)
+            {
+                Application.DoEvents();
+                Thread.Sleep(1);
+            }
+            task.GetAwaiter().GetResult();
+            Assert.True(saveEnabled);
+            Assert.True(originalAtApproval);
+            Assert.True(approved);
+            Assert.Equal("pangya-data-Item.iff", Path.GetFileName(workingCopy));
+            Assert.Equal(updated, ReadEntry());
+
+            timer.Stop();
+            var session = PrivateField<PakFileEditSession>(manager, "_fileEdit");
+            string? reopenedPath = null;
+            bool offeredReopen = false;
+            using var reopenTimer = new System.Windows.Forms.Timer { Interval = 30 };
+            reopenTimer.Tick += (_, _) =>
+            {
+                if (Application.OpenForms.Cast<Form>().FirstOrDefault(window => window.Text == Strings.PakFile_StopEdit) is { } dialog)
+                {
+                    var buttons = dialog.Controls.OfType<FlowLayoutPanel>().Single()
+                        .Controls.OfType<FlowLayoutPanel>().Single().Controls.OfType<Button>().ToArray();
+                    offeredReopen = buttons.Any(button => button.Text == Strings.PakFile_Reopen && button.Image != null) &&
+                                    buttons.All(button => button.DialogResult != DialogResult.Yes);
+                    dialog.DialogResult = DialogResult.Retry;
+                }
+                else if (Application.OpenForms.OfType<FrmIFFManager>().FirstOrDefault() is { } editor)
+                {
+                    reopenedPath = PrivateField<string>(editor, "_pakWorkingPath");
+                    editor.Close();
+                }
+            };
+            reopenTimer.Start();
+            var stop = typeof(FrmPakMaker).GetMethod("EndFileEditAsync", BindingFlags.Instance | BindingFlags.NonPublic)!;
+            Assert.False(((Task<bool>)stop.Invoke(manager, [true])!).GetAwaiter().GetResult());
+            deadline = DateTime.UtcNow.AddSeconds(15);
+            while (reopenedPath == null && DateTime.UtcNow < deadline)
+            {
+                Application.DoEvents();
+                Thread.Sleep(1);
+            }
+            Assert.True(offeredReopen);
+            Assert.Equal(workingCopy, reopenedPath);
+            Assert.Same(session, PrivateField<PakFileEditSession>(manager, "_fileEdit"));
+            manager.Close();
+            Assert.False(File.Exists(workingCopy));
+
+            byte[] ReadEntry()
+            {
+                using var reader = new PakReader(archive);
+                reader.Parse();
+                return reader.ExtractEntryToBytes(reader.Entries[0]) ?? [];
+            }
+        });
+    }
+
+    [Fact]
+    public void PakIffPreviewOpensReadOnlyEditorAndCleansUpWorkingCopy()
+    {
+        string folder = Directory.CreateDirectory(Path.Combine(_tempDirectory, "iff-pak-source")).FullName;
+        string archive = Path.Combine(_tempDirectory, "iff-preview.pak");
+        var bytes = new byte[8 + 244];
+        bytes[0] = 1;
+        bytes[2] = 0xEF;
+        bytes[3] = 0x76;
+        bytes[4] = 11;
+        File.WriteAllBytes(Path.Combine(folder, "Item.iff"), bytes);
+        new PakWriter().CreateFromDirectoryContents(folder, archive);
+
+        RunSta(() =>
+        {
+            using var manager = new FrmPakMaker();
+            using var reader = new PakReader(archive);
+            reader.Parse();
+            manager.Show();
+            string? workingCopy = null;
+            IffDocumentInfo? document = null;
+            bool saveEnabled = true;
+            using var timer = new System.Windows.Forms.Timer { Interval = 25 };
+            timer.Tick += (_, _) =>
+            {
+                if (Application.OpenForms.OfType<FrmIFFManager>().FirstOrDefault() is not { } editor)
+                    return;
+                timer.Stop();
+                workingCopy = PrivateField<string>(editor, "_pakWorkingPath");
+                document = PrivateField<IffDocumentInfo>(editor, "_document");
+                saveEnabled = PrivateField<ToolStripButton>(editor, "_toolbarSave").Enabled;
+                editor.Close();
+            };
+            timer.Start();
+            var method = typeof(FrmPakMaker).GetMethod("PreviewIffAsync", BindingFlags.Instance | BindingFlags.NonPublic)!;
+            using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+            var task = (Task)method.Invoke(manager, [reader, Assert.Single(reader.Entries), timeout.Token])!;
+            while (!task.IsCompleted)
+            {
+                Application.DoEvents();
+                Thread.Sleep(1);
+            }
+            task.GetAwaiter().GetResult();
+
+            Assert.Equal("Item.iff", document?.FileName);
+            Assert.NotNull(document?.Schema);
+            Assert.False(document.Schema.IsEditable);
+            Assert.All(document.Schema.Fields, field => Assert.False(field.IsEditable));
+            Assert.False(saveEnabled);
+            Assert.NotNull(workingCopy);
+            Assert.False(Directory.Exists(Path.GetDirectoryName(workingCopy)));
+        });
+    }
+
+    [Theory]
+    [InlineData("en", "Preview", "Edit")]
+    [InlineData("pt-BR", "Visualizar", "Editar")]
+    [InlineData("sv", "Förhandsvisa", "Redigera")]
+    [InlineData("fr", "Aperçu", "Modifier")]
+    [InlineData("ja", "プレビュー", "編集")]
+    public void PakFileActions_AreLocalized(string culture, string preview, string edit)
+    {
+        var resources = Strings.ResourceManager.GetResourceSet(CultureInfo.GetCultureInfo(culture), true, true);
+        Assert.NotNull(resources);
+        Assert.Equal(preview, resources.GetString(nameof(Strings.PakFile_Preview)));
+        Assert.Equal(edit, resources.GetString(nameof(Strings.PakFile_Edit)));
+        Assert.Contains("{0}", resources.GetString(nameof(Strings.PakFile_UpdateRevision)) ?? "");
+    }
+
     [Theory]
     [InlineData("en", "Open reference in new window")]
     [InlineData("pt-BR", "Abrir referência em nova janela")]

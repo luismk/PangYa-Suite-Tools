@@ -1180,4 +1180,85 @@ Cancel: Stop the extraction.</value></data>
   <data name="UiEditor_StartupWallpaper" xml:space="preserve"><value>Startup wallpaper</value></data>
   <data name="IFFManager_RegionPsp" xml:space="preserve"><value>PSP</value></data>
   <data name="UiEditor_OpenReference" xml:space="preserve"><value>Open reference in new window</value></data>
+  <data name="PakFile_Preview" xml:space="preserve">
+    <value>Preview</value>
+  </data>
+  <data name="PakFile_Edit" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="PakFile_StopEdit" xml:space="preserve">
+    <value>Stop Editing</value>
+  </data>
+  <data name="PakFile_PreviewUnavailable" xml:space="preserve">
+    <value>This file cannot be previewed. {0}</value>
+  </data>
+  <data name="PakFile_PreviewLimit" xml:space="preserve">
+    <value>This file exceeds the preview size limit.</value>
+  </data>
+  <data name="PakFile_UpdateTitle" xml:space="preserve">
+    <value>Update PAK</value>
+  </data>
+  <data name="PakFile_KeepEditing" xml:space="preserve">
+    <value>Keep Editing</value>
+  </data>
+  <data name="PakFile_UpdateRevision" xml:space="preserve">
+    <value>Apply the saved changes to “{0}” in the PAK?</value>
+  </data>
+  <data name="PakFile_EditFailed" xml:space="preserve">
+    <value>Could not edit or update “{0}”. {1}</value>
+  </data>
+  <data name="PakFile_ArchiveChanged" xml:space="preserve">
+    <value>The archive changed during editing. The working copy was kept at {0}.</value>
+  </data>
+  <data name="PakFile_ConfirmStop" xml:space="preserve">
+    <value>Stop watching for saves? Any unapplied changes will be kept at {0}.</value>
+  </data>
+  <data name="PakFile_EditWatching" xml:space="preserve">
+    <value>Watching for saves to “{0}”.</value>
+  </data>
+  <data name="PakFile_PspEditSize" xml:space="preserve">
+    <value>PSP entries must stay the same size ({0} bytes). Save a corrected version to try again.</value>
+  </data>
+  <data name="PakFile_PreviewReset" xml:space="preserve">
+    <value>Reset view</value>
+  </data>
+  <data name="PakFile_PreviewNoMesh" xml:space="preserve">
+    <value>This puppet contains no mesh. Sections: {0}</value>
+  </data>
+  <data name="PakFile_PreviewMissingTextures" xml:space="preserve">
+    <value>Some textures could not be displayed.</value>
+  </data>
+  <data name="PakFile_PreviewAuto" xml:space="preserve">
+    <value>Auto</value>
+  </data>
+  <data name="PakFile_ArchiveReload" xml:space="preserve">
+    <value>The archive changed on disk. Reopen it before editing.</value>
+  </data>
+  <data name="PakFile_TextEncoding" xml:space="preserve">
+    <value>Text encoding</value>
+  </data>
+  <data name="PakFile_Reopen" xml:space="preserve">
+    <value>Reopen File</value>
+  </data>
+  <data name="PakFile_AudioPlay" xml:space="preserve">
+    <value>Play</value>
+  </data>
+  <data name="PakFile_AudioPause" xml:space="preserve">
+    <value>Pause</value>
+  </data>
+  <data name="PakFile_AudioStop" xml:space="preserve">
+    <value>Stop</value>
+  </data>
+  <data name="PakFile_AxisLockHint" xml:space="preserve">
+    <value>Press X, Y, or Z to lock an axis</value>
+  </data>
+  <data name="PakFile_AxisLocked" xml:space="preserve">
+    <value>{0} axis locked · Press {0} to unlock</value>
+  </data>
+  <data name="PakFile_AxisDragHorizontal" xml:space="preserve">
+    <value>{0} locked · Drag left or right</value>
+  </data>
+  <data name="PakFile_AxisDragVertical" xml:space="preserve">
+    <value>X locked · Drag up or down</value>
+  </data>
 </root>

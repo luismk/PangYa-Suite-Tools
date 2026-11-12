@@ -5,7 +5,10 @@ namespace PangyaAPI.IFF;
 
 public enum IffContainerKind { LooseFile, ZipArchive, XorZipArchive, EncryptedZipArchive }
 
-public sealed record IffContainerOptions(bool LeaveOpen = false, string? TemporaryDirectory = null);
+public sealed record IffContainerOptions(bool LeaveOpen = false, string? TemporaryDirectory = null)
+{
+    public string? SourceFileName { get; init; }
+}
 
 public sealed record IffContainerSaveOptions(IffContainerKind Kind, string? EncryptionRegion = null);
 
@@ -24,22 +27,22 @@ public sealed class IffContainer : IDisposable, IAsyncDisposable
     public string? FileNameRegion { get; }
     public IReadOnlyList<IffContainerEntry> Entries { get; }
 
-    private IffContainer(string path)
+    private IffContainer(string path, string sourceFileName)
     {
         _sourcePath = path;
         Kind = IffContainerKind.LooseFile;
-        FileNameRegion = IffRegionDetector.FromFileName(path);
+        FileNameRegion = IffRegionDetector.FromFileName(sourceFileName);
         var info = new FileInfo(path);
-        Entries = [new IffContainerEntry(info.Name, info.Length, _ =>
+        Entries = [new IffContainerEntry(sourceFileName, info.Length, _ =>
             ValueTask.FromResult<Stream>(new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, 64 * 1024, FileOptions.Asynchronous | FileOptions.SequentialScan)))];
     }
 
-    private IffContainer(string path, string archivePath, IffContainerKind kind, string? region, string? temporaryPath)
+    private IffContainer(string path, string sourceFileName, string archivePath, IffContainerKind kind, string? region, string? temporaryPath)
     {
         _sourcePath = path;
         Kind = kind;
         EncryptionRegion = region;
-        FileNameRegion = IffRegionDetector.FromFileName(path);
+        FileNameRegion = IffRegionDetector.FromFileName(sourceFileName);
         _temporaryPath = temporaryPath;
         _archiveStream = new FileStream(archivePath, FileMode.Open, FileAccess.Read, FileShare.Read, 64 * 1024, FileOptions.Asynchronous | FileOptions.RandomAccess);
         try
@@ -70,27 +73,32 @@ public sealed class IffContainer : IDisposable, IAsyncDisposable
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
         options ??= new();
         string fullPath = Path.GetFullPath(path);
+        string sourceFileName = options.SourceFileName ?? Path.GetFileName(fullPath);
+        ValidateEntryName(sourceFileName);
+        if (sourceFileName.Contains('/') || sourceFileName.Contains('\\'))
+            throw new ArgumentException("The source file name must be a leaf name.", nameof(options));
         if (!File.Exists(fullPath)) throw new FileNotFoundException("IFF input was not found.", fullPath);
         byte[] signature = new byte[8];
         await using (var input = new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.Asynchronous))
             await input.ReadExactlyAsync(signature, cancellationToken).ConfigureAwait(false);
 
-        if (IsZip(signature)) return new IffContainer(fullPath, fullPath, IffContainerKind.ZipArchive, null, null);
-        if (Path.GetFileName(fullPath).Equals("Title.iff", StringComparison.OrdinalIgnoreCase))
+        if (IsZip(signature)) return new IffContainer(fullPath, sourceFileName, fullPath, IffContainerKind.ZipArchive, null, null);
+        if (sourceFileName.Equals("Title.iff", StringComparison.OrdinalIgnoreCase))
         {
             await using var title = new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read);
-            if (await Task.Run(() => PspIffFormat.TryReadHeaderlessTitle(title, fullPath, ushort.MaxValue, out _),
+            if (await Task.Run(() => PspIffFormat.TryReadHeaderlessTitle(title, sourceFileName, ushort.MaxValue, out _),
                 cancellationToken).ConfigureAwait(false))
-                return new IffContainer(fullPath);
+                return new IffContainer(fullPath, sourceFileName);
         }
-        if (LooksLikeLooseIff(fullPath, signature, new FileInfo(fullPath).Length)) return new IffContainer(fullPath);
+        if (LooksLikeLooseIff(sourceFileName, signature, new FileInfo(fullPath).Length))
+            return new IffContainer(fullPath, sourceFileName);
 
         string tempDirectory = options.TemporaryDirectory ?? Path.GetTempPath();
         Directory.CreateDirectory(tempDirectory);
         string xorTemp = Path.Combine(tempDirectory, $"pangya-iff-{Guid.NewGuid():N}.zip");
         await XOR.TransformFileAsync(fullPath, xorTemp, 0x71, cancellationToken).ConfigureAwait(false);
         if (await HasZipSignatureAsync(xorTemp, cancellationToken).ConfigureAwait(false))
-            return new IffContainer(fullPath, xorTemp, IffContainerKind.XorZipArchive, "XOR 0x71", xorTemp);
+            return new IffContainer(fullPath, sourceFileName, xorTemp, IffContainerKind.XorZipArchive, "XOR 0x71", xorTemp);
         TryDelete(xorTemp);
 
         foreach ((string label, uint[] keys) in PakKeys.All)
@@ -101,7 +109,7 @@ public sealed class IffContainer : IDisposable, IAsyncDisposable
             {
                 await Xtea.TransformFileAsync(fullPath, temp, keys, decrypt: true, cancellationToken).ConfigureAwait(false);
                 if (!await HasZipSignatureAsync(temp, cancellationToken).ConfigureAwait(false)) { File.Delete(temp); continue; }
-                return new IffContainer(fullPath, temp, IffContainerKind.EncryptedZipArchive, label, temp);
+                return new IffContainer(fullPath, sourceFileName, temp, IffContainerKind.EncryptedZipArchive, label, temp);
             }
             catch (InvalidDataException) { TryDelete(temp); }
             catch { TryDelete(temp); throw; }
@@ -109,8 +117,12 @@ public sealed class IffContainer : IDisposable, IAsyncDisposable
         throw new InvalidDataException("The file is neither a loose IFF nor a supported ZIP/XTEA IFF container.");
     }
 
+    public Task SaveEntryAsync(string entryName, IffHeader header, IReadOnlyList<IffRecord> records,
+        CancellationToken cancellationToken = default, IffContainerSaveOptions? saveOptions = null) =>
+        SaveEntryAsync(entryName, header, records, keepBackup: true, cancellationToken, saveOptions);
+
     public async Task SaveEntryAsync(string entryName, IffHeader header, IReadOnlyList<IffRecord> records,
-        CancellationToken cancellationToken = default, IffContainerSaveOptions? saveOptions = null)
+        bool keepBackup, CancellationToken cancellationToken = default, IffContainerSaveOptions? saveOptions = null)
     {
         ThrowIfDisposed();
         IffContainerKind outputKind = saveOptions?.Kind ?? Kind;
@@ -163,7 +175,7 @@ public sealed class IffContainer : IDisposable, IAsyncDisposable
                 if (_temporaryPath is not null) TryDelete(_temporaryPath);
                 _disposed = true;
             }
-            AtomicReplace(temporaryOutput, _sourcePath);
+            AtomicReplace(temporaryOutput, _sourcePath, keepBackup);
         }
         catch { TryDelete(temporaryOutput); throw; }
     }
@@ -274,9 +286,9 @@ public sealed class IffContainer : IDisposable, IAsyncDisposable
         if (string.IsNullOrWhiteSpace(name) || Path.IsPathRooted(name) || name.Split('/', '\\').Any(part => part == ".."))
             throw new InvalidDataException($"Unsafe archive entry name '{name}'.");
     }
-    private static void AtomicReplace(string temporary, string target)
+    private static void AtomicReplace(string temporary, string target, bool keepBackup)
     {
-        string backup = target + ".bak";
+        string? backup = keepBackup ? target + ".bak" : null;
         if (File.Exists(target)) File.Replace(temporary, target, backup, ignoreMetadataErrors: true);
         else File.Move(temporary, target);
     }

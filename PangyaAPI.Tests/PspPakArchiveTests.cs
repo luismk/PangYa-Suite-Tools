@@ -47,6 +47,29 @@ public sealed class PspPakArchiveTests
     }
 
     [Fact]
+    public void ManagerReplacesOnlyTheSelectedDuplicateAndRejectsResize()
+    {
+        using var temp = new TemporaryDirectory();
+        var (index, data) = CreatePair(temp);
+        byte[] originalIndex = File.ReadAllBytes(index);
+        byte[] originalData = File.ReadAllBytes(data);
+        string replacement = temp.Combine("edited.gim");
+        using var reader = new PakReader(index);
+        reader.Parse();
+
+        File.WriteAllBytes(replacement, [7]);
+        Assert.Throws<InvalidDataException>(() => PakManager.ReplaceEntry(reader, 1, replacement, default));
+        Assert.Equal(originalData, File.ReadAllBytes(data));
+
+        File.WriteAllBytes(replacement, [7, 8]);
+        PakManager.ReplaceEntry(reader, 1, replacement, default);
+        Assert.Equal(originalIndex, File.ReadAllBytes(index));
+        originalData[32768] = 7;
+        originalData[32769] = 8;
+        Assert.Equal(originalData, File.ReadAllBytes(data));
+    }
+
+    [Fact]
     public void ManagerInjectsUniqueEntryWhenOpeningIndexMember()
     {
         using var temp = new TemporaryDirectory();

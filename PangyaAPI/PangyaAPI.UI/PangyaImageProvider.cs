@@ -176,6 +176,11 @@ public static class PangyaImageLoader
     public static Bitmap LoadTga(string path)
     {
         using FileStream input = File.OpenRead(path);
+        return LoadTga(input);
+    }
+
+    public static Bitmap LoadTga(Stream input)
+    {
         Span<byte> header = stackalloc byte[18];
         input.ReadExactly(header);
         int idLength = header[0];
@@ -191,9 +196,9 @@ public static class PangyaImageLoader
         int bytesPerPixel = bitsPerPixel / 8;
         int sourceStride = checked(width * bytesPerPixel);
         int byteCount = checked(sourceStride * height);
-        if (input.Length - 18 - idLength < byteCount)
+        if (input.Length - input.Position - idLength < byteCount)
             throw new InvalidDataException("The TGA pixel data is truncated.");
-        input.Position = 18 + idLength;
+        input.Position += idLength;
         byte[] source = GC.AllocateUninitializedArray<byte>(byteCount);
         input.ReadExactly(source);
 

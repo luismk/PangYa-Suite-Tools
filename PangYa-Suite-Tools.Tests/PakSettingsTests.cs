@@ -16,6 +16,121 @@ namespace PangYa_Suite_Tools.Tests;
 [Collection("Localization")]
 public sealed class PakSettingsTests
 {
+    [Theory]
+    [InlineData(@"C:\archives\pangya_jp.pak", @"data\Item.iff", "pangya_jp-Item.iff")]
+    [InlineData(@"C:\archives\pangya_jp.pak", "models/pet:skin.pet", "pangya_jp-pet_skin.pet")]
+    public void PakEditUsesArchiveAndEntryNames(string archive, string entry, string expected) =>
+        Assert.Equal(expected, FrmPakMaker.GetWorkingCopyName(archive, entry));
+
+    [Fact]
+    public void PakMaker_NamePromptReturnsEditedTextOrNullOnCancel()
+    {
+        RunSta(() =>
+        {
+            using var form = new FrmPakMaker();
+            form.Show();
+            string title = Strings.PakMaker_RenameSelectedFile;
+            using var timer = new System.Windows.Forms.Timer { Interval = 25 };
+            bool accept = true;
+            string? initialName = null;
+            timer.Tick += (_, _) =>
+            {
+                Form? prompt = Application.OpenForms.Cast<Form>().SingleOrDefault(window => window.Text == title);
+                if (prompt == null)
+                    return;
+                timer.Stop();
+                if (prompt.ActiveControl is TextBox input)
+                {
+                    initialName = input.Text;
+                    input.Text = " updated.txt ";
+                }
+                prompt.DialogResult = accept ? DialogResult.OK : DialogResult.Cancel;
+            };
+
+            timer.Start();
+            Assert.Equal("updated.txt", Invoke(form, "PromptForArchiveName", title, "original.txt"));
+            Assert.Equal("original.txt", initialName);
+            accept = false;
+            timer.Start();
+            Assert.Null(Invoke(form, "PromptForArchiveName", title, "original.txt"));
+        });
+    }
+
+    [Fact]
+    public void PakMaker_BatchesLargeSelectionChangesAndRefreshesFileActions()
+    {
+        RunSta(() =>
+        {
+            using var menuForm = new FrmMenu();
+            menuForm.Show();
+            using var form = new FrmPakMaker();
+            Invoke(menuForm, "OpenToolWindow", form, true);
+            Assert.False(menuForm.Visible);
+            using var reader = new PakReader(Path.Combine(Path.GetTempPath(), "selection-test.pak"));
+            typeof(FrmPakMaker).GetField("_currentReader", BindingFlags.Instance | BindingFlags.NonPublic)!
+                .SetValue(form, reader);
+            reader.Entries.AddRange(Enumerable.Range(0, 2000).Select(index =>
+                new PakFileEntry { Name = $"folder/file-{index}.txt", Type = PakFileEntryType.Raw }));
+            Invoke(form, "BuildFolderTree");
+            Application.DoEvents();
+
+            var list = PrivateField<ListView>(form, "lstEntries");
+            Assert.False(list.LabelEdit);
+            var toolbar = PrivateField<ToolStrip>(form, "_openedPakFileToolbar");
+            ToolStripItem toolbarPreview = Assert.Single(toolbar.Items.Cast<ToolStripItem>(),
+                item => item.Text == Strings.PakFile_Preview);
+            Assert.NotNull(toolbarPreview.Image);
+            Assert.NotNull(Assert.Single(toolbar.Items.Cast<ToolStripItem>(),
+                item => item.Text == Strings.PakFile_Edit).Image);
+            Assert.NotNull(Assert.Single(toolbar.Items.Cast<ToolStripItem>(),
+                item => item.Text == Strings.PakFile_StopEdit).Image);
+            Assert.False(toolbarPreview.Enabled);
+            Assert.Equal(2000, list.Items.Count);
+            Assert.Empty(list.SelectedItems);
+            Assert.True(PrivateField<ToolStripButton>(form, "_toolbarExtractSelected").Enabled);
+
+            var folders = PrivateField<TreeView>(form, "tvFolders");
+            Assert.False(folders.LabelEdit);
+            folders.SelectedNode = folders.Nodes[0].Nodes[0];
+            Assert.Equal(2000, list.Items.Count);
+            Assert.Empty(list.SelectedItems);
+
+            var selectAll = new KeyEventArgs(Keys.Control | Keys.A);
+            Invoke(form, "LstEntries_KeyDown", list, selectAll);
+            Assert.True(selectAll.SuppressKeyPress);
+            Assert.Equal(2000, list.SelectedItems.Count);
+            list.SelectedIndices.Clear();
+            list.Items[^1].Selected = true;
+            Assert.False(toolbarPreview.Enabled);
+            Application.DoEvents();
+            Assert.True(toolbarPreview.Enabled);
+
+            ContextMenuStrip menu = Assert.IsType<ContextMenuStrip>(list.ContextMenuStrip);
+            ToolStripItem menuPreview = Assert.Single(menu.Items.Cast<ToolStripItem>(),
+                item => item.Text == Strings.PakFile_Preview);
+            Assert.NotNull(Assert.Single(menu.Items.Cast<ToolStripItem>(),
+                item => item.Text == Strings.PakFile_StopEdit).Image);
+            menu.Show(list, Point.Empty);
+            Assert.True(menuPreview.Enabled);
+            menu.Close();
+
+            list.Items[0].Selected = true;
+            menu.Show(list, Point.Empty);
+            Assert.False(menuPreview.Enabled);
+            menu.Close();
+            Application.DoEvents();
+            Assert.False(toolbarPreview.Enabled);
+
+            form.FormClosed += (_, _) =>
+            {
+                Assert.True(menuForm.Visible);
+                Assert.False(form.IsDisposed);
+            };
+            form.Close();
+            Assert.True(form.IsDisposed);
+        });
+    }
+
     [Fact]
     public void PakMaker_IsResizableAndKeepsEntryScrollbarVisible()
     {

@@ -22,7 +22,7 @@ namespace PangyaAPI.PAK.Models
         public uint[]? LocationKeys { get; private set; }
         public Encoding FileNameEncoding { get; }
         public bool IsPspArchive => PspPakArchive.IsMemberPath(_path);
-        internal string ArchivePath => _path;
+        public string ArchivePath => _path;
 
         public PakReader(string path, Encoding? fileNameEncoding = null, ILogSink? logSink = null)
         {

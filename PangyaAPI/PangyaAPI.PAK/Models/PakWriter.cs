@@ -32,7 +32,8 @@ public class PakWriter
         Func<CancellationToken, byte[]>? ReadData,
         PakFileEntryType? ExistingType = null,
         uint ExistingSize = 0,
-        Func<CancellationToken, byte[]>? ReadCompressedData = null);
+        Func<CancellationToken, byte[]>? ReadCompressedData = null,
+        byte[]? OriginalName = null);
 
     private readonly record struct PreparedItem(
         bool IsDirectory, string ArchivePath, byte[] NameField,
@@ -191,7 +192,7 @@ public class PakWriter
     private PreparedItem Prepare(BuildItem item, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        byte[] nameField = EncodeName(item.ArchivePath);
+        byte[] nameField = EncodeName(item.ArchivePath, item.OriginalName);
         if (item.IsDirectory)
             return new(true, item.ArchivePath, nameField, PakFileEntryType.Directory, [], 0);
 
@@ -233,9 +234,9 @@ public class PakWriter
             ? PakFileEntryType.Raw : EntryType;
     }
 
-    private byte[] EncodeName(string archivePath)
+    private byte[] EncodeName(string archivePath, byte[]? originalName)
     {
-        byte[] bytes = PakFileEntry.EncodeName(archivePath.Replace('\\', '/'), FileNameEncoding);
+        byte[] bytes = originalName ?? PakFileEntry.EncodeName(archivePath.Replace('\\', '/'), FileNameEncoding);
         int length = EntryVersion == PakFileEntryVersion.V3 ? ((bytes.Length + 7) / 8) * 8 : bytes.Length + 1;
         if (length > byte.MaxValue)
             throw new InvalidDataException($"Entry name is too long for the PAK format: {archivePath}");

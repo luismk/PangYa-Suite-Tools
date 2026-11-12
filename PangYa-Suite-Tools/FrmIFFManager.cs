@@ -15,6 +15,14 @@ public partial class FrmIFFManager : Form
     private const string LogSource = "IFF Editor";
     private bool _rebuildingEntryList;
     private string? _directoryPath;
+    private readonly string? _pakEntryName;
+    private string? _pakWorkingPath;
+    private bool IsPakEntry => _pakEntryName != null;
+    private readonly bool _isArchivePreview;
+    private bool IsArchivePreview => _isArchivePreview;
+    private string? PakEntryDisplayName =>
+        IsArchivePreview ? _pakEntryName : Path.GetFileName(_pakWorkingPath) ?? _pakEntryName;
+    internal bool IsSavingPakWorkingCopy => IsPakEntry && _isSaving;
     private IffContainer? _container;
     private IffContainerEntry? _entry;
     private IffDocumentInfo? _document;
@@ -62,8 +70,8 @@ public partial class FrmIFFManager : Form
 
     private IReadOnlyList<IffField> VisibleFields => _visibleFields;
 
-    private bool CanEditDocument => _document?.Schema?.IsEditable == true;
-    private bool CanSaveDocument => CanEditDocument || _containerEncodingDirty;
+    private bool CanEditDocument => !IsArchivePreview && _document?.Schema?.IsEditable == true;
+    private bool CanSaveDocument => !IsArchivePreview && (CanEditDocument || _containerEncodingDirty);
 
     private Encoding SelectedStringEncoding => _selectedStringEncodingOption is { } option
         ? IffStringEncodingPreferences.GetEncoding(option.CodePage)
@@ -72,10 +80,15 @@ public partial class FrmIFFManager : Form
     private string? SelectedSchemaRegion => _selectedRegionOption?.Region;
     private string? SelectedDetectedRegion => _selectedRegionOption?.DetectedRegion;
 
-    public FrmIFFManager()
+    public FrmIFFManager() : this(null, archivePreview: false) { }
+
+    internal FrmIFFManager(string? name, bool archivePreview)
     {
+        _pakEntryName = name;
+        _isArchivePreview = archivePreview;
         InitializeComponent();
-        txtIffDirectory.Text = PathTextBoxPreferences.LoadPath(PathTextBoxKind.IffArchiveOrFolder);
+        txtIffDirectory.Text = _pakEntryName ?? PathTextBoxPreferences.LoadPath(PathTextBoxKind.IffArchiveOrFolder);
+        btnBrowseIffDir.Enabled = !IsPakEntry;
         _dataRootOverride = PathTextBoxPreferences.LoadPath(PathTextBoxKind.IffDataRoot);
         _schemaProvider = IffSchemaPreferences.CreateProvider();
         _schemaDefaultManager = new IffSchemaDefaultManager(_schemaProvider);
@@ -90,11 +103,12 @@ public partial class FrmIFFManager : Form
         AppLogger.Instance.Log(LogSource, "IFF editor opened.");
         Disposed += (_, _) =>
         {
-            PathTextBoxPreferences.SavePaths(new Dictionary<PathTextBoxKind, string?>
-            {
-                [PathTextBoxKind.IffArchiveOrFolder] = txtIffDirectory.Text,
-                [PathTextBoxKind.IffDataRoot] = _dataRootOverride
-            });
+            if (!IsPakEntry)
+                PathTextBoxPreferences.SavePaths(new Dictionary<PathTextBoxKind, string?>
+                {
+                    [PathTextBoxKind.IffArchiveOrFolder] = txtIffDirectory.Text,
+                    [PathTextBoxKind.IffDataRoot] = _dataRootOverride
+                });
             AppLogger.Instance.Log(LogSource, "IFF editor closed.");
             LocalizationManager.CultureChanged -= LocalizationManager_CultureChanged;
             CancelActiveOperation(ref _loadCancellation);
@@ -104,6 +118,32 @@ public partial class FrmIFFManager : Form
     }
 
     public FrmIFFManager(string idiomaAtual) : this() => LocalizationManager.SetCulture(idiomaAtual);
+
+    internal async Task LoadPakEntryAsync(string path, CancellationToken token)
+    {
+        _pakWorkingPath = path;
+        txtIffDirectory.Text = PakEntryDisplayName;
+        await OpenPakWorkingCopyAsync(token);
+        FillEntryList(_container!.Entries);
+        if (lstIffFiles.Items.Count == 0)
+            return;
+
+        _rebuildingEntryList = true;
+        try { lstIffFiles.SelectedIndex = 0; }
+        finally { _rebuildingEntryList = false; }
+        string name = (string)lstIffFiles.Items[0];
+        await LoadEntryAsync(_container.Entries.Single(entry => entry.Name == name), token);
+    }
+
+    private async Task OpenPakWorkingCopyAsync(CancellationToken token)
+    {
+        var options = new IffContainerOptions(TemporaryDirectory: Path.GetDirectoryName(_pakWorkingPath))
+        {
+            SourceFileName = Path.GetFileName(_pakEntryName)
+        };
+        await ReplaceContainerAsync(await IffContainer.OpenAsync(
+            _pakWorkingPath ?? throw new InvalidOperationException(), options, token));
+    }
 
     private static void CancelActiveOperation(ref CancellationTokenSource? activeCancellation)
     {
@@ -179,7 +219,7 @@ public partial class FrmIFFManager : Form
             item.Click += (_, _) => SelectContainerKey(option);
             _toolbarContainerKey.DropDownItems.Add(item);
         }
-        _toolbarContainerKey.Enabled = _container?.Kind != IffContainerKind.LooseFile && _container is not null;
+        _toolbarContainerKey.Enabled = !IsArchivePreview && _container?.Kind != IffContainerKind.LooseFile && _container is not null;
         UpdateSelectorToolbarText();
     }
 
@@ -302,7 +342,9 @@ public partial class FrmIFFManager : Form
     {
         string? selectedRegion = SelectedSchemaRegion;
         string? detectedRegion = SelectedDetectedRegion;
-        Text = Strings.Iff_Title;
+        Text = IsPakEntry
+            ? $"{(IsArchivePreview ? Strings.PakFile_Preview : Strings.PakFile_Edit)} — {PakEntryDisplayName}"
+            : Strings.Iff_Title;
         lblIffDir.Text = Strings.Iff_Directory;
         btnBrowseIffDir.Text = Strings.Iff_Browse;
         btnOpenArchive.Text = Strings.IFFManager_OpenArchive;
@@ -707,14 +749,27 @@ public partial class FrmIFFManager : Form
         string? selectedRegion = SelectedSchemaRegion;
         Encoding selectedEncoding = SelectedStringEncoding;
         await EnsureSchemasSeededAsync(token);
-        await CheckForSchemaUpdatesAsync(showWhenNone: false, token);
+        if (!IsPakEntry)
+            await CheckForSchemaUpdatesAsync(showWhenNone: false, token);
         await using Stream stream = await entry.OpenAsync(token);
         (IffDocumentInfo document, List<IffRecord> records, string? resolvedSelection) =
             await ReadDocumentAsync(stream, Path.GetFileName(entry.Name), selectedRegion,
                 _container?.FileNameRegion, token);
+        token.ThrowIfCancellationRequested();
 
         ClearDocument();
         _entry = entry;
+        if (IsArchivePreview && document.Schema is { } schema)
+        {
+            document = document with
+            {
+                Schema = schema with
+                {
+                    IsEditable = false,
+                    Fields = schema.Fields.Select(field => field with { IsEditable = false }).ToArray()
+                }
+            };
+        }
         _document = document;
         _records.AddRange(records);
         _documentStringEncoding = selectedEncoding;
@@ -729,9 +784,9 @@ public partial class FrmIFFManager : Form
         await RefreshSchemaViewAsync(token);
         lblNoFileSelected.Visible = false;
         SetEditorView(_showFormView);
-        btnSave.Enabled = _document.Schema?.IsEditable == true;
-        btnAddRow.Enabled = _document.Schema?.IsEditable == true;
-        btnAddColumn.Enabled = true;
+        btnSave.Enabled = CanSaveDocument;
+        btnAddRow.Enabled = CanEditDocument;
+        btnAddColumn.Enabled = !IsArchivePreview;
         UpdateToolbarState();
         lblStatus.Text = $"{Strings.IFFManager_EditingStructureOf} {entry.Name} — {_document.Region}, {_records.Count} records, {_document.RecordSize} bytes";
         AppLogger.Instance.Log(LogSource,
@@ -774,7 +829,7 @@ public partial class FrmIFFManager : Form
     private void EnsureFormEditor()
     {
         if (_formEditor is not null) return;
-        _formEditor = new IffFormRecordEditor { Visible = false };
+        _formEditor = new IffFormRecordEditor { Visible = false, ReadOnly = IsArchivePreview };
         _formEditor.AddRequested += (_, _) => btnAddRow_Click(btnAddRow, EventArgs.Empty);
         _formEditor.DeleteRequested += (_, _) => DeleteSelectedFormRecord();
         _formEditor.CopyRequested += (_, _) => CopySelectedFormRecord();
@@ -801,7 +856,8 @@ public partial class FrmIFFManager : Form
     private async Task ChangeDataRootAsync(string dataRoot)
     {
         _dataRootOverride = dataRoot;
-        PathTextBoxPreferences.SavePath(PathTextBoxKind.IffDataRoot, dataRoot);
+        if (!IsPakEntry)
+            PathTextBoxPreferences.SavePath(PathTextBoxKind.IffDataRoot, dataRoot);
         if (_formEditor is not null) _formEditor.SetDataRootPath(dataRoot);
         if (_document is null) return;
 
@@ -829,7 +885,7 @@ public partial class FrmIFFManager : Form
                 _document,
                 _container,
                 _directoryPath,
-                txtIffDirectory.Text,
+                _pakWorkingPath ?? txtIffDirectory.Text,
                 _document.Region,
                 _documentStringEncoding,
                 _schemaProvider,
@@ -1243,6 +1299,7 @@ public partial class FrmIFFManager : Form
 
     private async void btnSave_Click(object sender, EventArgs e)
     {
+        if (IsArchivePreview) return;
         AppLogger.Instance.Log(LogSource, "Save button clicked.");
         if (_isSaving)
         {
@@ -1272,13 +1329,13 @@ public partial class FrmIFFManager : Form
                 MessageBoxButtons.OK, MessageBoxIcon.Information);
             return;
         }
-        if (MessageBox.Show(Strings.IFFManager_ConfirmOverwrite, Strings.IFFManager_Warning,
+        if (!IsPakEntry && MessageBox.Show(Strings.IFFManager_ConfirmOverwrite, Strings.IFFManager_Warning,
             MessageBoxButtons.YesNo, MessageBoxIcon.Warning) != DialogResult.Yes)
         {
             AppLogger.Instance.Log(LogSource, $"Save of '{_entry.Name}' was cancelled.", AppLogLevel.Warning);
             return;
         }
-        string sourcePath = txtIffDirectory.Text;
+        string sourcePath = _pakWorkingPath ?? txtIffDirectory.Text;
         string entryName = _entry.Name;
         try
         {
@@ -1288,19 +1345,32 @@ public partial class FrmIFFManager : Form
             int changedRecordCount = _records.Count(item => item.IsDirty);
             AppLogger.Instance.Log(LogSource,
                 $"Saving '{entryName}' with {changedRecordCount} changed records to '{sourcePath}'.");
+            IffContainerKind savedKind = _container.Kind;
             await _container.SaveEntryAsync(entryName, _document.Header, _records,
-                saveOptions: _selectedSaveOptions);
+                saveOptions: _selectedSaveOptions, keepBackup: !IsPakEntry);
             foreach (IffRecord record in _records) record.AcceptChanges();
             _structureDirty = false;
             _formEditor?.RefreshRecords();
             UpdateDirtyState();
-            _container = null;
-            if (_directoryPath is null)
+            if (IsPakEntry)
+            {
+                if (savedKind != IffContainerKind.LooseFile)
+                {
+                    await OpenPakWorkingCopyAsync(CancellationToken.None);
+                    _entry = _container!.Entries.Single(entry => entry.Name == entryName);
+                }
+            }
+            else if (_directoryPath is null)
             {
                 await ReplaceContainerAsync(await IffContainer.OpenAsync(sourcePath));
                 FillEntryList(_container!.Entries);
             }
-            else LoadIffFiles(_directoryPath);
+            else
+            {
+                _container?.Dispose();
+                _container = null;
+                LoadIffFiles(_directoryPath);
+            }
             lblStatus.Text = Strings.IFFManager_Saved;
             AppLogger.Instance.Log(LogSource, $"Saved '{entryName}' successfully.");
         }
@@ -1309,7 +1379,7 @@ public partial class FrmIFFManager : Form
         {
             _isSaving = false;
             UseWaitCursor = false;
-            if (CanSaveDocument) btnSave.Enabled = true;
+            UpdateDirtyState();
         }
     }
 
@@ -1579,7 +1649,7 @@ public partial class FrmIFFManager : Form
     private void FrmIFFManager_FormClosing(object? sender, FormClosingEventArgs e)
     {
         AppLogger.Instance.Log(LogSource, "IFF editor close requested.");
-        if (!ConfirmDiscard())
+        if ((IsPakEntry && _isSaving) || !ConfirmDiscard())
         {
             e.Cancel = true;
             AppLogger.Instance.Log(LogSource, "IFF editor close was cancelled.", AppLogLevel.Warning);
@@ -1610,7 +1680,10 @@ public partial class FrmIFFManager : Form
         bool dirty = _structureDirty || _containerEncodingDirty || _records.Any(item => item.IsDirty) ||
             _formEditor?.HasPendingChanges == true;
         btnSave.Enabled = CanSaveDocument && !_isSaving;
-        Text = Strings.Iff_Title + (dirty ? " *" : string.Empty);
+        string title = IsPakEntry
+            ? $"{(IsArchivePreview ? Strings.PakFile_Preview : Strings.PakFile_Edit)} — {PakEntryDisplayName}"
+            : Strings.Iff_Title;
+        Text = title + (dirty ? " *" : string.Empty);
         UpdateToolbarState();
     }
 
@@ -1620,23 +1693,24 @@ public partial class FrmIFFManager : Form
         bool hasDocument = _document is not null;
         bool canEdit = CanEditDocument;
         bool canInteract = !_isExtracting;
-        _toolbarOpenArchive.Enabled = canInteract;
-        _toolbarContainerKey!.Enabled = _container?.Kind != IffContainerKind.LooseFile &&
+        bool canModify = !IsArchivePreview && canInteract;
+        _toolbarOpenArchive.Enabled = canInteract && !IsPakEntry;
+        _toolbarContainerKey!.Enabled = canModify && _container?.Kind != IffContainerKind.LooseFile &&
             _container is not null && canInteract;
         _toolbarRegion!.Enabled = canInteract;
         _toolbarStringEncoding!.Enabled = canInteract;
-        _toolbarExtract!.Enabled = _entry is not null && canInteract && !_isSaving;
+        _toolbarExtract!.Enabled = _entry is not null && canInteract && !IsPakEntry && !_isSaving;
         _toolbarExtractAll!.Enabled = _container is
-            { Kind: not IffContainerKind.LooseFile, Entries.Count: > 0 } && canInteract && !_isSaving;
+            { Kind: not IffContainerKind.LooseFile, Entries.Count: > 0 } && canInteract && !IsPakEntry && !_isSaving;
         _toolbarSave!.Enabled = CanSaveDocument && !_isSaving && canInteract;
         _toolbarPatch!.Enabled = canEdit && !_isSaving && canInteract;
         _toolbarAddRow!.Enabled = canEdit && canInteract;
         _toolbarDeleteRows!.Enabled = canEdit && canInteract && (_showFormView
             ? _formEditor?.SelectedRecordIndex >= 0
             : gridRecords.SelectedRows.Count > 0);
-        _toolbarManageSchema!.Enabled = hasDocument && canInteract;
-        _toolbarSchemaUpdates!.Enabled = _schemaUpdatesAvailable && canInteract;
-        _toolbarRawRecord!.Enabled = hasDocument && canInteract && SelectedRecordIndex() >= 0;
+        _toolbarManageSchema!.Enabled = hasDocument && canModify;
+        _toolbarSchemaUpdates!.Enabled = _schemaUpdatesAvailable && canInteract && !IsPakEntry;
+        _toolbarRawRecord!.Enabled = hasDocument && canModify && SelectedRecordIndex() >= 0;
         _toolbarFormView!.Enabled = hasDocument && canInteract;
         _toolbarGridView!.Enabled = hasDocument && canInteract;
         _toolbarFormView.Checked = _showFormView;

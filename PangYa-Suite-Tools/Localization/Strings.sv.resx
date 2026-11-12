@@ -1177,4 +1177,85 @@ Avbryt: Stoppa extraheringen.</value></data>
   <data name="UiEditor_StartupWallpaper" xml:space="preserve"><value>Startbakgrund</value></data>
   <data name="IFFManager_RegionPsp" xml:space="preserve"><value>PSP</value></data>
   <data name="UiEditor_OpenReference" xml:space="preserve"><value>Öppna referens i nytt fönster</value></data>
+  <data name="PakFile_Preview" xml:space="preserve">
+    <value>Förhandsvisa</value>
+  </data>
+  <data name="PakFile_Edit" xml:space="preserve">
+    <value>Redigera</value>
+  </data>
+  <data name="PakFile_StopEdit" xml:space="preserve">
+    <value>Sluta redigera</value>
+  </data>
+  <data name="PakFile_PreviewUnavailable" xml:space="preserve">
+    <value>Det går inte att förhandsvisa filen. {0}</value>
+  </data>
+  <data name="PakFile_PreviewLimit" xml:space="preserve">
+    <value>Filen överskrider storleksgränsen för förhandsvisning.</value>
+  </data>
+  <data name="PakFile_UpdateTitle" xml:space="preserve">
+    <value>Uppdatera PAK</value>
+  </data>
+  <data name="PakFile_KeepEditing" xml:space="preserve">
+    <value>Fortsätt redigera</value>
+  </data>
+  <data name="PakFile_UpdateRevision" xml:space="preserve">
+    <value>Vill du spara ändringarna för ”{0}” i PAK-arkivet?</value>
+  </data>
+  <data name="PakFile_EditFailed" xml:space="preserve">
+    <value>Det gick inte att redigera eller uppdatera ”{0}”. {1}</value>
+  </data>
+  <data name="PakFile_ArchiveChanged" xml:space="preserve">
+    <value>Arkivet ändrades under redigeringen. Arbetskopian sparades i {0}.</value>
+  </data>
+  <data name="PakFile_ConfirmStop" xml:space="preserve">
+    <value>Vill du sluta bevaka sparningar? Ändringar som inte tillämpats finns kvar i {0}.</value>
+  </data>
+  <data name="PakFile_EditWatching" xml:space="preserve">
+    <value>Bevakar sparningar för ”{0}”.</value>
+  </data>
+  <data name="PakFile_PspEditSize" xml:space="preserve">
+    <value>PSP-poster måste behålla samma storlek ({0} byte). Spara en korrigerad version för att försöka igen.</value>
+  </data>
+  <data name="PakFile_PreviewReset" xml:space="preserve">
+    <value>Återställ vyn</value>
+  </data>
+  <data name="PakFile_PreviewNoMesh" xml:space="preserve">
+    <value>Puppet-filen saknar ett nät. Sektioner: {0}</value>
+  </data>
+  <data name="PakFile_PreviewMissingTextures" xml:space="preserve">
+    <value>Vissa texturer kunde inte visas.</value>
+  </data>
+  <data name="PakFile_PreviewAuto" xml:space="preserve">
+    <value>Automatisk</value>
+  </data>
+  <data name="PakFile_ArchiveReload" xml:space="preserve">
+    <value>Arkivet ändrades på disken. Öppna det igen innan du redigerar.</value>
+  </data>
+  <data name="PakFile_TextEncoding" xml:space="preserve">
+    <value>Textkodning</value>
+  </data>
+  <data name="PakFile_Reopen" xml:space="preserve">
+    <value>Öppna filen igen</value>
+  </data>
+  <data name="PakFile_AudioPlay" xml:space="preserve">
+    <value>Spela upp</value>
+  </data>
+  <data name="PakFile_AudioPause" xml:space="preserve">
+    <value>Pausa</value>
+  </data>
+  <data name="PakFile_AudioStop" xml:space="preserve">
+    <value>Stoppa</value>
+  </data>
+  <data name="PakFile_AxisLockHint" xml:space="preserve">
+    <value>Tryck på X, Y eller Z för att låsa en axel</value>
+  </data>
+  <data name="PakFile_AxisLocked" xml:space="preserve">
+    <value>{0}-axeln är låst · Tryck på {0} för att låsa upp</value>
+  </data>
+  <data name="PakFile_AxisDragHorizontal" xml:space="preserve">
+    <value>{0} låst · Dra åt vänster eller höger</value>
+  </data>
+  <data name="PakFile_AxisDragVertical" xml:space="preserve">
+    <value>X låst · Dra uppåt eller nedåt</value>
+  </data>
 </root>
