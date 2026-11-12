@@ -169,7 +169,7 @@ public sealed class ShopTests : IDisposable
             """);
         PangyaUiDocument document = PangyaUiDocument.Load(path);
         PangyaUiNode viewer = Assert.Single(document.Nodes, node => node.Name == "viewer");
-        PangyaUiNode form = Assert.Single(document.Nodes, node => node.IsForm);
+        PangyaUiNode form = Assert.Single(document.Nodes, node => node.IsForm && node.Name == "form");
         using var assets = new PangyaFileImageProvider(_directory);
         var renderer = new PangyaUiRenderer(assets);
         var pointer = new Point(40, 10);
