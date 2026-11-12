@@ -147,6 +147,8 @@ internal sealed class IffFormRecordEditor : UserControl
     public bool HasPendingChanges => _hasPendingChanges;
 
     public IReadOnlyList<string> TabNames => _tabs.TabPages.Cast<TabPage>().Select(page => page.Text).ToArray();
+    [System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Hidden)]
+    internal bool ReadOnly { get; init; }
 
     public void LoadDocument(IffDocumentInfo document, IList<IffRecord> records, Encoding encoding)
     {
@@ -1081,7 +1083,7 @@ internal sealed class IffFormRecordEditor : UserControl
         _btnDelete.Enabled = hasDocument && hasRecord;
         _btnCopy.Enabled = hasDocument && hasRecord;
         _btnApply.Enabled = hasDocument && hasRecord;
-        _btnUpdate.Enabled = hasDocument || _document is not null;
+        _btnUpdate.Enabled = !ReadOnly && _document is not null;
     }
 
     protected override void Dispose(bool disposing)

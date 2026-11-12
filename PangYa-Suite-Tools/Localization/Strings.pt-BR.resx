@@ -1180,4 +1180,85 @@ Cancelar: Interromper a extração.</value></data>
   <data name="UiEditor_StartupWallpaper" xml:space="preserve"><value>Fundo de inicialização</value></data>
   <data name="IFFManager_RegionPsp" xml:space="preserve"><value>PSP</value></data>
   <data name="UiEditor_OpenReference" xml:space="preserve"><value>Abrir referência em nova janela</value></data>
+  <data name="PakFile_Preview" xml:space="preserve">
+    <value>Visualizar</value>
+  </data>
+  <data name="PakFile_Edit" xml:space="preserve">
+    <value>Editar</value>
+  </data>
+  <data name="PakFile_StopEdit" xml:space="preserve">
+    <value>Parar de editar</value>
+  </data>
+  <data name="PakFile_PreviewUnavailable" xml:space="preserve">
+    <value>Não foi possível visualizar este arquivo. {0}</value>
+  </data>
+  <data name="PakFile_PreviewLimit" xml:space="preserve">
+    <value>O arquivo excede o limite de visualização.</value>
+  </data>
+  <data name="PakFile_UpdateTitle" xml:space="preserve">
+    <value>Atualizar PAK</value>
+  </data>
+  <data name="PakFile_KeepEditing" xml:space="preserve">
+    <value>Continuar editando</value>
+  </data>
+  <data name="PakFile_UpdateRevision" xml:space="preserve">
+    <value>Aplicar as alterações salvas de “{0}” no PAK?</value>
+  </data>
+  <data name="PakFile_EditFailed" xml:space="preserve">
+    <value>Não foi possível editar ou atualizar “{0}”. {1}</value>
+  </data>
+  <data name="PakFile_ArchiveChanged" xml:space="preserve">
+    <value>O PAK mudou durante a edição. A cópia de trabalho foi mantida em {0}.</value>
+  </data>
+  <data name="PakFile_ConfirmStop" xml:space="preserve">
+    <value>Parar de monitorar salvamentos? Alterações pendentes serão mantidas em {0}.</value>
+  </data>
+  <data name="PakFile_EditWatching" xml:space="preserve">
+    <value>Monitorando alterações salvas em “{0}”.</value>
+  </data>
+  <data name="PakFile_PspEditSize" xml:space="preserve">
+    <value>Entradas PSP precisam manter o tamanho ({0} bytes). Salve uma versão corrigida para tentar novamente.</value>
+  </data>
+  <data name="PakFile_PreviewReset" xml:space="preserve">
+    <value>Redefinir visualização</value>
+  </data>
+  <data name="PakFile_PreviewNoMesh" xml:space="preserve">
+    <value>Este arquivo Puppet não contém uma malha. Seções: {0}</value>
+  </data>
+  <data name="PakFile_PreviewMissingTextures" xml:space="preserve">
+    <value>Algumas texturas não puderam ser exibidas.</value>
+  </data>
+  <data name="PakFile_PreviewAuto" xml:space="preserve">
+    <value>Automática</value>
+  </data>
+  <data name="PakFile_ArchiveReload" xml:space="preserve">
+    <value>O PAK mudou no disco. Abra-o novamente antes de editar.</value>
+  </data>
+  <data name="PakFile_TextEncoding" xml:space="preserve">
+    <value>Codificação do texto</value>
+  </data>
+  <data name="PakFile_Reopen" xml:space="preserve">
+    <value>Reabrir arquivo</value>
+  </data>
+  <data name="PakFile_AudioPlay" xml:space="preserve">
+    <value>Reproduzir</value>
+  </data>
+  <data name="PakFile_AudioPause" xml:space="preserve">
+    <value>Pausar</value>
+  </data>
+  <data name="PakFile_AudioStop" xml:space="preserve">
+    <value>Parar</value>
+  </data>
+  <data name="PakFile_AxisLockHint" xml:space="preserve">
+    <value>Pressione X, Y ou Z para travar um eixo</value>
+  </data>
+  <data name="PakFile_AxisLocked" xml:space="preserve">
+    <value>Eixo {0} travado · Pressione {0} para destravar</value>
+  </data>
+  <data name="PakFile_AxisDragHorizontal" xml:space="preserve">
+    <value>{0} travado · Arraste para os lados</value>
+  </data>
+  <data name="PakFile_AxisDragVertical" xml:space="preserve">
+    <value>X travado · Arraste para cima ou para baixo</value>
+  </data>
 </root>

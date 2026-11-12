@@ -33,7 +33,6 @@ namespace PangYa_Suite_Tools
         // Mapa caminho-da-pasta -> TreeNode, para navegação rápida (duplo clique em uma pasta na lista)
         private readonly Dictionary<string, TreeNode> _folderNodes = new(StringComparer.OrdinalIgnoreCase);
         private ToolStripMenuItem? _menuCreateFolder;
-        private TreeNode? _pendingFolderNode;
 
         // Conjunto de entries atualmente "no escopo" (pasta selecionada na árvore), antes do filtro de pesquisa
         private List<PakFileEntry> _scopedEntries = [];
@@ -69,6 +68,7 @@ namespace PangYa_Suite_Tools
         private readonly HashSet<PakFileEntry> _unusualNameEntries = [];
         private bool _showToolbarText = true;
         private bool _operationInProgress;
+        private bool _selectionRefreshPending;
         private enum ToolbarIconKind
         {
             New,
@@ -79,6 +79,9 @@ namespace PangYa_Suite_Tools
             Key,
             Encoding,
             ExtractSelected,
+            Preview,
+            Edit,
+            Stop,
             Rename,
             Remove
         }
@@ -95,6 +98,7 @@ namespace PangYa_Suite_Tools
             LocalizationManager.CultureChanged += LocalizationManager_CultureChanged;
             Disposed += (_, _) =>
             {
+                DisposeFileEdit();
                 PathTextBoxPreferences.SavePaths(new Dictionary<PathTextBoxKind, string?>
                 {
                     [PathTextBoxKind.PakArchive] = txtPakPath.Text
@@ -126,6 +130,7 @@ namespace PangYa_Suite_Tools
 
         private void ApplyLocalization()
         {
+            LocalizeFileActions();
             Text = Strings.Pak_Title;
             lblFilenameEncoding.Text = Strings.Pak_FilenameEncoding;
             lblFilenameEncoding.ToolTipText = Strings.Pak_FilenameEncodingTooltip;
@@ -205,9 +210,7 @@ namespace PangYa_Suite_Tools
             this.DragDrop += FrmPakMaker_DragDrop;
             tvFolders.CheckBoxes = false;
             lstEntries.MultiSelect = true;
-            lstEntries.LabelEdit = true;
             lstEntries.DoubleClick += LstEntries_DoubleClick;
-            lstEntries.AfterLabelEdit += LstEntries_AfterLabelEdit;
             lstEntries.KeyDown += LstEntries_KeyDown;
             lstEntries.ItemSelectionChanged += LstEntries_ItemSelectionChanged;
             tvFolders.AfterSelect += TvFolders_AfterSelect;
@@ -226,9 +229,6 @@ namespace PangYa_Suite_Tools
             lstEntries.ItemDrag += LstEntries_ItemDrag;
             tvFolders.ItemDrag += TvFolders_ItemDrag;
 
-            // Permite renomear arquivos ou pastas
-            tvFolders.LabelEdit = true; // Permite alterar o texto do nó nativamente
-            tvFolders.AfterLabelEdit += TvFolders_AfterLabelEdit; // Evento executado pós-edição 
         }
 
         private void SetupToolbarLayout()
@@ -284,7 +284,8 @@ namespace PangYa_Suite_Tools
                 async (_, _) => await EditPakSettingsAsync(),
                 ToolbarIconKind.Settings);
             _toolbarExtractSelected = AddOperationButton(_openedPakFileToolbar, btnExtractSelected_Click, ToolbarIconKind.ExtractSelected);
-            _toolbarRenameSelected = AddOperationButton(_openedPakFileToolbar, (s, e) => BeginSelectedFileRename(), ToolbarIconKind.Rename);
+            AddFileActions(_openedPakFileToolbar);
+            _toolbarRenameSelected = AddOperationButton(_openedPakFileToolbar, async (_, _) => await RenameSelectedFileAsync(), ToolbarIconKind.Rename);
             _toolbarRemoveSelected = AddOperationButton(_openedPakFileToolbar, btnRemoveSelected_Click, ToolbarIconKind.Remove);
 
             txtUpdateAuthor.Visible = false;
@@ -545,6 +546,24 @@ namespace PangYa_Suite_Tools
                     g.FillRectangle(primary, 7, 4, 18, 24);
                     g.FillPolygon(white, [new Point(16, 23), new Point(9, 15), new Point(14, 15), new Point(14, 8), new Point(18, 8), new Point(18, 15), new Point(23, 15)]);
                     break;
+                case ToolbarIconKind.Preview:
+                    using (var magnifier = new Pen(Color.FromArgb(0, 122, 204), 3F)
+                    {
+                        StartCap = System.Drawing.Drawing2D.LineCap.Round,
+                        EndCap = System.Drawing.Drawing2D.LineCap.Round
+                    })
+                    {
+                        g.DrawEllipse(magnifier, 5, 5, 15, 15);
+                        g.DrawLine(magnifier, 18, 18, 27, 27);
+                    }
+                    break;
+                case ToolbarIconKind.Edit:
+                    g.FillPolygon(amber, [new Point(5, 27), new Point(7, 19), new Point(22, 4),
+                        new Point(28, 10), new Point(13, 25)]);
+                    g.DrawPolygon(dark, [new Point(5, 27), new Point(7, 19), new Point(22, 4),
+                        new Point(28, 10), new Point(13, 25)]);
+                    g.DrawLine(dark, 18, 8, 24, 14);
+                    break;
                 case ToolbarIconKind.Rename:
                     g.FillRectangle(primary, 5, 9, 22, 14);
                     g.DrawLine(whitePen, 9, 16, 23, 16);
@@ -554,6 +573,9 @@ namespace PangYa_Suite_Tools
                     g.FillEllipse(red, 5, 5, 22, 22);
                     g.DrawLine(whitePen, 11, 11, 21, 21);
                     g.DrawLine(whitePen, 21, 11, 11, 21);
+                    break;
+                case ToolbarIconKind.Stop:
+                    g.FillRectangle(red, 7, 7, 18, 18);
                     break;
             }
 
@@ -625,17 +647,14 @@ namespace PangYa_Suite_Tools
         {
             ContextMenuStrip folderContextMenu = new ContextMenuStrip();
             _menuCreateFolder = new ToolStripMenuItem(Strings.PakMaker_CreateFolder);
-            _menuCreateFolder.Click += (_, _) => BeginCreateFolder();
+            _menuCreateFolder.Click += async (_, _) => await PromptForNewFolderAsync();
             _menuExtractFolder = new ToolStripMenuItem(Strings.PakMaker_ExtractThisFolder);
             _menuExtractFolder.Click += async (s, e) => await ExtractSelectedFolderAsync();
 
             _menuRemoveFolder = new ToolStripMenuItem(Strings.PakMaker_RemoveThisFolderFromPAK);
             _menuRemoveFolder.Click += async (s, e) => await RemoveFolderFromTreeAsync(); 
             _menuRename = new ToolStripMenuItem(Strings.PakMaker_RenameThisPAK);
-            _menuRename.Click += (s, e) => {
-                if (tvFolders.SelectedNode != null)
-                    tvFolders.SelectedNode.BeginEdit();
-            };
+            _menuRename.Click += async (_, _) => await RenameSelectedFolderAsync();
             folderContextMenu.Items.Add(_menuCreateFolder);
             folderContextMenu.Items.Add(new ToolStripSeparator());
             folderContextMenu.Items.Add(_menuRename); 
@@ -832,63 +851,64 @@ namespace PangYa_Suite_Tools
             _menuExtractSingle.Click += async (s, e) => await ExtractSelectedAsync();
 
             _menuRenameSingle = new ToolStripMenuItem(Strings.PakMaker_RenameSelectedFile);
-            _menuRenameSingle.Click += (s, e) => BeginSelectedFileRename();
+            _menuRenameSingle.Click += async (_, _) => await RenameSelectedFileAsync();
 
             _menuRemoveSingle = new ToolStripMenuItem(Strings.PakMaker_RemoveSelectedItemSFromPAK);
             _menuRemoveSingle.Click += async (s, e) => await RemoveSelectedAsync();
 
             contextMenu.Items.Add(_menuExtractSingle);
+            AddFileActions(contextMenu);
             contextMenu.Items.Add(_menuRenameSingle);
             contextMenu.Items.Add(_menuRemoveSingle);
             lstEntries.ContextMenuStrip = contextMenu; // Vincula o menu à ListView
         }
 
-        private void BeginSelectedFileRename()
+        private async Task RenameSelectedFileAsync()
         {
-            if (lstEntries.SelectedItems.Count != 1)
+            if (_operationInProgress || _currentReader is not { IsPspArchive: false })
+                return;
+
+            if (SelectedArchiveFile is not { } entry)
             {
                 MessageBox.Show(Strings.PakMaker_SelectSingleFileToRename, Strings.Common_Error, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            ListViewItem item = lstEntries.SelectedItems[0];
-            if (item.Tag is not PakFileEntry entry || entry.Type == PakFileEntryType.Directory)
-            {
-                MessageBox.Show(Strings.PakMaker_SelectSingleFileToRename, Strings.Common_Error, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            string oldName = Path.GetFileName(entry.Name);
+            string? newName = PromptForArchiveName(Strings.PakMaker_RenameSelectedFile, oldName);
+            if (newName == null || string.Equals(oldName, newName, StringComparison.Ordinal))
                 return;
-            }
-
-            item.BeginEdit();
-        }
-
-        private void LstEntries_KeyDown(object? sender, KeyEventArgs e)
-        {
-            if (e.KeyCode != Keys.F2) return;
-
-            e.Handled = true;
-            BeginSelectedFileRename();
-        }
-
-        private async void LstEntries_AfterLabelEdit(object? sender, LabelEditEventArgs e)
-        {
-            if (e.Label == null) return;
-            e.CancelEdit = true;
-
-            if (e.Item < 0 || e.Item >= lstEntries.Items.Count) return;
-            ListViewItem item = lstEntries.Items[e.Item];
-            if (item.Tag is not PakFileEntry entry || entry.Type == PakFileEntryType.Directory) return;
-
-            string newName = e.Label.Trim();
-            string oldName = Path.GetFileName(entry.Name.Replace('/', '\\'));
-            if (string.Equals(oldName, newName, StringComparison.Ordinal)) return;
-
             if (!IsValidLeafFileName(newName))
             {
-                MessageBox.Show(Strings.PakMaker_InvalidRenameName, Strings.Common_Error, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                ShowFileMessage(Strings.PakMaker_InvalidRenameName);
                 return;
             }
 
             await ExecuteFileRename(entry, newName);
+        }
+
+        private async void LstEntries_KeyDown(object? sender, KeyEventArgs e)
+        {
+            if (e.KeyData == (Keys.Control | Keys.A))
+            {
+                e.SuppressKeyPress = true;
+                lstEntries.BeginUpdate();
+                try
+                {
+                    foreach (ListViewItem item in lstEntries.Items)
+                        item.Selected = true;
+                }
+                finally
+                {
+                    lstEntries.EndUpdate();
+                }
+                return;
+            }
+
+            if (e.KeyCode != Keys.F2) return;
+
+            e.SuppressKeyPress = true;
+            await RenameSelectedFileAsync();
         }
 
         private static bool IsValidLeafFileName(string fileName) =>
@@ -898,6 +918,34 @@ namespace PangYa_Suite_Tools
             !fileName.Contains('/') &&
             !fileName.Contains('\\') &&
             fileName.IndexOfAny(Path.GetInvalidFileNameChars()) < 0;
+
+        private string? PromptForArchiveName(string title, string initialName)
+        {
+            // A regular text box avoids WinForms' native label-edit accessibility hook.
+            using var dialog = new Form
+            {
+                Text = title, StartPosition = FormStartPosition.CenterParent,
+                FormBorderStyle = FormBorderStyle.FixedDialog, ShowInTaskbar = false,
+                MaximizeBox = false, MinimizeBox = false, AutoSize = true,
+                AutoSizeMode = AutoSizeMode.GrowAndShrink, AutoScaleMode = AutoScaleMode.Font
+            };
+            var layout = new TableLayoutPanel { AutoSize = true, Padding = new Padding(12), ColumnCount = 1 };
+            var name = new TextBox { Text = initialName, AccessibleName = title, Width = 360, Anchor = AnchorStyles.Left | AnchorStyles.Right };
+            var buttons = new FlowLayoutPanel
+            {
+                AutoSize = true, FlowDirection = FlowDirection.RightToLeft, WrapContents = false, Dock = DockStyle.Fill
+            };
+            var cancel = new Button { Text = Strings.Common_Cancel, AutoSize = true, DialogResult = DialogResult.Cancel };
+            var accept = new Button { Text = Strings.Common_OK, AutoSize = true, DialogResult = DialogResult.OK };
+            buttons.Controls.AddRange([cancel, accept]);
+            layout.Controls.Add(name);
+            layout.Controls.Add(buttons);
+            dialog.Controls.Add(layout);
+            dialog.AcceptButton = accept;
+            dialog.CancelButton = cancel;
+            dialog.ActiveControl = name;
+            return dialog.ShowDialog(this) == DialogResult.OK ? name.Text.Trim() : null;
+        }
 
         private void InitializeFilenameEncodingComboBox()
         {
@@ -1071,7 +1119,7 @@ namespace PangYa_Suite_Tools
 
         private async void FrmPakMaker_DragDrop(object? sender, DragEventArgs e)
         {
-            if (e.Data == null) return;
+            if (e.Data == null || _operationInProgress) return;
 
             if (e.Data.GetData(DataFormats.FileDrop) is string[] files && files.Length > 0)
             {
@@ -1081,6 +1129,7 @@ namespace PangYa_Suite_Tools
                     string firstPath = files[0];
                     if (File.Exists(firstPath) && firstPath.EndsWith(".pak", StringComparison.OrdinalIgnoreCase))
                     {
+                        if (!await ConfirmEndFileEditAsync()) return;
                         txtPakPath.Text = firstPath;
                         LoadPak(firstPath);
                     }
@@ -1109,11 +1158,13 @@ namespace PangYa_Suite_Tools
         }
 
         // ─── ABA 1: LEITURA E EXTRAÇÃO ─────────────────────────────────────────
-        private void btnBrowsePak_Click(object? sender, EventArgs e)
+        private async void btnBrowsePak_Click(object? sender, EventArgs e)
         {
+            if (_operationInProgress) return;
             using var openFileDialog = FileDialogFactory.CreatePakOpenDialog();
-            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            if (openFileDialog.ShowDialog(this) == DialogResult.OK)
             {
+                if (!await ConfirmEndFileEditAsync()) return;
                 FileDialogFactory.RememberDirectory(FileDialogKind.Pak, openFileDialog.FileName);
                 txtPakPath.Text = openFileDialog.FileName;
                 LoadPak(openFileDialog.FileName);
@@ -1143,13 +1194,12 @@ namespace PangYa_Suite_Tools
 
             try
             {
-                if (string.IsNullOrEmpty(txtPakPath.Text))
-                    txtPakPath.Text = path;
-
                 _currentReader?.Dispose();
                 var reader = new PakReader(path, filenameEncoding ?? SelectedFilenameEncoding, AppLogger.Instance);
                 _currentReader = reader;
+                _loadedArchiveStamp = PakFileEditSession.CaptureArchive(reader);
                 reader.Parse(forceKeys);
+                txtPakPath.Text = reader.ArchivePath;
                 _knownCompressionLevel = knownCompressionLevel;
                 UpdateUnusualNameDiagnostics(reader);
                 UpdateDisplayedPakKey();
@@ -1172,6 +1222,8 @@ namespace PangYa_Suite_Tools
                 BuildFolderTree();
                 AppLogger.Instance.Log("PAK Manager", $"Loaded '{path}' successfully with {reader.Entries.Count} entries.");
                 ShowUnusualNameWarning();
+                if (!_reloadingEditedPak && _fileEdit is { } session)
+                    EndStaleFileEdit(session);
             }
             catch (Exception ex)
             {
@@ -1179,6 +1231,7 @@ namespace PangYa_Suite_Tools
                 MessageBox.Show($"{Strings.PakMaker_ErrorOpeningPAKFile}\n{ex.Message}", Strings.PakMaker_Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 _currentReader?.Dispose();
                 _currentReader = null;
+                _loadedArchiveStamp = null;
                 _knownCompressionLevel = null;
                 UpdateDisplayedPakKey();
                 UpdateDisplayedCompressionLevel();
@@ -1245,7 +1298,8 @@ namespace PangYa_Suite_Tools
         /// </summary>
         private void TvFolders_NodeMouseClick(object? sender, TreeNodeMouseClickEventArgs e)
         {
-            tvFolders.SelectedNode = e.Node;
+            if (tvFolders.SelectedNode != e.Node)
+                tvFolders.SelectedNode = e.Node;
         }
 
         /// <summary>
@@ -1253,7 +1307,12 @@ namespace PangYa_Suite_Tools
         /// </summary>
         private async void TvFolders_KeyDown(object? sender, KeyEventArgs e)
         {
-            if (e.KeyCode == Keys.Delete)
+            if (e.KeyCode == Keys.F2)
+            {
+                e.SuppressKeyPress = true;
+                await RenameSelectedFolderAsync();
+            }
+            else if (e.KeyCode == Keys.Delete)
             {
                 e.Handled = true; // Evita bipes do Windows
                 await RemoveFolderFromTreeAsync();
@@ -1279,130 +1338,76 @@ namespace PangYa_Suite_Tools
                 ? Strings.PakMaker_PathAllFiles
                 : $"{Strings.PakMaker_Path} {folderTag.Replace('\\', '/')}";
 
-            txtSearch.Clear();
-            ApplyDisplayFilter();
-            foreach (ListViewItem item in lstEntries.Items) item.Selected = true;
-            UpdateToolbarEnabledState();
+            if (txtSearch.TextLength == 0)
+                ApplyDisplayFilter();
+            else
+                txtSearch.Clear(); // TextChanged refreshes the list.
             AppLogger.Instance.Log("PAK Manager",
                 $"Selected folder '{(string.IsNullOrEmpty(folderTag) ? "/" : folderTag)}' and {_scopedEntries.Count} files below it.");
         }
 
         private void LstEntries_ItemSelectionChanged(object? sender, ListViewItemSelectionChangedEventArgs e)
         {
-            UpdateToolbarEnabledState();
+            if (_selectionRefreshPending || !IsHandleCreated || IsDisposed || Disposing)
+                return;
+
+            // A range selection or a click after selecting a folder can notify once per row.
+            _selectionRefreshPending = true;
+            BeginInvoke(() =>
+            {
+                _selectionRefreshPending = false;
+                if (!IsDisposed && !Disposing)
+                    UpdateToolbarEnabledState();
+            });
         }
 
-        private async void TvFolders_AfterLabelEdit(object? sender, NodeLabelEditEventArgs e)
+        private async Task RenameSelectedFolderAsync()
         {
-            TreeNode? pendingFolderNode = _pendingFolderNode;
-            if (pendingFolderNode != null && ReferenceEquals(e.Node, pendingFolderNode))
+            if (_operationInProgress || _currentReader is not { IsPspArchive: false } ||
+                tvFolders.SelectedNode is not { Parent: not null, Tag: string path } node)
+                return;
+
+            string oldName = Path.GetFileName(path);
+            string? newName = PromptForArchiveName(Strings.PakMaker_RenameThisPAK, oldName);
+            if (newName == null || string.Equals(oldName, newName, StringComparison.Ordinal))
+                return;
+            if (!IsValidLeafFileName(newName))
             {
-                e.CancelEdit = true;
-                TreeNode pendingNode = pendingFolderNode;
-                _pendingFolderNode = null;
-
-                if (string.IsNullOrWhiteSpace(e.Label))
-                {
-                    TreeNode? parent = pendingNode.Parent;
-                    pendingNode.Remove();
-                    if (parent != null) tvFolders.SelectedNode = parent;
-                    return;
-                }
-
-                string folderName = e.Label.Trim();
-                if (!IsValidFolderLeafName(folderName))
-                {
-                    MessageBox.Show(Strings.PakMaker_InvalidFolderName,
-                        Strings.PakMaker_Warning, MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    pendingNode.Remove();
-                    return;
-                }
-
-                string parentPath = pendingNode.Parent?.Tag as string ?? RootFolderTag;
-                string targetPath = CombineArchiveFolders(parentPath, folderName);
-                bool siblingExists = pendingNode.Parent?.Nodes.Cast<TreeNode>()
-                    .Where(node => !ReferenceEquals(node, pendingNode))
-                    .Any(node => NormalizeArchiveFolder(node.Tag as string ?? string.Empty)
-                        .Equals(targetPath, StringComparison.OrdinalIgnoreCase)) == true;
-                if (siblingExists)
-                {
-                    MessageBox.Show(Strings.PakMaker_FolderAlreadyExists,
-                        Strings.PakMaker_Warning, MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    pendingNode.Remove();
-                    return;
-                }
-
-                pendingNode.Text = "📁 " + folderName;
-                pendingNode.Tag = targetPath;
-                await CreateFolderInCurrentPakAsync(targetPath);
+                ShowFileMessage(Strings.PakMaker_InvalidFolderName);
                 return;
             }
 
-            // Se o usuário cancelou a digitação ou enviou vazio, ignora
-            if (string.IsNullOrWhiteSpace(e.Label) || _currentReader == null)
-            {
-                e.CancelEdit = true;
-                return;
-            }
-
-            string newName = e.Label.Trim();
-
-            // Valida caracteres proibidíssimos que quebrariam a indexação do PAK
-            if (newName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0 || newName.Contains("/") || newName.Contains("\\"))
-            {
-                MessageBox.Show(Strings.PakMaker_Error, Strings.PakMaker_Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
-                e.CancelEdit = true;
-                return;
-            }
-
-            TreeNode? node = e.Node;
-            if (node == null)
-            {
-                e.CancelEdit = true;
-                return;
-            }
-
-            // Evita renomear o nó raiz principal caso ele esteja selecionado
-            if (node.Parent == null && (node.Tag?.ToString() == "" || node.FullPath == ""))
-            {
-                e.CancelEdit = true;
-                return;
-            }
-
-            // Cancela o comportamento visual padrão do WinForms porque nossa função 
-            // própria já reconstrói e recarrega toda a árvore de forma limpa direto do disco
-            e.CancelEdit = true;
-
-            // Dispara a nossa assinatura dedicada
             await ExecuteItemRename(node, newName);
         }
 
-        private void BeginCreateFolder()
+        private async Task PromptForNewFolderAsync()
         {
-            if (_currentReader == null || string.IsNullOrEmpty(txtPakPath.Text) || !File.Exists(txtPakPath.Text))
+            if (_operationInProgress || _currentReader?.IsPspArchive == true)
+                return;
+            if (_currentReader == null || !File.Exists(txtPakPath.Text))
             {
-                MessageBox.Show(Strings.PakMaker_SelectAnActivePakFileFirst,
-                    Strings.PakMaker_Warning, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                ShowFileMessage(Strings.PakMaker_SelectAnActivePakFileFirst);
                 return;
             }
 
-            if (_pendingFolderNode != null)
+            string? folderName = PromptForArchiveName(Strings.PakMaker_CreateFolder, Strings.PakMaker_NewFolderDefaultName);
+            if (folderName == null)
+                return;
+            if (!IsValidLeafFileName(folderName))
             {
-                _pendingFolderNode.Remove();
-                _pendingFolderNode = null;
+                ShowFileMessage(Strings.PakMaker_InvalidFolderName);
+                return;
             }
 
-            TreeNode parent = tvFolders.SelectedNode ?? tvFolders.Nodes[0];
-            var node = new TreeNode(Strings.PakMaker_NewFolderDefaultName)
+            TreeNode? parent = tvFolders.SelectedNode;
+            string targetPath = CombineArchiveFolders(parent?.Tag as string ?? RootFolderTag, folderName);
+            if (FindFolderNode(targetPath) != null)
             {
-                Tag = CombineArchiveFolders(parent.Tag as string ?? RootFolderTag,
-                    Strings.PakMaker_NewFolderDefaultName)
-            };
-            parent.Nodes.Add(node);
-            parent.Expand();
-            _pendingFolderNode = node;
-            tvFolders.SelectedNode = node;
-            node.BeginEdit();
+                ShowFileMessage(Strings.PakMaker_FolderAlreadyExists);
+                return;
+            }
+
+            await CreateFolderInCurrentPakAsync(targetPath);
         }
 
         private async Task CreateFolderInCurrentPakAsync(string targetPath)
@@ -1467,14 +1472,6 @@ namespace PangYa_Suite_Tools
                     .Equals(normalized, StringComparison.OrdinalIgnoreCase));
         }
 
-        private static bool IsValidFolderLeafName(string name) =>
-            !string.IsNullOrWhiteSpace(name) &&
-            string.Equals(name, name.Trim(), StringComparison.Ordinal) &&
-            name is not "." and not ".." &&
-            !name.Contains('/') &&
-            !name.Contains('\\') &&
-            name.IndexOfAny(Path.GetInvalidFileNameChars()) < 0;
-
         private void UpdateChildNodeTags(TreeNode parentNode, string newPrefix)
         {
             foreach (TreeNode child in parentNode.Nodes)
@@ -1489,14 +1486,6 @@ namespace PangYa_Suite_Tools
                 }
             }
         } 
-
-        private void tvFolders_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.KeyCode == Keys.F2 && tvFolders.SelectedNode != null)
-            {
-                tvFolders.SelectedNode.BeginEdit();
-            }
-        }
 
         /// <summary>
         /// Executa a lógica de remoção da pasta atualmente selecionada na TreeView.
@@ -1843,16 +1832,19 @@ namespace PangYa_Suite_Tools
                 bool hasLoadedPak = _currentReader != null;
                 bool canUsePak = hasLoadedPak && !_operationInProgress;
                 bool canEditMetadata = canUsePak && _currentReader?.IsPspArchive != true;
-                bool hasSelection = lstEntries.SelectedItems.Count > 0;
-                bool hasSingleSelection = lstEntries.SelectedItems.Count == 1;
-
+                int selectedCount = lstEntries.SelectedItems.Count;
+                bool hasSelection = selectedCount > 0;
+                bool hasSingleSelection = selectedCount == 1;
                 foreach (ToolStripItem item in _requiresLoadedPakToolbarItems)
                     item.Enabled = canUsePak;
+                UpdateFileActions(hasSingleSelection);
 
                 if (_toolbarNewPak != null) _toolbarNewPak.Enabled = !_operationInProgress;
+                btnBrowsePak.Enabled = !_operationInProgress;
                 if (_toolbarBatchExtract != null) _toolbarBatchExtract.Enabled = !_operationInProgress;
                 btnBatchExtract.Enabled = !_operationInProgress;
-                if (_toolbarExtractSelected != null) _toolbarExtractSelected.Enabled = canUsePak && hasSelection;
+                if (_toolbarExtractSelected != null)
+                    _toolbarExtractSelected.Enabled = canUsePak && (hasSelection || tvFolders.SelectedNode != null);
                 if (_toolbarRenameSelected != null) _toolbarRenameSelected.Enabled = canEditMetadata && hasSingleSelection;
                 if (_toolbarRemoveSelected != null) _toolbarRemoveSelected.Enabled = canEditMetadata && hasSelection;
                 if (_toolbarEditPakSettings != null) _toolbarEditPakSettings.Enabled = canEditMetadata;

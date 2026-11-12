@@ -1155,4 +1155,85 @@ IFFファイルのディレクトリを選択してください。</value>
   <data name="UiEditor_StartupWallpaper" xml:space="preserve"><value>起動時の壁紙</value></data>
   <data name="IFFManager_RegionPsp" xml:space="preserve"><value>PSP</value></data>
   <data name="UiEditor_OpenReference" xml:space="preserve"><value>参照ファイルを新しいウィンドウで開く</value></data>
+  <data name="PakFile_Preview" xml:space="preserve">
+    <value>プレビュー</value>
+  </data>
+  <data name="PakFile_Edit" xml:space="preserve">
+    <value>編集</value>
+  </data>
+  <data name="PakFile_StopEdit" xml:space="preserve">
+    <value>編集の監視を終了</value>
+  </data>
+  <data name="PakFile_PreviewUnavailable" xml:space="preserve">
+    <value>このファイルをプレビューできません。{0}</value>
+  </data>
+  <data name="PakFile_PreviewLimit" xml:space="preserve">
+    <value>ファイルがプレビューのサイズ上限を超えています。</value>
+  </data>
+  <data name="PakFile_UpdateTitle" xml:space="preserve">
+    <value>PAK を更新</value>
+  </data>
+  <data name="PakFile_KeepEditing" xml:space="preserve">
+    <value>編集を続ける</value>
+  </data>
+  <data name="PakFile_UpdateRevision" xml:space="preserve">
+    <value>「{0}」の保存済みの変更を PAK に反映しますか？</value>
+  </data>
+  <data name="PakFile_EditFailed" xml:space="preserve">
+    <value>「{0}」を編集または更新できませんでした。{1}</value>
+  </data>
+  <data name="PakFile_ArchiveChanged" xml:space="preserve">
+    <value>編集中にアーカイブが変更されました。作業用コピーは {0} に保持されました。</value>
+  </data>
+  <data name="PakFile_ConfirmStop" xml:space="preserve">
+    <value>保存の監視を終了しますか？未反映の変更は {0} に保持されます。</value>
+  </data>
+  <data name="PakFile_EditWatching" xml:space="preserve">
+    <value>「{0}」の保存を監視しています。</value>
+  </data>
+  <data name="PakFile_PspEditSize" xml:space="preserve">
+    <value>PSP の項目は同じサイズ（{0} バイト）である必要があります。修正して保存し直してください。</value>
+  </data>
+  <data name="PakFile_PreviewReset" xml:space="preserve">
+    <value>表示をリセット</value>
+  </data>
+  <data name="PakFile_PreviewNoMesh" xml:space="preserve">
+    <value>この Puppet ファイルにはメッシュがありません。セクション：{0}</value>
+  </data>
+  <data name="PakFile_PreviewMissingTextures" xml:space="preserve">
+    <value>一部のテクスチャを表示できませんでした。</value>
+  </data>
+  <data name="PakFile_PreviewAuto" xml:space="preserve">
+    <value>自動</value>
+  </data>
+  <data name="PakFile_ArchiveReload" xml:space="preserve">
+    <value>ディスク上のアーカイブが変更されました。編集する前に開き直してください。</value>
+  </data>
+  <data name="PakFile_TextEncoding" xml:space="preserve">
+    <value>テキストの文字コード</value>
+  </data>
+  <data name="PakFile_Reopen" xml:space="preserve">
+    <value>ファイルを開き直す</value>
+  </data>
+  <data name="PakFile_AudioPlay" xml:space="preserve">
+    <value>再生</value>
+  </data>
+  <data name="PakFile_AudioPause" xml:space="preserve">
+    <value>一時停止</value>
+  </data>
+  <data name="PakFile_AudioStop" xml:space="preserve">
+    <value>停止</value>
+  </data>
+  <data name="PakFile_AxisLockHint" xml:space="preserve">
+    <value>X、Y、Z キーで回転軸を固定</value>
+  </data>
+  <data name="PakFile_AxisLocked" xml:space="preserve">
+    <value>{0} 軸に固定中 · {0} キーで解除</value>
+  </data>
+  <data name="PakFile_AxisDragHorizontal" xml:space="preserve">
+    <value>{0} 軸に固定中 · 左右にドラッグ</value>
+  </data>
+  <data name="PakFile_AxisDragVertical" xml:space="preserve">
+    <value>X 軸に固定中 · 上下にドラッグ</value>
+  </data>
 </root>

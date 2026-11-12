@@ -96,8 +96,13 @@ namespace PangYa_Suite_Tools
             if (hideMenu) Hide();
             tool.FormClosed += (_, _) =>
             {
-                tool.Dispose();
-                if (hideMenu && !IsDisposed) Show();
+                if (hideMenu && !IsDisposed && !Disposing)
+                {
+                    // Paint the menu before the modeless form disposes its controls.
+                    tool.Hide();
+                    Show();
+                    Refresh();
+                }
             };
             tool.Show();
         }

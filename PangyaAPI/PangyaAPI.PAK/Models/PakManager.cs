@@ -24,6 +24,37 @@ public readonly record struct PakInjectItem(string SourcePath, string? RelativeF
 
 public static class PakManager
 {
+    /// <summary>Replaces a single file at its position in the parsed archive.</summary>
+    public static void ReplaceEntry(PakReader reader, int ordinal, string sourcePath,
+        PakRebuildOptions options, Action<string>? log = null, Action<int, int>? onProgress = null,
+        CancellationToken cancellationToken = default, Action? validateDestination = null)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(ordinal);
+        ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(ordinal, reader.Entries.Count);
+        PakFileEntry entry = reader.Entries[ordinal];
+        if (entry.Type == PakFileEntryType.Directory)
+            throw new ArgumentException("The selected entry is a directory.", nameof(ordinal));
+
+        cancellationToken.ThrowIfCancellationRequested();
+        if (reader.IsPspArchive)
+        {
+            PspPakArchive.ReplaceEntries(reader.ArchivePath, new Dictionary<int, string> { [ordinal] = sourcePath },
+                onProgress, false, cancellationToken, validateDestination);
+            return;
+        }
+
+        var source = new FileInfo(sourcePath);
+        var items = reader.Entries.Select((candidate, index) =>
+        {
+            PakWriter.BuildItem item = index == ordinal
+                ? SourceItem(source, entry.Name) with { ExistingType = entry.Type }
+                : ExistingBuildItem(reader, candidate, candidate.Name);
+            return item with { OriginalName = candidate.NameRaw };
+        }).ToList();
+        Rebuild(reader.ArchivePath, reader, items, options, log, onProgress, false,
+            cancellationToken, preserveExistingPayloadTypes: true, validateDestination: validateDestination);
+    }
+
     public static string FindExistingRelativeFolder(PakReader reader, string fileName)
     {
         PakFileEntry? match = reader.Entries.FirstOrDefault(entry =>
@@ -335,7 +366,8 @@ public static class PakManager
                                 Action<int, int>? onProgress, bool saveBackup,
                                 CancellationToken cancellationToken,
                                 bool preserveExistingPayloadTypes = false,
-                                bool reuseExistingCompressedPayloads = true)
+                                bool reuseExistingCompressedPayloads = true,
+                                Action? validateDestination = null)
     {
         if (reader.IsPspArchive)
             throw new NotSupportedException("Use file injection to replace existing PSP PAK payloads.");
@@ -364,13 +396,14 @@ public static class PakManager
                 validationReader.Parse(options.EntryVersion == PakFileEntryVersion.V3 ? options.LocationKeys : null);
 
             cancellationToken.ThrowIfCancellationRequested();
-            reader.Dispose();
+            validateDestination?.Invoke();
             if (saveBackup)
             {
                 if (File.Exists(backup)) File.Delete(backup);
                 File.Copy(destination, backup);
             }
             PakWriter.PromoteCandidate(candidate, destination);
+            reader.Dispose();
             log?.Invoke("PAK reconstruído com sucesso.");
         }
         finally

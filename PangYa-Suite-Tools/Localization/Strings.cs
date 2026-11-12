@@ -8,6 +8,34 @@ internal static class Strings
     internal static readonly ResourceManager ResourceManager = new("PangYa_Suite_Tools.Localization.Strings", typeof(Strings).Assembly);
     internal static CultureInfo? Culture { get; set; }
 
+    public static string PakFile_Preview => ResourceManager.GetString(nameof(PakFile_Preview), Culture) ?? "";
+    public static string PakFile_AxisLockHint => ResourceManager.GetString(nameof(PakFile_AxisLockHint), Culture) ?? "";
+    public static string PakFile_AxisLocked => ResourceManager.GetString(nameof(PakFile_AxisLocked), Culture) ?? "";
+    public static string PakFile_AxisDragHorizontal => ResourceManager.GetString(nameof(PakFile_AxisDragHorizontal), Culture) ?? "";
+    public static string PakFile_AxisDragVertical => ResourceManager.GetString(nameof(PakFile_AxisDragVertical), Culture) ?? "";
+    public static string PakFile_AudioPlay => ResourceManager.GetString(nameof(PakFile_AudioPlay), Culture) ?? "";
+    public static string PakFile_AudioPause => ResourceManager.GetString(nameof(PakFile_AudioPause), Culture) ?? "";
+    public static string PakFile_AudioStop => ResourceManager.GetString(nameof(PakFile_AudioStop), Culture) ?? "";
+    public static string PakFile_ArchiveReload => ResourceManager.GetString(nameof(PakFile_ArchiveReload), Culture) ?? "";
+    public static string PakFile_PreviewAuto => ResourceManager.GetString(nameof(PakFile_PreviewAuto), Culture) ?? "";
+    public static string PakFile_TextEncoding => ResourceManager.GetString(nameof(PakFile_TextEncoding), Culture) ?? "";
+    public static string PakFile_Edit => ResourceManager.GetString(nameof(PakFile_Edit), Culture) ?? "";
+    public static string PakFile_StopEdit => ResourceManager.GetString(nameof(PakFile_StopEdit), Culture) ?? "";
+    public static string PakFile_Reopen => ResourceManager.GetString(nameof(PakFile_Reopen), Culture) ?? "";
+    public static string PakFile_PreviewUnavailable => ResourceManager.GetString(nameof(PakFile_PreviewUnavailable), Culture) ?? "";
+    public static string PakFile_PreviewLimit => ResourceManager.GetString(nameof(PakFile_PreviewLimit), Culture) ?? "";
+    public static string PakFile_UpdateTitle => ResourceManager.GetString(nameof(PakFile_UpdateTitle), Culture) ?? "";
+    public static string PakFile_KeepEditing => ResourceManager.GetString(nameof(PakFile_KeepEditing), Culture) ?? "";
+    public static string PakFile_UpdateRevision => ResourceManager.GetString(nameof(PakFile_UpdateRevision), Culture) ?? "";
+    public static string PakFile_EditFailed => ResourceManager.GetString(nameof(PakFile_EditFailed), Culture) ?? "";
+    public static string PakFile_ArchiveChanged => ResourceManager.GetString(nameof(PakFile_ArchiveChanged), Culture) ?? "";
+    public static string PakFile_ConfirmStop => ResourceManager.GetString(nameof(PakFile_ConfirmStop), Culture) ?? "";
+    public static string PakFile_EditWatching => ResourceManager.GetString(nameof(PakFile_EditWatching), Culture) ?? "";
+    public static string PakFile_PspEditSize => ResourceManager.GetString(nameof(PakFile_PspEditSize), Culture) ?? "";
+    public static string PakFile_PreviewReset => ResourceManager.GetString(nameof(PakFile_PreviewReset), Culture) ?? "";
+    public static string PakFile_PreviewNoMesh => ResourceManager.GetString(nameof(PakFile_PreviewNoMesh), Culture) ?? "";
+    public static string PakFile_PreviewMissingTextures => ResourceManager.GetString(nameof(PakFile_PreviewMissingTextures), Culture) ?? "";
+
     public static string IFFManager_ReadySelectTheIFFFilesDirectory => ResourceManager.GetString(nameof(IFFManager_ReadySelectTheIFFFilesDirectory), Culture) ?? "";
     public static string IFFManager_SelectAnIffFileFromThe => ResourceManager.GetString(nameof(IFFManager_SelectAnIffFileFromThe), Culture) ?? "";
     public static string IFFManager_SelectTheExtractedFolderContainingThe => ResourceManager.GetString(nameof(IFFManager_SelectTheExtractedFolderContainingThe), Culture) ?? "";
